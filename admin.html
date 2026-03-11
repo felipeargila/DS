@@ -750,6 +750,7 @@
             padding: 40px;
             color: white;
             font-size: 18px;
+            display: none;
         }
         
         .error-message {
@@ -867,7 +868,7 @@
                 </select>
             </div>
             
-            <div id="loading" class="loading" style="display: none;">
+            <div id="loading" class="loading">
                 Carregando dados...
             </div>
             
@@ -1195,7 +1196,9 @@
                 
                 renderizarKanbans();
                 initDragAndDrop();
-                carregarRelatorios();
+                if (usuarioAtual.tipo === 'master') {
+                    carregarRelatorios();
+                }
             } catch (erro) {
                 console.error('Erro ao carregar dados:', erro);
                 mostrarErro();
@@ -1383,7 +1386,7 @@
                         <strong>Material:</strong> ${card.material || '---'}<br>
                         <strong>Data:</strong> ${card.dataCriacao || '---'}
                     </div>
-                    ${totalArquivos > 0 ? `<div class="card-files" onclick="verArquivos('${card.id}', 'cotacao')">📎 ${totalArquivos} arquivo(s)</div>` : ''}
+                    ${totalArquivos > 0 ? `<div class="card-files" onclick="visualizarCard('${card.id}', 'cotacao')">📎 ${totalArquivos} arquivo(s)</div>` : ''}
                     ${usuarioAtual.tipo === 'master' ? `<div class="vendedor-badge">${vendedorNome}</div>` : ''}
                     <div class="card-actions">
                         <button class="btn-small edit" onclick="editarCard('${card.id}', 'cotacao')">EDITAR</button>
@@ -1517,8 +1520,7 @@
                 return;
             }
             
-            mostrarLoading(true);
-            
+            // Sem loading pesado - atualização direta
             try {
                 const headers = { 
                     'Content-Type': 'application/json',
@@ -1547,12 +1549,27 @@
                     }
                 }
                 
-                await carregarDados();
+                // Atualizar apenas os dados, sem recarregar tudo
+                if (tipo === 'cotacao') {
+                    const index = cotacoes.findIndex(c => c.id === cardId);
+                    if (index !== -1) cotacoes[index].status = novaColuna;
+                } else {
+                    const index = visitas.findIndex(v => v.id === cardId);
+                    if (index !== -1) visitas[index].status = novaColuna;
+                }
+                
+                // Renderizar apenas a coluna afetada (otimizado)
+                if (tipo === 'cotacao') {
+                    renderizarKanbanCotacoes();
+                } else {
+                    renderizarKanbanVisitas();
+                }
+                initDragAndDrop();
+                
             } catch (erro) {
                 console.error('Erro ao mover card:', erro);
                 alert('Erro ao mover card. Tente novamente.');
-            } finally {
-                mostrarLoading(false);
+                await carregarDados(); // fallback
             }
         }
         
@@ -1756,8 +1773,6 @@
         }
         
         async function mudarStatus(id, tipo, novoStatus) {
-            mostrarLoading(true);
-            
             try {
                 const headers = { 
                     'Content-Type': 'application/json',
@@ -1773,6 +1788,9 @@
                             headers,
                             body: JSON.stringify(card)
                         });
+                        // Atualizar localmente
+                        const index = cotacoes.findIndex(c => c.id === id);
+                        if (index !== -1) cotacoes[index].status = novoStatus;
                     }
                 } else {
                     const card = visitas.find(v => v.id === id);
@@ -1783,28 +1801,27 @@
                             headers,
                             body: JSON.stringify(card)
                         });
+                        const index = visitas.findIndex(v => v.id === id);
+                        if (index !== -1) visitas[index].status = novoStatus;
                     }
                 }
                 
                 fecharModal();
-                await carregarDados();
+                if (tipo === 'cotacao') {
+                    renderizarKanbanCotacoes();
+                } else {
+                    renderizarKanbanVisitas();
+                }
+                initDragAndDrop();
             } catch (erro) {
                 console.error('Erro ao mudar status:', erro);
                 alert('Erro ao mudar status');
-            } finally {
-                mostrarLoading(false);
+                await carregarDados();
             }
-        }
-        
-        // ========== FUNÇÕES DE EDIÇÃO ==========
-        function editarCard(id, tipo) {
-            alert('Função de edição será implementada em breve');
         }
         
         // ========== FUNÇÕES DE ARQUIVAMENTO ==========
         async function arquivarCard(id, tipo) {
-            mostrarLoading(true);
-            
             try {
                 let dados;
                 if (tipo === 'cotacao') {
@@ -1828,18 +1845,14 @@
                 });
                 
                 fecharModal();
-                await carregarDados();
+                await carregarDados(); // recarregar tudo para consistência
             } catch (erro) {
                 console.error('Erro ao arquivar:', erro);
                 alert('Erro ao arquivar');
-            } finally {
-                mostrarLoading(false);
             }
         }
         
         async function restaurarArquivado(id, tipo) {
-            mostrarLoading(true);
-            
             try {
                 await fetch(`${API_URL}/api/arquivados/${id}`, {
                     method: 'DELETE',
@@ -1851,8 +1864,6 @@
             } catch (erro) {
                 console.error('Erro ao restaurar:', erro);
                 alert('Erro ao restaurar');
-            } finally {
-                mostrarLoading(false);
             }
         }
         
@@ -1874,8 +1885,6 @@
         }
         
         async function excluirCard(id, tipo) {
-            mostrarLoading(true);
-            
             try {
                 await fetch(`${API_URL}/api/${tipo === 'cotacao' ? 'cotacoes' : 'visitas'}/${id}`, {
                     method: 'DELETE',
@@ -1888,14 +1897,10 @@
             } catch (erro) {
                 console.error('Erro ao excluir:', erro);
                 alert('Erro ao excluir');
-            } finally {
-                mostrarLoading(false);
             }
         }
         
         async function excluirArquivado(id, tipo) {
-            mostrarLoading(true);
-            
             try {
                 await fetch(`${API_URL}/api/arquivados/${id}`, {
                     method: 'DELETE',
@@ -1908,8 +1913,6 @@
             } catch (erro) {
                 console.error('Erro ao excluir:', erro);
                 alert('Erro ao excluir');
-            } finally {
-                mostrarLoading(false);
             }
         }
         
@@ -1930,6 +1933,54 @@
         function abrirModalNovaVisita() {
             alert('Função de nova visita será implementada em breve');
             fecharModalSelecao();
+        }
+        
+        // ========== FUNÇÃO CRIAR VISITA (CORRIGIDA) ==========
+        async function criarVisita(id) {
+            const cotacao = cotacoes.find(c => c.id === id);
+            if (!cotacao) {
+                alert('Cotação não encontrada');
+                return;
+            }
+            
+            try {
+                const novaVisita = {
+                    id: 'VIS' + Date.now(),
+                    cotacaoId: id,
+                    vendedorId: usuarioAtual.id,
+                    empresa: cotacao.empresa,
+                    endereco: '',
+                    contato: cotacao.contato,
+                    telefone: cotacao.telefone,
+                    status: 'Agendar Mapeamento',
+                    dataVisita: '',
+                    tecnico: '',
+                    observacoes: '',
+                    dataCriacao: new Date().toISOString().split('T')[0]
+                };
+                
+                const resposta = await fetch(`${API_URL}/api/visitas`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(novaVisita)
+                });
+                
+                const dados = await resposta.json();
+                
+                if (dados.sucesso) {
+                    alert('Visita técnica agendada com sucesso!');
+                    await carregarDados();
+                    mudarAba('visitas');
+                } else {
+                    alert('Erro ao criar visita: ' + dados.erro);
+                }
+            } catch (erro) {
+                console.error('Erro ao criar visita:', erro);
+                alert('Erro ao criar visita. Tente novamente.');
+            }
         }
         
         // ========== FUNÇÕES DE VENDEDORES ==========
@@ -2175,12 +2226,9 @@
             document.getElementById('confirmModal').classList.remove('active');
         }
         
-        function verArquivos(id, tipo) {
-            visualizarCard(id, tipo);
-        }
-        
-        async function criarVisita(id) {
-            alert('Função de criar visita será implementada em breve');
+        // Função editarCard placeholder
+        function editarCard(id, tipo) {
+            alert('Função de edição será implementada em breve');
         }
     </script>
 </body>
