@@ -122,7 +122,8 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .user-name {
@@ -141,15 +142,33 @@
             text-transform: uppercase;
         }
         
+        .btn-senha {
+            background: #b7ab97;
+            color: #283944;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        
+        .btn-senha:hover {
+            background: #a59984;
+        }
+        
         .logout-btn {
             background: transparent;
             border: 2px solid #b7ab97;
             color: #b7ab97;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
+            font-size: 12px;
         }
         
         .logout-btn:hover {
@@ -872,6 +891,7 @@
                 <div class="user-info">
                     <span class="user-name" id="userNameDisplay"></span>
                     <span class="user-badge" id="userTypeDisplay"></span>
+                    <button class="btn-senha" onclick="abrirModalAlterarSenha()">🔑 MINHA SENHA</button>
                     <button class="logout-btn" onclick="logout()">SAIR</button>
                 </div>
             </header>
@@ -1114,32 +1134,6 @@
             }
         }
         
-        // ========== AUTO-RELOAD ==========
-        function toggleAutoReload() {
-            const toggle = document.getElementById('autoReloadToggle');
-            const status = document.getElementById('autoReloadStatus');
-            
-            if (toggle.checked) {
-                status.innerHTML = '● Ativado (10s)';
-                status.style.color = '#28a745';
-                
-                if (autoReloadInterval) clearInterval(autoReloadInterval);
-                autoReloadInterval = setInterval(() => {
-                    if (usuarioAtual) {
-                        carregarDados();
-                        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-                    }
-                }, 10000);
-            } else {
-                status.innerHTML = '● Desativado';
-                status.style.color = '#dc3545';
-                if (autoReloadInterval) {
-                    clearInterval(autoReloadInterval);
-                    autoReloadInterval = null;
-                }
-            }
-        }
-        
         // ========== LOGIN ==========
         function mostrarLogin() {
             document.getElementById('loginContainer').style.display = 'block';
@@ -1226,6 +1220,7 @@
                         <td>${v.ativo ? 'Ativo' : 'Inativo'}</td>
                         <td>
                             <button class="btn-small" onclick="editarVendedor('${v.id}')">EDITAR</button>
+                            <button class="btn-small" onclick="abrirModalAlterarSenha('${v.id}')">SENHA</button>
                             ${v.tipo !== 'master' ? '<button class="btn-small delete" onclick="excluirVendedor(\'' + v.id + '\')">EXCLUIR</button>' : ''}
                         </td>
                     </tr>`;
@@ -1240,6 +1235,64 @@
         function aplicarFiltro() {
             filtroAtivo = document.getElementById('filtroVendedor').value;
             renderizarKanbans();
+        }
+        
+        // ========== AUTO-RELOAD SILENCIOSO ==========
+        function toggleAutoReload() {
+            const toggle = document.getElementById('autoReloadToggle');
+            const status = document.getElementById('autoReloadStatus');
+            
+            if (toggle.checked) {
+                status.innerHTML = '● Ativado (10s)';
+                status.style.color = '#28a745';
+                
+                if (autoReloadInterval) clearInterval(autoReloadInterval);
+                autoReloadInterval = setInterval(() => {
+                    if (usuarioAtual) {
+                        carregarDadosSilencioso();
+                        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    }
+                }, 10000);
+            } else {
+                status.innerHTML = '● Desativado';
+                status.style.color = '#dc3545';
+                if (autoReloadInterval) {
+                    clearInterval(autoReloadInterval);
+                    autoReloadInterval = null;
+                }
+            }
+        }
+        
+        // Versão silenciosa do carregarDados (sem mostrar loading)
+        async function carregarDadosSilencioso() {
+            try {
+                const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+                
+                const respCotacoes = await fetch(`${API_URL}/api/cotacoes`, { headers });
+                cotacoes = await respCotacoes.json();
+                
+                const respVisitas = await fetch(`${API_URL}/api/visitas`, { headers });
+                visitas = await respVisitas.json();
+                
+                const respArquivados = await fetch(`${API_URL}/api/arquivados`, { headers });
+                const arquivadosRaw = await respArquivados.json();
+                
+                arquivados = arquivadosRaw.map(item => ({
+                    ...item,
+                    ...JSON.parse(item.dados || '{}'),
+                    tipo: item.tipo,
+                    dataArquivamento: item.dataArquivamento,
+                    motivo: item.motivo
+                }));
+                
+                renderizarKanbans();
+                initDragAndDrop();
+                if (usuarioAtual.tipo === 'master') {
+                    carregarRelatorios();
+                }
+            } catch (erro) {
+                console.error('Erro no auto-reload:', erro);
+            }
         }
         
         // ========== CARREGAR DADOS PRINCIPAIS ==========
@@ -2616,6 +2669,81 @@
             } catch (erro) {
                 console.error('Erro ao excluir vendedor:', erro);
                 alert('Erro ao excluir vendedor');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+        
+        // ========== ALTERAR SENHA ==========
+        function abrirModalAlterarSenha(vendedorId = null) {
+            const modal = document.getElementById('editModal');
+            const modalTitle = document.getElementById('editModalTitle');
+            const modalBody = document.getElementById('editModalBody');
+            const modalFooter = document.getElementById('editModalFooter');
+            
+            const isMaster = usuarioAtual.tipo === 'master';
+            const vendedor = vendedorId ? vendedores.find(v => v.id === vendedorId) : usuarioAtual;
+            
+            if (!vendedor) return;
+            
+            modalTitle.textContent = vendedorId ? `ALTERAR SENHA: ${vendedor.nome}` : 'MINHA SENHA';
+            
+            modalBody.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item full-width">
+                        <div class="info-label">VENDEDOR</div>
+                        <div class="info-value">${vendedor.nome} (${vendedor.login})</div>
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">NOVA SENHA *</div>
+                        <input type="password" id="novaSenha" class="info-value" placeholder="Digite a nova senha">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">CONFIRMAR SENHA *</div>
+                        <input type="password" id="confirmarSenha" class="info-value" placeholder="Digite novamente">
+                    </div>
+                </div>
+            `;
+            
+            modalFooter.innerHTML = `
+                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
+                <button class="btn-small success" onclick="salvarNovaSenha('${vendedor.id}')">SALVAR</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        async function salvarNovaSenha(vendedorId) {
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+            
+            if (!novaSenha || novaSenha.length < 4) {
+                alert('A senha deve ter pelo menos 4 caracteres');
+                return;
+            }
+            
+            if (novaSenha !== confirmarSenha) {
+                alert('As senhas não conferem');
+                return;
+            }
+            
+            mostrarLoading(true);
+            
+            try {
+                await fetch(`${API_URL}/api/vendedores/${vendedorId}/senha`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ senha: novaSenha })
+                });
+                
+                fecharEditModal();
+                alert('Senha alterada com sucesso!');
+            } catch (erro) {
+                console.error('Erro ao alterar senha:', erro);
+                alert('Erro ao alterar senha');
             } finally {
                 mostrarLoading(false);
             }
