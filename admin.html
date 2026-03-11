@@ -35,6 +35,8 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+            gap: 20px;
         }
         
         .logo-area {
@@ -53,6 +55,38 @@
             font-size: 24px;
             font-weight: 600;
             letter-spacing: 0.5px;
+        }
+        
+        .tab-menu {
+            display: flex;
+            gap: 10px;
+            background: #f0f0f0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .tab-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: transparent;
+            color: #283944;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: #b7ab97;
+            color: #283944;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: #e0e0e0;
         }
         
         .header-actions {
@@ -95,15 +129,12 @@
             color: #283944;
         }
         
-        .section-title {
-            margin: 40px 0 20px;
-            color: white;
-            font-size: 20px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            border-bottom: 2px solid #b7ab97;
-            padding-bottom: 10px;
+        .kanban-section {
+            display: none;
+        }
+        
+        .kanban-section.active {
+            display: block;
         }
         
         .kanban-container {
@@ -155,10 +186,18 @@
             padding: 15px;
             margin-bottom: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            cursor: move;
             transition: all 0.3s;
             border-left: 4px solid;
             position: relative;
+        }
+        
+        .card.draggable {
+            cursor: move;
+        }
+        
+        .card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
         }
         
         .card:hover {
@@ -169,13 +208,41 @@
         .card-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
+        }
+        
+        .drag-handle {
+            color: #b7ab97;
+            font-size: 18px;
+            cursor: move;
+            user-select: none;
+            padding: 0 5px;
         }
         
         .card-id {
             font-size: 12px;
             color: #999;
             font-weight: 300;
+        }
+        
+        .card-actions-top {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .icon-btn:hover {
+            background: #f0f0f0;
         }
         
         .card-company {
@@ -273,7 +340,7 @@
             background: white;
             border-radius: 4px;
             padding: 30px;
-            max-width: 600px;
+            max-width: 700px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -285,6 +352,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #b7ab97;
         }
         
         .modal-header h2 {
@@ -304,80 +373,99 @@
             color: #283944;
         }
         
-        .formatting-toolbar {
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 4px 4px 0 0;
-            display: flex;
-            gap: 10px;
-            border: 1px solid #ddd;
-            border-bottom: none;
+        .modal-body {
+            margin-bottom: 20px;
         }
         
-        .format-btn {
-            padding: 5px 12px;
-            border: none;
-            background: white;
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            background: #f9f9f9;
+            padding: 12px;
             border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
+            border-left: 3px solid #b7ab97;
+        }
+        
+        .info-item.full-width {
+            grid-column: span 2;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 15px;
             color: #283944;
-            border: 1px solid #ddd;
-            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 500;
+            word-break: break-word;
         }
         
-        .format-btn:hover {
-            background: #b7ab97;
-            color: white;
-            border-color: #b7ab97;
+        .files-list {
+            margin-top: 15px;
         }
         
-        .rich-textarea {
-            width: 100%;
-            min-height: 200px;
+        .file-item {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-name {
+            color: #283944;
+            font-weight: 500;
+        }
+        
+        .file-size {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .status-selector {
+            margin: 20px 0;
             padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 0 0 4px 4px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .status-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #283944;
+            font-weight: 500;
+        }
+        
+        .status-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
             font-family: 'Chakra Petch', sans-serif;
             font-size: 14px;
-            resize: vertical;
+        }
+        
+        .status-selector select:focus {
+            border-color: #b7ab97;
+            outline: none;
         }
         
         .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 15px;
-            margin-top: 25px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #283944;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: 'Chakra Petch', sans-serif;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: #b7ab97;
-            outline: none;
+            margin-top: 20px;
         }
         
         .empty-state {
@@ -407,39 +495,70 @@
                 <img src="https://maqcare.dsindustria.com.br/wp-content/uploads/2026/03/LOGO.png" alt="Logo Maqcare">
                 <h1>PAINEL ADMINISTRATIVO</h1>
             </div>
+            
+            <div class="tab-menu">
+                <button class="tab-btn active" onclick="mudarAba('orcamentos')">ORÇAMENTOS</button>
+                <button class="tab-btn" onclick="mudarAba('visitas')">VISITAS</button>
+            </div>
+            
             <div class="header-actions">
                 <button class="btn btn-outline" onclick="exportarDados()">EXPORTAR</button>
                 <button class="btn btn-primary" onclick="recarregarCards()">ATUALIZAR</button>
             </div>
         </header>
         
-        <div class="section-title">📋 COTAÇÕES</div>
-        <div class="kanban-container" id="kanbanCotacoes"></div>
+        <!-- Seção Orçamentos -->
+        <div id="sectionOrcamentos" class="kanban-section active">
+            <div class="kanban-container" id="kanbanCotacoes"></div>
+        </div>
         
-        <div class="section-title" style="margin-top: 40px;">🔧 VISITAS TÉCNICAS</div>
-        <div class="kanban-container" id="kanbanVisitas"></div>
+        <!-- Seção Visitas -->
+        <div id="sectionVisitas" class="kanban-section">
+            <div class="kanban-container" id="kanbanVisitas"></div>
+        </div>
     </div>
     
-    <div class="modal" id="editModal">
+    <!-- Modal de Visualização -->
+    <div class="modal" id="viewModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Editar</h2>
+                <h2 id="modalTitle">Detalhes do Orçamento</h2>
                 <span class="close" onclick="fecharModal()">&times;</span>
             </div>
-            <div id="modalBody"></div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="fecharModal()">FECHAR</button>
+            </div>
         </div>
     </div>
     
     <script>
-        const colunasCotacoes = ['Novo Orçamento', 'Orçamento Enviado', 'Pedido Aprovado', 'Pedido Recusado'];
-        const colunasVisitas = ['Agendar Mapeamento', 'Visita Técnica', 'PPO', 'Enviado', 'Negócio Gerado'];
+        // Colunas do Kanban de Cotações
+        const colunasCotacoes = [
+            'Novo Orçamento',
+            'Orçamento Enviado',
+            'Pedido Aprovado',
+            'Pedido Recusado'
+        ];
+        
+        // Colunas do Kanban de Visitas (com "Sem Retorno" no final)
+        const colunasVisitas = [
+            'Agendar Mapeamento',
+            'Visita Técnica',
+            'PPO',
+            'Enviado',
+            'Negócio Gerado',
+            'Sem Retorno'
+        ];
         
         let cotacoes = [];
         let visitas = [];
+        let draggedItem = null;
         
         document.addEventListener('DOMContentLoaded', function() {
             carregarDados();
             renderizarKanbans();
+            initDragAndDrop();
         });
         
         function carregarDados() {
@@ -450,7 +569,6 @@
         function renderizarKanbans() {
             renderizarKanbanCotacoes();
             renderizarKanbanVisitas();
-            adicionarDragDrop();
         }
         
         function renderizarKanbanCotacoes() {
@@ -460,35 +578,23 @@
             colunasCotacoes.forEach(coluna => {
                 const cardsColuna = cotacoes.filter(c => c.status === coluna);
                 
-                container.innerHTML += `
-                    <div class="kanban-column">
-                        <div class="column-header">
-                            <span>${coluna}</span>
-                            <span class="column-count">${cardsColuna.length}</span>
-                        </div>
-                        <div class="cards-container" data-coluna="${coluna}" data-tipo="cotacao">
-                            ${cardsColuna.length ? cardsColuna.map(card => `
-                                <div class="card" draggable="true" data-id="${card.id}" data-tipo="cotacao" style="border-left-color: #b7ab97">
-                                    <div class="card-header">
-                                        <span class="card-id">${card.id}</span>
-                                        <span class="badge">${card.dataCriacao}</span>
-                                    </div>
-                                    <div class="card-company">${card.empresa}</div>
-                                    <div class="card-info">
-                                        <strong>Contato:</strong> ${card.contato}<br>
-                                        <strong>Material:</strong> ${card.material || '---'}
-                                    </div>
-                                    ${card.arquivos && card.arquivos.length ? `<div class="card-files">📎 ${card.arquivos.length} arquivo(s)</div>` : ''}
-                                    <div class="card-actions">
-                                        <button class="btn-small edit" onclick="editarCard('${card.id}', 'cotacao')">EDITAR</button>
-                                        <button class="btn-small visita" onclick="criarVisita('${card.id}')">VISITA</button>
-                                    </div>
-                                </div>
-                            `).join('') : '<div class="empty-state">Nenhum orçamento</div>'}
-                        </div>
+                const columnEl = document.createElement('div');
+                columnEl.className = 'kanban-column';
+                columnEl.innerHTML = `
+                    <div class="column-header">
+                        <span>${coluna}</span>
+                        <span class="column-count">${cardsColuna.length}</span>
+                    </div>
+                    <div class="cards-container" data-coluna="${coluna}" data-tipo="cotacao">
+                        ${cardsColuna.length ? cardsColuna.map(card => criarCardCotacao(card)).join('') : 
+                            '<div class="empty-state">Nenhum orçamento</div>'}
                     </div>
                 `;
+                
+                container.appendChild(columnEl);
             });
+            
+            initDragAndDrop();
         }
         
         function renderizarKanbanVisitas() {
@@ -498,42 +604,326 @@
             colunasVisitas.forEach(coluna => {
                 const cardsColuna = visitas.filter(v => v.status === coluna);
                 
-                container.innerHTML += `
-                    <div class="kanban-column">
-                        <div class="column-header">
-                            <span>${coluna}</span>
-                            <span class="column-count">${cardsColuna.length}</span>
-                        </div>
-                        <div class="cards-container" data-coluna="${coluna}" data-tipo="visita">
-                            ${cardsColuna.length ? cardsColuna.map(card => `
-                                <div class="card" draggable="true" data-id="${card.id}" data-tipo="visita" style="border-left-color: #b7ab97">
-                                    <div class="card-header">
-                                        <span class="card-id">${card.id}</span>
-                                    </div>
-                                    <div class="card-company">${card.empresa}</div>
-                                    <div class="card-info">
-                                        <strong>Data:</strong> ${card.dataVisita || '---'}<br>
-                                        <strong>Técnico:</strong> ${card.tecnico || '---'}
-                                    </div>
-                                    <div class="card-actions">
-                                        <button class="btn-small edit" onclick="editarCard('${card.id}', 'visita')">EDITAR</button>
-                                        <button class="btn-small" onclick="editarRelato('${card.id}')">RELATO</button>
-                                        <button class="btn-small" onclick="editarPPO('${card.id}')">PPO</button>
-                                    </div>
-                                </div>
-                            `).join('') : '<div class="empty-state">Nenhuma visita</div>'}
-                        </div>
+                const columnEl = document.createElement('div');
+                columnEl.className = 'kanban-column';
+                columnEl.innerHTML = `
+                    <div class="column-header">
+                        <span>${coluna}</span>
+                        <span class="column-count">${cardsColuna.length}</span>
+                    </div>
+                    <div class="cards-container" data-coluna="${coluna}" data-tipo="visita">
+                        ${cardsColuna.length ? cardsColuna.map(card => criarCardVisita(card)).join('') : 
+                            '<div class="empty-state">Nenhuma visita</div>'}
                     </div>
                 `;
+                
+                container.appendChild(columnEl);
+            });
+            
+            initDragAndDrop();
+        }
+        
+        function criarCardCotacao(card) {
+            let borderColor = '#b7ab97';
+            if (card.status === 'Pedido Aprovado') borderColor = '#283944';
+            if (card.status === 'Pedido Recusado') borderColor = '#dc3545';
+            
+            return `
+                <div class="card draggable" draggable="true" data-id="${card.id}" data-tipo="cotacao" data-status="${card.status}" style="border-left-color: ${borderColor}">
+                    <div class="card-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <span class="card-id">${card.id}</span>
+                        <div class="card-actions-top">
+                            <button class="icon-btn" onclick="visualizarCard('${card.id}', 'cotacao')">👁️</button>
+                        </div>
+                    </div>
+                    <div class="card-company">${card.empresa || 'Sem empresa'}</div>
+                    <div class="card-info">
+                        <strong>Contato:</strong> ${card.contato || '---'}<br>
+                        <strong>Material:</strong> ${card.material || '---'}<br>
+                        <strong>Data:</strong> ${card.dataCriacao || '---'}
+                    </div>
+                    ${card.arquivos && card.arquivos.length ? 
+                        `<div class="card-files">📎 ${card.arquivos.length} arquivo(s)</div>` : ''}
+                    <div class="card-actions">
+                        <button class="btn-small edit" onclick="editarCard('${card.id}', 'cotacao')">EDITAR</button>
+                        <button class="btn-small visita" onclick="criarVisita('${card.id}')">VISITA</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function criarCardVisita(card) {
+            return `
+                <div class="card draggable" draggable="true" data-id="${card.id}" data-tipo="visita" data-status="${card.status}" style="border-left-color: #b7ab97">
+                    <div class="card-header">
+                        <span class="drag-handle">⋮⋮</span>
+                        <span class="card-id">${card.id}</span>
+                        <div class="card-actions-top">
+                            <button class="icon-btn" onclick="visualizarCard('${card.id}', 'visita')">👁️</button>
+                        </div>
+                    </div>
+                    <div class="card-company">${card.empresa || 'Sem empresa'}</div>
+                    <div class="card-info">
+                        <strong>Data:</strong> ${card.dataVisita || '---'}<br>
+                        <strong>Técnico:</strong> ${card.tecnico || '---'}<br>
+                        <strong>Contato:</strong> ${card.contato || '---'}
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-small edit" onclick="editarCard('${card.id}', 'visita')">EDITAR</button>
+                        <button class="btn-small" onclick="editarRelato('${card.id}')">RELATO</button>
+                        <button class="btn-small" onclick="editarPPO('${card.id}')">PPO</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function initDragAndDrop() {
+            const cards = document.querySelectorAll('.card.draggable');
+            const containers = document.querySelectorAll('.cards-container');
+            
+            cards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+            
+            containers.forEach(container => {
+                container.addEventListener('dragover', handleDragOver);
+                container.addEventListener('drop', handleDrop);
             });
         }
         
-        function adicionarDragDrop() {
-            // Função simplificada - apenas para não quebrar
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedItem = null;
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            if (!draggedItem) return;
+            
+            const container = e.target.closest('.cards-container');
+            if (!container) return;
+            
+            const novaColuna = container.dataset.coluna;
+            const tipo = container.dataset.tipo;
+            const cardId = draggedItem.dataset.id;
+            const cardTipo = draggedItem.dataset.tipo;
+            
+            if (cardTipo !== tipo) {
+                alert('Não é possível mover entre seções diferentes');
+                return;
+            }
+            
+            // Atualizar status no banco de dados
+            if (tipo === 'cotacao') {
+                const index = cotacoes.findIndex(c => c.id === cardId);
+                if (index !== -1) {
+                    cotacoes[index].status = novaColuna;
+                    localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+                }
+            } else {
+                const index = visitas.findIndex(v => v.id === cardId);
+                if (index !== -1) {
+                    visitas[index].status = novaColuna;
+                    localStorage.setItem('visitas', JSON.stringify(visitas));
+                }
+            }
+            
+            renderizarKanbans();
+        }
+        
+        function visualizarCard(id, tipo) {
+            const modal = document.getElementById('viewModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            if (tipo === 'cotacao') {
+                const card = cotacoes.find(c => c.id === id);
+                if (!card) return;
+                
+                modalTitle.textContent = 'Detalhes do Orçamento';
+                
+                let arquivosHtml = '';
+                if (card.arquivos && card.arquivos.length) {
+                    arquivosHtml = `
+                        <div class="info-item full-width">
+                            <div class="info-label">ARQUIVOS ANEXADOS</div>
+                            <div class="files-list">
+                                ${card.arquivos.map(arq => `
+                                    <div class="file-item">
+                                        <span class="file-name">📄 ${arq.name}</span>
+                                        <span class="file-size">${(arq.size / 1024).toFixed(2)} KB</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                modalBody.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">EMPRESA</div>
+                            <div class="info-value">${card.empresa || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CONTATO</div>
+                            <div class="info-value">${card.contato || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">E-MAIL</div>
+                            <div class="info-value">${card.email || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">TELEFONE</div>
+                            <div class="info-value">${card.telefone || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">MATERIAL</div>
+                            <div class="info-value">${card.material || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">QUANTIDADE</div>
+                            <div class="info-value">${card.quantidade || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">PRAZO</div>
+                            <div class="info-value">${card.prazo || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">DATA CRIAÇÃO</div>
+                            <div class="info-value">${card.dataCriacao || '---'}</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">DESCRIÇÃO</div>
+                            <div class="info-value">${card.descricao || '---'}</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">INFORMAÇÕES ADICIONAIS</div>
+                            <div class="info-value">${card.infoAdicional || '---'}</div>
+                        </div>
+                        ${arquivosHtml}
+                    </div>
+                    
+                    <div class="status-selector">
+                        <label>MOVER PARA:</label>
+                        <select onchange="moverCard('${card.id}', 'cotacao', this.value)">
+                            ${colunasCotacoes.map(col => `
+                                <option value="${col}" ${col === card.status ? 'selected' : ''}>${col}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+            } else {
+                const card = visitas.find(v => v.id === id);
+                if (!card) return;
+                
+                modalTitle.textContent = 'Detalhes da Visita Técnica';
+                
+                modalBody.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">EMPRESA</div>
+                            <div class="info-value">${card.empresa || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CONTATO</div>
+                            <div class="info-value">${card.contato || '---'}</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">ENDEREÇO</div>
+                            <div class="info-value">${card.endereco || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">DATA DA VISITA</div>
+                            <div class="info-value">${card.dataVisita || '---'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">TÉCNICO</div>
+                            <div class="info-value">${card.tecnico || '---'}</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">RELATO DA VISITA</div>
+                            <div class="info-value">${card.relatoVisita || '---'}</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">PPO</div>
+                            <div class="info-value">${card.ppo || '---'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-selector">
+                        <label>MOVER PARA:</label>
+                        <select onchange="moverCard('${card.id}', 'visita', this.value)">
+                            ${colunasVisitas.map(col => `
+                                <option value="${col}" ${col === card.status ? 'selected' : ''}>${col}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function moverCard(id, tipo, novoStatus) {
+            if (tipo === 'cotacao') {
+                const index = cotacoes.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    cotacoes[index].status = novoStatus;
+                    localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+                }
+            } else {
+                const index = visitas.findIndex(v => v.id === id);
+                if (index !== -1) {
+                    visitas[index].status = novoStatus;
+                    localStorage.setItem('visitas', JSON.stringify(visitas));
+                }
+            }
+            
+            fecharModal();
+            renderizarKanbans();
+        }
+        
+        function mudarAba(aba) {
+            const btnOrc = document.querySelectorAll('.tab-btn')[0];
+            const btnVis = document.querySelectorAll('.tab-btn')[1];
+            const sectionOrc = document.getElementById('sectionOrcamentos');
+            const sectionVis = document.getElementById('sectionVisitas');
+            
+            if (aba === 'orcamentos') {
+                btnOrc.classList.add('active');
+                btnVis.classList.remove('active');
+                sectionOrc.classList.add('active');
+                sectionVis.classList.remove('active');
+            } else {
+                btnVis.classList.add('active');
+                btnOrc.classList.remove('active');
+                sectionVis.classList.add('active');
+                sectionOrc.classList.remove('active');
+            }
+        }
+        
+        function fecharModal() {
+            document.getElementById('viewModal').classList.remove('active');
         }
         
         function editarCard(id, tipo) {
-            alert('Função de edição será implementada em breve');
+            alert('Função de edição completa será implementada em breve');
         }
         
         function criarVisita(id) {
@@ -544,10 +934,12 @@
                 id: 'VIS' + Date.now(),
                 cotacaoId: id,
                 empresa: cotacao.empresa,
+                endereco: '',
                 contato: cotacao.contato,
                 status: 'Agendar Mapeamento',
                 dataVisita: '',
                 tecnico: '',
+                observacoes: '',
                 relatoVisita: '',
                 ppo: ''
             };
@@ -565,17 +957,18 @@
             alert('Função de PPO será implementada em breve');
         }
         
-        function fecharModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-        
         function exportarDados() {
-            const dados = { cotacoes, visitas };
-            const blob = new Blob([JSON.stringify(dados)], {type: 'application/json'});
+            const dados = {
+                cotacoes: cotacoes,
+                visitas: visitas,
+                dataExportacao: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'backup.json';
+            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
         }
         
