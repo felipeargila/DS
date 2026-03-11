@@ -143,6 +143,67 @@
             resize: vertical;
         }
         
+        .file-upload-area {
+            border: 2px dashed #ddd;
+            padding: 30px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #b7ab97;
+            background: #f8f6f2;
+        }
+        
+        .file-upload-area input {
+            display: none;
+        }
+        
+        .file-upload-area .upload-icon {
+            font-size: 40px;
+            color: #b7ab97;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .file-name {
+            color: #283944;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .file-remove {
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 0 5px;
+        }
+        
+        .file-remove:hover {
+            color: #c82333;
+        }
+        
         button {
             background: #b7ab97;
             color: #283944;
@@ -162,6 +223,12 @@
             background: #a59984;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .error-message {
@@ -203,6 +270,12 @@
             border-left: 4px solid #28a745;
             display: none;
         }
+        
+        .info-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -219,8 +292,8 @@
             <p class="subtitle">Soluções em Usinagem de Precisão</p>
             
             <div class="code-input-area">
-                <input type="text" class="code-input" id="accessCode" maxlength="10" placeholder="CÓDIGO">
-                <p class="code-hint">Digite seu código de acesso</p>
+                <input type="text" class="code-input" id="accessCode" maxlength="6" placeholder="••••••">
+                <p class="code-hint">Digite seu código de acesso (6 dígitos)</p>
                 <div class="error-message" id="codeError"></div>
                 <div class="loading" id="loadingCode">Validando...</div>
                 <div class="access-granted" id="accessGranted">✓ ACESSO PERMITIDO</div>
@@ -280,11 +353,22 @@
                     </div>
                     
                     <div class="form-group">
+                        <label>ANEXAR ARQUIVOS</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <span class="upload-icon">📎</span>
+                            <p>Arraste arquivos ou clique para selecionar</p>
+                            <p class="info-text">PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)</p>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label>INFORMAÇÕES ADICIONAIS</label>
                         <textarea id="infoAdicional"></textarea>
                     </div>
                     
-                    <button type="submit">ENVIAR SOLICITAÇÃO</button>
+                    <button type="submit" id="submitBtn">ENVIAR SOLICITAÇÃO</button>
                 </form>
                 
                 <div class="success-message" id="successMessage">
@@ -306,19 +390,128 @@
         const quotationForm = document.getElementById('quotationForm');
         const successMessage = document.getElementById('successMessage');
         const loadingSubmit = document.getElementById('loadingSubmit');
+        const submitBtn = document.getElementById('submitBtn');
         
-        let vendedorAtual = null; // Guarda o vendedor após validação (interno)
+        // Elementos de upload
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
         
-        // Validação do código de acesso em tempo real
+        let vendedorAtual = null;
+        let arquivosSelecionados = [];
+        
+        // Configuração do upload
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.style.background = '#f8f6f2';
+        });
+        
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.style.background = '';
+        });
+        
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.style.background = '';
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        async function handleFiles(files) {
+            for (let file of files) {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`Arquivo ${file.name} muito grande. Máximo 10MB.`);
+                    continue;
+                }
+                
+                // Adicionar à lista local primeiro (para feedback visual)
+                arquivosSelecionados.push({
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    uploading: true
+                });
+                atualizarListaArquivos();
+                
+                // Upload para o servidor
+                const formData = new FormData();
+                formData.append('arquivos', file);
+                
+                try {
+                    const resposta = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const dados = await resposta.json();
+                    
+                    if (dados.sucesso) {
+                        // Substituir o item local pelo item do servidor
+                        const index = arquivosSelecionados.findIndex(a => a.name === file.name && a.uploading);
+                        if (index !== -1) {
+                            arquivosSelecionados[index] = {
+                                ...dados.arquivos[0],
+                                uploading: false
+                            };
+                        }
+                    } else {
+                        // Remover da lista se erro
+                        arquivosSelecionados = arquivosSelecionados.filter(a => a.name !== file.name);
+                        alert(`Erro ao enviar ${file.name}`);
+                    }
+                } catch (erro) {
+                    console.error('Erro no upload:', erro);
+                    arquivosSelecionados = arquivosSelecionados.filter(a => a.name !== file.name);
+                    alert(`Erro ao enviar ${file.name}`);
+                }
+                
+                atualizarListaArquivos();
+            }
+        }
+        
+        function atualizarListaArquivos() {
+            if (arquivosSelecionados.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            
+            fileList.innerHTML = arquivosSelecionados.map((arq, index) => `
+                <div class="file-item">
+                    <span class="file-name">
+                        ${arq.uploading ? '⏳' : '📄'} ${arq.originalname || arq.name}
+                        ${arq.uploading ? ' (enviando...)' : ''}
+                    </span>
+                    <span class="file-remove" onclick="removerArquivo(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+        
+        window.removerArquivo = function(index) {
+            const arq = arquivosSelecionados[index];
+            if (!arq.uploading && arq.filename) {
+                // Se já foi enviado, tenta deletar do servidor
+                fetch(`/api/upload/${arq.filename}`, {
+                    method: 'DELETE'
+                }).catch(erro => console.error('Erro ao deletar arquivo:', erro));
+            }
+            arquivosSelecionados.splice(index, 1);
+            atualizarListaArquivos();
+        };
+        
+        // Validação do código de acesso (agora com 6 dígitos exatos)
         accessCode.addEventListener('input', async function(e) {
             const code = e.target.value.trim().toUpperCase();
             
-            // Esconde mensagens anteriores
             codeError.style.display = 'none';
             accessGranted.style.display = 'none';
             formSection.classList.remove('active');
             
-            if (code.length >= 3) {
+            if (code.length === 6) {
                 loadingCode.style.display = 'block';
                 accessCode.disabled = true;
                 
@@ -327,13 +520,11 @@
                     const dados = await resposta.json();
                     
                     if (dados.sucesso && dados.vendedor) {
-                        // Código válido - guarda vendedor mas não mostra nome
                         vendedorAtual = dados.vendedor;
                         accessGranted.style.display = 'block';
                         formSection.classList.add('active');
                         accessCode.style.borderColor = '#b7ab97';
                     } else {
-                        // Código inválido
                         codeError.style.display = 'block';
                         codeError.textContent = '❌ Código inválido';
                         accessCode.style.borderColor = '#dc3545';
@@ -363,7 +554,14 @@
                 return;
             }
             
+            // Verificar se ainda tem arquivos enviando
+            if (arquivosSelecionados.some(a => a.uploading)) {
+                alert('Aguarde o upload dos arquivos terminar.');
+                return;
+            }
+            
             loadingSubmit.style.display = 'block';
+            submitBtn.disabled = true;
             
             const formData = {
                 id: 'COT' + Date.now(),
@@ -377,7 +575,12 @@
                 quantidade: document.getElementById('quantidade').value,
                 prazo: document.getElementById('prazo').value,
                 infoAdicional: document.getElementById('infoAdicional').value,
-                arquivos: [],
+                arquivos: arquivosSelecionados.map(a => ({
+                    filename: a.filename,
+                    originalname: a.originalname || a.name,
+                    size: a.size,
+                    url: a.url
+                })),
                 status: 'Novo Orçamento',
                 dataCriacao: new Date().toISOString().split('T')[0],
                 observacoes: ''
@@ -395,6 +598,8 @@
                 if (dados.sucesso) {
                     successMessage.style.display = 'block';
                     quotationForm.reset();
+                    arquivosSelecionados = [];
+                    atualizarListaArquivos();
                     accessCode.value = '';
                     accessGranted.style.display = 'none';
                     formSection.classList.remove('active');
@@ -411,6 +616,7 @@
                 alert('Erro de conexão com o servidor.');
             } finally {
                 loadingSubmit.style.display = 'none';
+                submitBtn.disabled = false;
             }
         });
         
@@ -424,9 +630,9 @@
             }
         });
         
-        // Converter para maiúsculas
+        // Converter para maiúsculas e limitar a 6 dígitos
         accessCode.addEventListener('keyup', function() {
-            this.value = this.value.toUpperCase();
+            this.value = this.value.toUpperCase().slice(0, 6);
         });
     </script>
 </body>
