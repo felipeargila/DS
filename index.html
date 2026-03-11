@@ -1,526 +1,468 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2487.7">
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Chakra Petch', sans-serif;
-    }
-    
-    body {
-        background: #283944;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
-    
-    .container {
-        max-width: 600px;
-        width: 100%;
-    }
-    
-    .card {
-        background: white;
-        border-radius: 4px;
-        padding: 40px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        animation: slideUp 0.5s ease;
-    }
-    
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Cliente - Cotações</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Chakra Petch', sans-serif;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+        
+        body {
+            background: #283944;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
-    }  /* ← FECHA A KEYFRAMES CORRETAMENTE */
-    
-    h1 {
-        color: #283944;
-        font-size: 28px;
-        margin-bottom: 10px;
-        text-align: center;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-    
-    /* Resto do CSS continua aqui... */
-</style>
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 4px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #283944;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+            font-weight: 300;
+        }
+        
+        .code-input-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .code-input {
+            width: 200px;
+            padding: 15px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.3s;
+            letter-spacing: 8px;
+            font-weight: 400;
+            background: white;
+            color: #283944;
+        }
+        
+        .code-input:focus {
+            border-color: #b7ab97;
+            box-shadow: 0 0 0 3px rgba(183, 171, 151, 0.2);
+        }
+        
+        .code-hint {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+            font-weight: 300;
+        }
+        
+        .form-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #283944;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 300;
+            background: white;
+            color: #283944;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: #b7ab97;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(183, 171, 151, 0.2);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 30px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload:hover {
+            border-color: #b7ab97;
+            background: #f8f6f2;
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .file-upload span {
+            font-size: 40px;
+            color: #b7ab97;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px;
+            font-size: 14px;
+            color: #283944;
+            font-weight: 300;
+        }
+        
+        button {
+            background: #b7ab97;
+            color: #283944;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-family: 'Chakra Petch', sans-serif;
+        }
+        
+        button:hover {
+            background: #a59984;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            font-weight: 300;
+        }
+        
+        .success-message {
+            background: #283944;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+            font-weight: 300;
+            border-left: 4px solid #b7ab97;
+        }
+        
+        ::placeholder {
+            color: #aaa;
+            font-weight: 300;
+            font-family: 'Chakra Petch', sans-serif;
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23283944' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+    </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="pt-br"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Portal do Cliente - Cotações&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>* {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-sizing: border-box;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Chakra Petch', sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>min-height: 100vh;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.container {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>max-width: 600px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 40px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 20px 40px rgba(0,0,0,0.3);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>animation: slideUp 0.5s ease;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>@keyframes slideUp {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>from {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>opacity: 0;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>transform: translateY(30px);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>to {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>opacity: 1;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>transform: translateY(0);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>h1 {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 28px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 0.5px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.subtitle {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #666;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.code-input-area {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.code-input {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 200px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 24px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid #ddd;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>outline: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 400;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.code-input:focus {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-color: #b7ab97;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 0 3px rgba(183, 171, 151, 0.2);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.code-hint {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #888;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.form-section {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding-top: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-top: 2px solid #f0f0f0;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.form-section.active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: block;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>animation: fadeIn 0.5s ease;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>@keyframes fadeIn {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>from { opacity: 0; transform: translateY(10px); }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>to { opacity: 1; transform: translateY(0); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.form-group {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>label {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: block;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 0.3px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>input, textarea, select {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid #e0e0e0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Chakra Petch', sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>input:focus, textarea:focus, select:focus {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-color: #b7ab97;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>outline: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 0 3px rgba(183, 171, 151, 0.2);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>textarea {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>min-height: 100px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>resize: vertical;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.file-upload {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px dashed #ddd;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.file-upload:hover {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-color: #b7ab97;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #f8f6f2;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.file-upload input {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.file-upload span {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 40px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #b7ab97;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: block;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.file-list {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.file-item {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #f0f0f0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 8px 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: inline-block;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 5px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>button {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #b7ab97;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 0.5px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Chakra Petch', sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>button:hover {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #a59984;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transform: translateY(-2px);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 5px 15px rgba(0,0,0,0.2);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.error-message {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #dc3545;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.success-message {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #283944;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-left: 4px solid #b7ab97;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>::placeholder {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #aaa;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Chakra Petch', sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>select {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>appearance: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23283944' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-repeat: no-repeat;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-position: right 12px center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="container"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="card"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;!-- LOGO CENTRALIZADA --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div style="text-align: center; margin-bottom: 25px;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;img src="https://maqcare.dsindustria.com.br/wp-content/uploads/2026/03/LOGO.png"<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                     </span>alt="Logo Maqcare"<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                     </span>style="max-width: 200px; height: auto; display: inline-block;"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h1&gt;PORTAL DE COTAÇÕES&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="subtitle"&gt;Soluções em Usinagem de Precisão&lt;/p&gt;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="code-input-area"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="text" class="code-input" id="accessCode" maxlength="6" placeholder="······"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="code-hint"&gt;Digite o código de acesso fornecido&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="error-message" id="codeError"&gt;Código inválido. Tente novamente.&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="form-section" id="formSection"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;h2 style="margin-bottom: 20px; color: #283944; font-weight: 500;"&gt;SOLICITAR ORÇAMENTO&lt;/h2&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;form id="quotationForm"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;EMPRESA *&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="empresa" placeholder="Razão social ou nome fantasia" required&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;NOME DO CONTATO *&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="contato" placeholder="Nome completo" required&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;E-MAIL *&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="email" id="email" placeholder="seu@email.com" required&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;TELEFONE *&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="tel" id="telefone" placeholder="(11) 99999-9999" required&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;DESCRIÇÃO DO SERVIÇO / PEÇAS *&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;textarea id="descricao" placeholder="Descreva o que precisa: tipo de peça, acabamento, tolerâncias, etc." required&gt;&lt;/textarea&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;MATERIAL&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;select id="material"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value=""&gt;Selecione...&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="aco_carbono"&gt;Aço Carbono&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="aco_inox"&gt;Aço Inoxidável&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="aluminio"&gt;Alumínio&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="bronze"&gt;Bronze&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="ferro"&gt;Ferro Fundido&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="plasticos"&gt;Plásticos / Polímeros&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;option value="outro"&gt;Outro&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/select&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;QUANTIDADE&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="number" id="quantidade" min="1" placeholder="Quantidade de peças"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;PRAZO DESEJADO&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="prazo" placeholder="Ex: 15 dias, 30 dias, urgente"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;ANEXAR ARQUIVOS&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="file-upload" id="fileUploadArea"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;span&gt;+&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p&gt;Arraste arquivos ou clique para selecionar&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p style="font-size: 12px; color: #888;"&gt;PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="file-list" id="fileList"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label&gt;INFORMAÇÕES ADICIONAIS&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;textarea id="infoAdicional" placeholder="Especificações técnicas, normas, observações importantes..."&gt;&lt;/textarea&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button type="submit"&gt;ENVIAR SOLICITAÇÃO&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/form&gt;</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="success-message" id="successMessage"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>ORÇAMENTO ENVIADO COM SUCESSO. RETORNAREMOS EM BREVE.</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><span class="Apple-converted-space">    </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const SECRET_CODE = "260378";</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const accessCode = document.getElementById('accessCode');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const codeError = document.getElementById('codeError');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const formSection = document.getElementById('formSection');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const fileUploadArea = document.getElementById('fileUploadArea');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const fileInput = document.getElementById('fileInput');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const fileList = document.getElementById('fileList');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const quotationForm = document.getElementById('quotationForm');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const successMessage = document.getElementById('successMessage');</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>let uploadedFiles = [];</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>accessCode.addEventListener('input', function(e) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const code = e.target.value;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (code.length === 6) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (code === SECRET_CODE) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>formSection.classList.add('active');</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>codeError.style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>accessCode.style.borderColor = '#b7ab97';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>formSection.classList.remove('active');</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>codeError.style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>accessCode.style.borderColor = '#dc3545';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>formSection.classList.remove('active');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>codeError.style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>accessCode.style.borderColor = '#ddd';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>fileUploadArea.addEventListener('click', () =&gt; fileInput.click());</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>fileUploadArea.addEventListener('dragover', (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>fileUploadArea.style.background = '#f8f6f2';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>fileUploadArea.addEventListener('dragleave', () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>fileUploadArea.style.background = '';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>fileUploadArea.addEventListener('drop', (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>fileUploadArea.style.background = '';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>handleFiles(e.dataTransfer.files);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>fileInput.addEventListener('change', (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>handleFiles(e.target.files);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function handleFiles(files) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let file of files) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (file.size &lt;= 10 * 1024 * 1024) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>uploadedFiles.push({</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>name: file.name,</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>size: file.size,</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>type: file.type</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateFileList();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function updateFileList() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (uploadedFiles.length &gt; 0) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>fileList.innerHTML = uploadedFiles.map(f =&gt;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>`&lt;span class="file-item"&gt;📄 ${f.name}&lt;/span&gt;`</p>
-<p class="p1"><span class="Apple-converted-space">                </span>).join('');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>fileList.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>quotationForm.addEventListener('submit', function(e) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const formData = {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>id: 'COT' + Date.now(),</p>
-<p class="p1"><span class="Apple-converted-space">                </span>empresa: document.getElementById('empresa').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>contato: document.getElementById('contato').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>email: document.getElementById('email').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>telefone: document.getElementById('telefone').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>descricao: document.getElementById('descricao').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>material: document.getElementById('material').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>quantidade: document.getElementById('quantidade').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>prazo: document.getElementById('prazo').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>infoAdicional: document.getElementById('infoAdicional').value,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>arquivos: uploadedFiles,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>status: 'Novo Orçamento',</p>
-<p class="p1"><span class="Apple-converted-space">                </span>dataCriacao: new Date().toISOString().split('T')[0],</p>
-<p class="p1"><span class="Apple-converted-space">                </span>observacoes: ''</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>let cotacoes = JSON.parse(localStorage.getItem('cotacoes') || '[]');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cotacoes.push(formData);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>localStorage.setItem('cotacoes', JSON.stringify(cotacoes));</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>successMessage.style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>quotationForm.reset();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>uploadedFiles = [];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateFileList();</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>setTimeout(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>successMessage.style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}, 5000);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+    <div class="container">
+        <div class="card">
+            <!-- LOGO CENTRALIZADA -->
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img src="https://maqcare.dsindustria.com.br/wp-content/uploads/2026/03/LOGO.png" 
+                     alt="Logo Maqcare" 
+                     style="max-width: 200px; height: auto; display: inline-block;">
+            </div>
+
+            <h1>PORTAL DE COTAÇÕES</h1>
+            <p class="subtitle">Soluções em Usinagem de Precisão</p>
+            
+            <div class="code-input-area">
+                <input type="text" class="code-input" id="accessCode" maxlength="6" placeholder="······">
+                <p class="code-hint">Digite o código de acesso fornecido</p>
+                <div class="error-message" id="codeError">Código inválido. Tente novamente.</div>
+            </div>
+            
+            <div class="form-section" id="formSection">
+                <h2 style="margin-bottom: 20px; color: #283944; font-weight: 500;">SOLICITAR ORÇAMENTO</h2>
+                
+                <form id="quotationForm">
+                    <div class="form-group">
+                        <label>EMPRESA *</label>
+                        <input type="text" id="empresa" placeholder="Razão social ou nome fantasia" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>NOME DO CONTATO *</label>
+                        <input type="text" id="contato" placeholder="Nome completo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>E-MAIL *</label>
+                        <input type="email" id="email" placeholder="seu@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>TELEFONE *</label>
+                        <input type="tel" id="telefone" placeholder="(11) 99999-9999" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>DESCRIÇÃO DO SERVIÇO / PEÇAS *</label>
+                        <textarea id="descricao" placeholder="Descreva o que precisa: tipo de peça, acabamento, tolerâncias, etc." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>MATERIAL</label>
+                        <select id="material">
+                            <option value="">Selecione...</option>
+                            <option value="aco_carbono">Aço Carbono</option>
+                            <option value="aco_inox">Aço Inoxidável</option>
+                            <option value="aluminio">Alumínio</option>
+                            <option value="bronze">Bronze</option>
+                            <option value="ferro">Ferro Fundido</option>
+                            <option value="plasticos">Plásticos / Polímeros</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>QUANTIDADE</label>
+                        <input type="number" id="quantidade" min="1" placeholder="Quantidade de peças">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>PRAZO DESEJADO</label>
+                        <input type="text" id="prazo" placeholder="Ex: 15 dias, 30 dias, urgente">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>ANEXAR ARQUIVOS</label>
+                        <div class="file-upload" id="fileUploadArea">
+                            <span>+</span>
+                            <p>Arraste arquivos ou clique para selecionar</p>
+                            <p style="font-size: 12px; color: #888;">PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)</p>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>INFORMAÇÕES ADICIONAIS</label>
+                        <textarea id="infoAdicional" placeholder="Especificações técnicas, normas, observações importantes..."></textarea>
+                    </div>
+                    
+                    <button type="submit">ENVIAR SOLICITAÇÃO</button>
+                </form>
+                
+                <div class="success-message" id="successMessage">
+                    ORÇAMENTO ENVIADO COM SUCESSO. RETORNAREMOS EM BREVE.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ALTERE ESTE CÓDIGO PARA O QUE DESEJAR
+        const SECRET_CODE = "260378";
+        
+        const accessCode = document.getElementById('accessCode');
+        const codeError = document.getElementById('codeError');
+        const formSection = document.getElementById('formSection');
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const quotationForm = document.getElementById('quotationForm');
+        const successMessage = document.getElementById('successMessage');
+        
+        let uploadedFiles = [];
+        
+        // Validação do código de acesso
+        accessCode.addEventListener('input', function(e) {
+            const code = e.target.value;
+            
+            if (code.length === 6) {
+                if (code === SECRET_CODE) {
+                    formSection.classList.add('active');
+                    codeError.style.display = 'none';
+                    accessCode.style.borderColor = '#b7ab97';
+                } else {
+                    formSection.classList.remove('active');
+                    codeError.style.display = 'block';
+                    accessCode.style.borderColor = '#dc3545';
+                }
+            } else {
+                formSection.classList.remove('active');
+                codeError.style.display = 'none';
+                accessCode.style.borderColor = '#ddd';
+            }
+        });
+        
+        // Upload de arquivos
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.style.background = '#f8f6f2';
+        });
+        
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.style.background = '';
+        });
+        
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.style.background = '';
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.size <= 10 * 1024 * 1024) { // 10MB
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type
+                    });
+                }
+            }
+            updateFileList();
+        }
+        
+        function updateFileList() {
+            if (uploadedFiles.length > 0) {
+                fileList.innerHTML = uploadedFiles.map(f => 
+                    `<span class="file-item">📄 ${f.name}</span>`
+                ).join('');
+            } else {
+                fileList.innerHTML = '';
+            }
+        }
+        
+        // Envio do formulário
+        quotationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                id: 'COT' + Date.now(),
+                empresa: document.getElementById('empresa').value,
+                contato: document.getElementById('contato').value,
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value,
+                descricao: document.getElementById('descricao').value,
+                material: document.getElementById('material').value,
+                quantidade: document.getElementById('quantidade').value,
+                prazo: document.getElementById('prazo').value,
+                infoAdicional: document.getElementById('infoAdicional').value,
+                arquivos: uploadedFiles,
+                status: 'Novo Orçamento',
+                dataCriacao: new Date().toISOString().split('T')[0],
+                observacoes: ''
+            };
+            
+            // Salva no localStorage (depois substituiremos por API)
+            let cotacoes = JSON.parse(localStorage.getItem('cotacoes') || '[]');
+            cotacoes.push(formData);
+            localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+            
+            // Mensagem de sucesso
+            successMessage.style.display = 'block';
+            quotationForm.reset();
+            uploadedFiles = [];
+            updateFileList();
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
