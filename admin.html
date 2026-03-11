@@ -129,6 +129,15 @@
             color: #283944;
         }
         
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
         .btn-danger {
             background: #dc3545;
             color: white;
@@ -209,6 +218,12 @@
             position: relative;
         }
         
+        .card.arquivado {
+            opacity: 0.7;
+            background: #f9f9f9;
+            border-left-color: #999 !important;
+        }
+        
         .card.draggable {
             cursor: move;
         }
@@ -269,6 +284,10 @@
         
         .icon-btn.archive:hover {
             color: #ffc107;
+        }
+        
+        .icon-btn.restore:hover {
+            color: #28a745;
         }
         
         .card-company {
@@ -361,6 +380,15 @@
         
         .btn-small.archive:hover {
             background: #e0a800;
+        }
+        
+        .btn-small.restore {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-small.restore:hover {
+            background: #218838;
         }
         
         .modal {
@@ -533,6 +561,16 @@
             display: inline-block;
         }
         
+        .days-badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+        
         .confirm-modal {
             background: white;
             border-radius: 4px;
@@ -569,6 +607,7 @@
             <div class="tab-menu">
                 <button class="tab-btn active" onclick="mudarAba('orcamentos')">ORÇAMENTOS</button>
                 <button class="tab-btn" onclick="mudarAba('visitas')">VISITAS</button>
+                <button class="tab-btn" onclick="mudarAba('arquivados')">ARQUIVADOS</button>
             </div>
             
             <div class="header-actions">
@@ -586,13 +625,28 @@
         <div id="sectionVisitas" class="kanban-section">
             <div class="kanban-container" id="kanbanVisitas"></div>
         </div>
+        
+        <!-- Seção Arquivados -->
+        <div id="sectionArquivados" class="kanban-section">
+            <div class="kanban-container" style="justify-content: center;">
+                <div class="kanban-column" style="max-width: 600px; min-width: 600px;">
+                    <div class="column-header">
+                        <span>📦 ARQUIVADOS</span>
+                        <span class="column-count" id="arquivadosCount">0</span>
+                    </div>
+                    <div class="cards-container" id="arquivadosContainer">
+                        <!-- Cards arquivados serão inseridos aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Modal de Visualização -->
     <div class="modal" id="viewModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Detalhes do Orçamento</h2>
+                <h2 id="modalTitle">Detalhes</h2>
                 <span class="close" onclick="fecharModal()">&times;</span>
             </div>
             <div class="modal-body" id="modalBody"></div>
@@ -603,25 +657,25 @@
     <!-- Modal de Confirmação -->
     <div class="modal" id="confirmModal">
         <div class="confirm-modal">
-            <h3 id="confirmTitle">Confirmar exclusão</h3>
-            <p id="confirmMessage">Tem certeza que deseja excluir este item?</p>
+            <h3 id="confirmTitle">Confirmar</h3>
+            <p id="confirmMessage"></p>
             <div class="confirm-actions">
                 <button class="btn-small" onclick="fecharConfirmModal()">CANCELAR</button>
-                <button class="btn-small delete" id="confirmBtn">EXCLUIR</button>
+                <button class="btn-small delete" id="confirmBtn">CONFIRMAR</button>
             </div>
         </div>
     </div>
     
     <script>
-        // Colunas do Kanban de Cotações
+        // Colunas do Kanban de Cotações (com "Sem Retorno" no lugar de "Pedido Recusado")
         const colunasCotacoes = [
             'Novo Orçamento',
             'Orçamento Enviado',
             'Pedido Aprovado',
-            'Pedido Recusado'
+            'Sem Retorno'
         ];
         
-        // Colunas do Kanban de Visitas (com "Sem Retorno" no final)
+        // Colunas do Kanban de Visitas
         const colunasVisitas = [
             'Agendar Mapeamento',
             'Visita Técnica',
@@ -633,12 +687,15 @@
         
         let cotacoes = [];
         let visitas = [];
+        let arquivados = [];
         let draggedItem = null;
         let itemParaExcluir = null;
         let tipoParaExcluir = null;
+        let itemParaRestaurar = null;
         
         document.addEventListener('DOMContentLoaded', function() {
             carregarDados();
+            processarArquivamentoAutomatico();
             renderizarKanbans();
             initDragAndDrop();
         });
@@ -646,11 +703,73 @@
         function carregarDados() {
             cotacoes = JSON.parse(localStorage.getItem('cotacoes') || '[]');
             visitas = JSON.parse(localStorage.getItem('visitas') || '[]');
+            arquivados = JSON.parse(localStorage.getItem('arquivados') || '[]');
+        }
+        
+        function salvarDados() {
+            localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+            localStorage.setItem('visitas', JSON.stringify(visitas));
+            localStorage.setItem('arquivados', JSON.stringify(arquivados));
+        }
+        
+        function processarArquivamentoAutomatico() {
+            const hoje = new Date();
+            let arquivadosHoje = [];
+            
+            // Processar cotações em "Sem Retorno"
+            cotacoes = cotacoes.filter(cot => {
+                if (cot.status === 'Sem Retorno') {
+                    const dias = calcularDias(cot.dataCriacao);
+                    if (dias >= 30) {
+                        arquivadosHoje.push({
+                            ...cot,
+                            tipo: 'cotacao',
+                            dataArquivamento: new Date().toISOString().split('T')[0],
+                            motivo: '30+ dias em Sem Retorno'
+                        });
+                        return false; // Remove da lista de cotações
+                    }
+                }
+                return true;
+            });
+            
+            // Processar visitas em "Sem Retorno"
+            visitas = visitas.filter(vis => {
+                if (vis.status === 'Sem Retorno') {
+                    const dias = calcularDias(vis.dataCriacao || vis.dataVisita);
+                    if (dias >= 30) {
+                        arquivadosHoje.push({
+                            ...vis,
+                            tipo: 'visita',
+                            dataArquivamento: new Date().toISOString().split('T')[0],
+                            motivo: '30+ dias em Sem Retorno'
+                        });
+                        return false; // Remove da lista de visitas
+                    }
+                }
+                return true;
+            });
+            
+            // Adicionar aos arquivados
+            if (arquivadosHoje.length > 0) {
+                arquivados = [...arquivados, ...arquivadosHoje];
+                salvarDados();
+            }
+        }
+        
+        function calcularDias(dataString) {
+            if (!dataString) return 0;
+            const data = new Date(dataString);
+            const hoje = new Date();
+            const diffTime = Math.abs(hoje - data);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
         }
         
         function renderizarKanbans() {
             renderizarKanbanCotacoes();
             renderizarKanbanVisitas();
+            renderizarArquivados();
         }
         
         function renderizarKanbanCotacoes() {
@@ -705,10 +824,32 @@
             initDragAndDrop();
         }
         
+        function renderizarArquivados() {
+            const container = document.getElementById('arquivadosContainer');
+            const countSpan = document.getElementById('arquivadosCount');
+            
+            countSpan.textContent = arquivados.length;
+            
+            if (arquivados.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum item arquivado</div>';
+                return;
+            }
+            
+            container.innerHTML = arquivados.map(item => {
+                if (item.tipo === 'cotacao') {
+                    return criarCardArquivadoCotacao(item);
+                } else {
+                    return criarCardArquivadoVisita(item);
+                }
+            }).join('');
+        }
+        
         function criarCardCotacao(card) {
             let borderColor = '#b7ab97';
             if (card.status === 'Pedido Aprovado') borderColor = '#283944';
-            if (card.status === 'Pedido Recusado') borderColor = '#dc3545';
+            if (card.status === 'Sem Retorno') borderColor = '#dc3545';
+            
+            const diasSemRetorno = card.status === 'Sem Retorno' ? calcularDias(card.dataCriacao) : 0;
             
             return `
                 <div class="card draggable" draggable="true" data-id="${card.id}" data-tipo="cotacao" data-status="${card.status}" style="border-left-color: ${borderColor}">
@@ -716,6 +857,7 @@
                         <span class="drag-handle">⋮⋮</span>
                         <span class="card-id">${card.id}</span>
                         <div class="card-actions-top">
+                            ${diasSemRetorno >= 30 ? '<span class="days-badge">📆 ' + diasSemRetorno + ' dias</span>' : ''}
                             <button class="icon-btn" onclick="visualizarCard('${card.id}', 'cotacao')">👁️</button>
                             <button class="icon-btn archive" onclick="arquivarCard('${card.id}', 'cotacao')">📦</button>
                             <button class="icon-btn delete" onclick="confirmarExclusao('${card.id}', 'cotacao')">🗑️</button>
@@ -738,12 +880,15 @@
         }
         
         function criarCardVisita(card) {
+            const diasSemRetorno = card.status === 'Sem Retorno' ? calcularDias(card.dataCriacao || card.dataVisita) : 0;
+            
             return `
                 <div class="card draggable" draggable="true" data-id="${card.id}" data-tipo="visita" data-status="${card.status}" style="border-left-color: #b7ab97">
                     <div class="card-header">
                         <span class="drag-handle">⋮⋮</span>
                         <span class="card-id">${card.id}</span>
                         <div class="card-actions-top">
+                            ${diasSemRetorno >= 30 ? '<span class="days-badge">📆 ' + diasSemRetorno + ' dias</span>' : ''}
                             <button class="icon-btn" onclick="visualizarCard('${card.id}', 'visita')">👁️</button>
                             <button class="icon-btn archive" onclick="arquivarCard('${card.id}', 'visita')">📦</button>
                             <button class="icon-btn delete" onclick="confirmarExclusao('${card.id}', 'visita')">🗑️</button>
@@ -759,6 +904,50 @@
                         <button class="btn-small edit" onclick="editarCard('${card.id}', 'visita')">EDITAR</button>
                         <button class="btn-small" onclick="editarRelato('${card.id}')">RELATO</button>
                         <button class="btn-small" onclick="editarPPO('${card.id}')">PPO</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function criarCardArquivadoCotacao(item) {
+            return `
+                <div class="card arquivado">
+                    <div class="card-header">
+                        <span class="card-id">${item.id} (ARQUIVADO)</span>
+                        <div class="card-actions-top">
+                            <span class="badge">${item.motivo || 'Arquivado'}</span>
+                            <button class="icon-btn" onclick="visualizarArquivado('${item.id}', 'cotacao')">👁️</button>
+                            <button class="icon-btn restore" onclick="restaurarArquivado('${item.id}', 'cotacao')">↩️</button>
+                            <button class="icon-btn delete" onclick="confirmarExclusaoArquivado('${item.id}', 'cotacao')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="card-company">${item.empresa || 'Sem empresa'}</div>
+                    <div class="card-info">
+                        <strong>Contato:</strong> ${item.contato || '---'}<br>
+                        <strong>Arquivado em:</strong> ${item.dataArquivamento || '---'}<br>
+                        <strong>Motivo:</strong> ${item.motivo || 'Manual'}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function criarCardArquivadoVisita(item) {
+            return `
+                <div class="card arquivado">
+                    <div class="card-header">
+                        <span class="card-id">${item.id} (ARQUIVADO)</span>
+                        <div class="card-actions-top">
+                            <span class="badge">${item.motivo || 'Arquivado'}</span>
+                            <button class="icon-btn" onclick="visualizarArquivado('${item.id}', 'visita')">👁️</button>
+                            <button class="icon-btn restore" onclick="restaurarArquivado('${item.id}', 'visita')">↩️</button>
+                            <button class="icon-btn delete" onclick="confirmarExclusaoArquivado('${item.id}', 'visita')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="card-company">${item.empresa || 'Sem empresa'}</div>
+                    <div class="card-info">
+                        <strong>Data Visita:</strong> ${item.dataVisita || '---'}<br>
+                        <strong>Arquivado em:</strong> ${item.dataArquivamento || '---'}<br>
+                        <strong>Motivo:</strong> ${item.motivo || 'Manual'}
                     </div>
                 </div>
             `;
@@ -814,21 +1003,22 @@
                 return;
             }
             
-            // Atualizar status no banco de dados
+            // Atualizar status
             if (tipo === 'cotacao') {
                 const index = cotacoes.findIndex(c => c.id === cardId);
                 if (index !== -1) {
                     cotacoes[index].status = novaColuna;
-                    localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+                    salvarDados();
                 }
             } else {
                 const index = visitas.findIndex(v => v.id === cardId);
                 if (index !== -1) {
                     visitas[index].status = novaColuna;
-                    localStorage.setItem('visitas', JSON.stringify(visitas));
+                    salvarDados();
                 }
             }
             
+            processarArquivamentoAutomatico();
             renderizarKanbans();
         }
         
@@ -866,266 +1056,4 @@
                         <div class="info-item">
                             <div class="info-label">EMPRESA</div>
                             <div class="info-value">${card.empresa || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">CONTATO</div>
-                            <div class="info-value">${card.contato || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">E-MAIL</div>
-                            <div class="info-value">${card.email || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">TELEFONE</div>
-                            <div class="info-value">${card.telefone || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">MATERIAL</div>
-                            <div class="info-value">${card.material || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">QUANTIDADE</div>
-                            <div class="info-value">${card.quantidade || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">PRAZO</div>
-                            <div class="info-value">${card.prazo || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">DATA CRIAÇÃO</div>
-                            <div class="info-value">${card.dataCriacao || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">DESCRIÇÃO</div>
-                            <div class="info-value">${card.descricao || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">INFORMAÇÕES ADICIONAIS</div>
-                            <div class="info-value">${card.infoAdicional || '---'}</div>
-                        </div>
-                        ${arquivosHtml}
-                    </div>
-                    
-                    <div class="status-selector">
-                        <label>MOVER PARA:</label>
-                        <select onchange="moverCard('${card.id}', 'cotacao', this.value)">
-                            ${colunasCotacoes.map(col => `
-                                <option value="${col}" ${col === card.status ? 'selected' : ''}>${col}</option>
-                            `).join('')}
-                        </select>
-                    </div>
-                `;
-                
-                modalFooter.innerHTML = `
-                    <button class="btn-small archive" onclick="arquivarCard('${card.id}', 'cotacao')">📦 ARQUIVAR</button>
-                    <button class="btn-small delete" onclick="confirmarExclusao('${card.id}', 'cotacao')">🗑️ EXCLUIR</button>
-                    <button class="btn-small" onclick="fecharModal()">FECHAR</button>
-                `;
-            } else {
-                const card = visitas.find(v => v.id === id);
-                if (!card) return;
-                
-                modalTitle.textContent = 'Detalhes da Visita Técnica';
-                
-                modalBody.innerHTML = `
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">EMPRESA</div>
-                            <div class="info-value">${card.empresa || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">CONTATO</div>
-                            <div class="info-value">${card.contato || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">ENDEREÇO</div>
-                            <div class="info-value">${card.endereco || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">DATA DA VISITA</div>
-                            <div class="info-value">${card.dataVisita || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">TÉCNICO</div>
-                            <div class="info-value">${card.tecnico || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">RELATO DA VISITA</div>
-                            <div class="info-value">${card.relatoVisita || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">PPO</div>
-                            <div class="info-value">${card.ppo || '---'}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="status-selector">
-                        <label>MOVER PARA:</label>
-                        <select onchange="moverCard('${card.id}', 'visita', this.value)">
-                            ${colunasVisitas.map(col => `
-                                <option value="${col}" ${col === card.status ? 'selected' : ''}>${col}</option>
-                            `).join('')}
-                        </select>
-                    </div>
-                `;
-                
-                modalFooter.innerHTML = `
-                    <button class="btn-small archive" onclick="arquivarCard('${card.id}', 'visita')">📦 ARQUIVAR</button>
-                    <button class="btn-small delete" onclick="confirmarExclusao('${card.id}', 'visita')">🗑️ EXCLUIR</button>
-                    <button class="btn-small" onclick="fecharModal()">FECHAR</button>
-                `;
-            }
-            
-            modal.classList.add('active');
-        }
-        
-        function moverCard(id, tipo, novoStatus) {
-            if (tipo === 'cotacao') {
-                const index = cotacoes.findIndex(c => c.id === id);
-                if (index !== -1) {
-                    cotacoes[index].status = novoStatus;
-                    localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
-                }
-            } else {
-                const index = visitas.findIndex(v => v.id === id);
-                if (index !== -1) {
-                    visitas[index].status = novoStatus;
-                    localStorage.setItem('visitas', JSON.stringify(visitas));
-                }
-            }
-            
-            fecharModal();
-            renderizarKanbans();
-        }
-        
-        function arquivarCard(id, tipo) {
-            if (tipo === 'cotacao') {
-                cotacoes = cotacoes.filter(c => c.id !== id);
-                localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
-            } else {
-                visitas = visitas.filter(v => v.id !== id);
-                localStorage.setItem('visitas', JSON.stringify(visitas));
-            }
-            
-            fecharModal();
-            renderizarKanbans();
-            alert('Item arquivado com sucesso!');
-        }
-        
-        function confirmarExclusao(id, tipo) {
-            itemParaExcluir = id;
-            tipoParaExcluir = tipo;
-            
-            const confirmModal = document.getElementById('confirmModal');
-            document.getElementById('confirmTitle').textContent = 'Confirmar exclusão';
-            document.getElementById('confirmMessage').textContent = 'Tem certeza que deseja excluir permanentemente este item? Esta ação não pode ser desfeita.';
-            document.getElementById('confirmBtn').onclick = function() {
-                excluirCard();
-            };
-            
-            confirmModal.classList.add('active');
-        }
-        
-        function excluirCard() {
-            if (itemParaExcluir && tipoParaExcluir) {
-                if (tipoParaExcluir === 'cotacao') {
-                    cotacoes = cotacoes.filter(c => c.id !== itemParaExcluir);
-                    localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
-                } else {
-                    visitas = visitas.filter(v => v.id !== itemParaExcluir);
-                    localStorage.setItem('visitas', JSON.stringify(visitas));
-                }
-                
-                fecharConfirmModal();
-                fecharModal();
-                renderizarKanbans();
-                alert('Item excluído permanentemente!');
-            }
-        }
-        
-        function fecharConfirmModal() {
-            document.getElementById('confirmModal').classList.remove('active');
-            itemParaExcluir = null;
-            tipoParaExcluir = null;
-        }
-        
-        function mudarAba(aba) {
-            const btns = document.querySelectorAll('.tab-btn');
-            const sectionOrc = document.getElementById('sectionOrcamentos');
-            const sectionVis = document.getElementById('sectionVisitas');
-            
-            btns.forEach(btn => btn.classList.remove('active'));
-            
-            if (aba === 'orcamentos') {
-                btns[0].classList.add('active');
-                sectionOrc.classList.add('active');
-                sectionVis.classList.remove('active');
-            } else {
-                btns[1].classList.add('active');
-                sectionVis.classList.add('active');
-                sectionOrc.classList.remove('active');
-            }
-        }
-        
-        function fecharModal() {
-            document.getElementById('viewModal').classList.remove('active');
-        }
-        
-        function editarCard(id, tipo) {
-            alert('Função de edição completa será implementada em breve');
-        }
-        
-        function criarVisita(id) {
-            const cotacao = cotacoes.find(c => c.id === id);
-            if (!cotacao) return;
-            
-            const novaVisita = {
-                id: 'VIS' + Date.now(),
-                cotacaoId: id,
-                empresa: cotacao.empresa,
-                endereco: '',
-                contato: cotacao.contato,
-                status: 'Agendar Mapeamento',
-                dataVisita: '',
-                tecnico: '',
-                observacoes: '',
-                relatoVisita: '',
-                ppo: ''
-            };
-            
-            visitas.push(novaVisita);
-            localStorage.setItem('visitas', JSON.stringify(visitas));
-            renderizarKanbans();
-            alert('Visita técnica criada com sucesso!');
-        }
-        
-        function editarRelato(id) {
-            alert('Função de relato será implementada em breve');
-        }
-        
-        function editarPPO(id) {
-            alert('Função de PPO será implementada em breve');
-        }
-        
-        function exportarDados() {
-            const dados = {
-                cotacoes: cotacoes,
-                visitas: visitas,
-                dataExportacao: new Date().toISOString()
-            };
-            
-            const blob = new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-        }
-        
-        function recarregarCards() {
-            carregarDados();
-            renderizarKanbans();
-        }
-    </script>
-</body>
-</html>
+                       
