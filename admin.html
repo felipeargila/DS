@@ -218,6 +218,35 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
+        .auto-reload-bar {
+            background: white;
+            border-radius: 4px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+        
+        .auto-reload-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .auto-reload-toggle input {
+            width: 40px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .auto-reload-status {
+            color: #28a745;
+            font-weight: 500;
+        }
+        
         .filter-bar {
             background: white;
             border-radius: 4px;
@@ -860,6 +889,18 @@
                 <button class="btn-novo" onclick="abrirMenuNovo()">+ NOVO</button>
             </div>
             
+            <!-- Barra de auto-reload -->
+            <div class="auto-reload-bar">
+                <div class="auto-reload-toggle">
+                    <span>Auto-reload (10s):</span>
+                    <input type="checkbox" id="autoReloadToggle" onchange="toggleAutoReload()">
+                    <span class="auto-reload-status" id="autoReloadStatus">● Desativado</span>
+                </div>
+                <div class="auto-reload-info">
+                    Última atualização: <span id="lastUpdate">-</span>
+                </div>
+            </div>
+            
             <!-- Barra de filtro (só para master) -->
             <div id="filterBar" class="filter-bar" style="display: none;">
                 <label>FILTRAR POR VENDEDOR:</label>
@@ -1041,6 +1082,7 @@
         let usuarioAtual = null;
         let filtroAtivo = 'todos';
         let draggedItem = null;
+        let autoReloadInterval = null;
         
         // ========== VERIFICAR LOGIN AO INICIAR ==========
         document.addEventListener('DOMContentLoaded', function() {
@@ -1072,10 +1114,40 @@
             }
         }
         
+        // ========== AUTO-RELOAD ==========
+        function toggleAutoReload() {
+            const toggle = document.getElementById('autoReloadToggle');
+            const status = document.getElementById('autoReloadStatus');
+            
+            if (toggle.checked) {
+                status.innerHTML = '● Ativado (10s)';
+                status.style.color = '#28a745';
+                
+                if (autoReloadInterval) clearInterval(autoReloadInterval);
+                autoReloadInterval = setInterval(() => {
+                    if (usuarioAtual) {
+                        carregarDados();
+                        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    }
+                }, 10000);
+            } else {
+                status.innerHTML = '● Desativado';
+                status.style.color = '#dc3545';
+                if (autoReloadInterval) {
+                    clearInterval(autoReloadInterval);
+                    autoReloadInterval = null;
+                }
+            }
+        }
+        
         // ========== LOGIN ==========
         function mostrarLogin() {
             document.getElementById('loginContainer').style.display = 'block';
             document.getElementById('painelPrincipal').style.display = 'none';
+            if (autoReloadInterval) {
+                clearInterval(autoReloadInterval);
+                autoReloadInterval = null;
+            }
         }
         
         function mostrarPainel() {
@@ -1083,6 +1155,7 @@
             document.getElementById('painelPrincipal').style.display = 'block';
             document.getElementById('userNameDisplay').textContent = usuarioAtual.nome;
             document.getElementById('userTypeDisplay').textContent = usuarioAtual.tipo === 'master' ? 'MASTER' : 'VENDEDOR';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             
             if (usuarioAtual.tipo === 'master') {
                 document.getElementById('filterBar').style.display = 'flex';
@@ -1199,6 +1272,8 @@
                 if (usuarioAtual.tipo === 'master') {
                     carregarRelatorios();
                 }
+                
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             } catch (erro) {
                 console.error('Erro ao carregar dados:', erro);
                 mostrarErro();
@@ -1520,7 +1595,6 @@
                 return;
             }
             
-            // Sem loading pesado - atualização direta
             try {
                 const headers = { 
                     'Content-Type': 'application/json',
@@ -1549,7 +1623,6 @@
                     }
                 }
                 
-                // Atualizar apenas os dados, sem recarregar tudo
                 if (tipo === 'cotacao') {
                     const index = cotacoes.findIndex(c => c.id === cardId);
                     if (index !== -1) cotacoes[index].status = novaColuna;
@@ -1558,7 +1631,6 @@
                     if (index !== -1) visitas[index].status = novaColuna;
                 }
                 
-                // Renderizar apenas a coluna afetada (otimizado)
                 if (tipo === 'cotacao') {
                     renderizarKanbanCotacoes();
                 } else {
@@ -1569,7 +1641,7 @@
             } catch (erro) {
                 console.error('Erro ao mover card:', erro);
                 alert('Erro ao mover card. Tente novamente.');
-                await carregarDados(); // fallback
+                await carregarDados();
             }
         }
         
@@ -1788,7 +1860,6 @@
                             headers,
                             body: JSON.stringify(card)
                         });
-                        // Atualizar localmente
                         const index = cotacoes.findIndex(c => c.id === id);
                         if (index !== -1) cotacoes[index].status = novoStatus;
                     }
@@ -1820,6 +1891,188 @@
             }
         }
         
+        // ========== FUNÇÕES DE EDIÇÃO ==========
+        function editarCard(id, tipo) {
+            const modal = document.getElementById('editModal');
+            const modalTitle = document.getElementById('editModalTitle');
+            const modalBody = document.getElementById('editModalBody');
+            const modalFooter = document.getElementById('editModalFooter');
+            
+            if (tipo === 'cotacao') {
+                const card = cotacoes.find(c => c.id === id);
+                if (!card) return;
+                
+                modalTitle.textContent = 'EDITAR ORÇAMENTO';
+                
+                modalBody.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item full-width">
+                            <div class="info-label">EMPRESA</div>
+                            <input type="text" id="editEmpresa" class="info-value" value="${card.empresa || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CONTATO</div>
+                            <input type="text" id="editContato" class="info-value" value="${card.contato || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">TELEFONE</div>
+                            <input type="text" id="editTelefone" class="info-value" value="${card.telefone || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">E-MAIL</div>
+                            <input type="email" id="editEmail" class="info-value" value="${card.email || ''}">
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">DESCRIÇÃO</div>
+                            <textarea id="editDescricao" class="info-value">${card.descricao || ''}</textarea>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">MATERIAL</div>
+                            <input type="text" id="editMaterial" class="info-value" value="${card.material || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">QUANTIDADE</div>
+                            <input type="text" id="editQuantidade" class="info-value" value="${card.quantidade || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">PRAZO</div>
+                            <input type="text" id="editPrazo" class="info-value" value="${card.prazo || ''}">
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">OBSERVAÇÕES</div>
+                            <textarea id="editObs" class="info-value">${card.observacoes || ''}</textarea>
+                        </div>
+                    </div>
+                `;
+                
+                modalFooter.innerHTML = `
+                    <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
+                    <button class="btn-small success" onclick="salvarEdicaoCotacao('${card.id}')">SALVAR</button>
+                `;
+            } else {
+                const card = visitas.find(v => v.id === id);
+                if (!card) return;
+                
+                modalTitle.textContent = 'EDITAR VISITA';
+                
+                modalBody.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item full-width">
+                            <div class="info-label">EMPRESA</div>
+                            <input type="text" id="editVisitaEmpresa" class="info-value" value="${card.empresa || ''}">
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">ENDEREÇO</div>
+                            <input type="text" id="editVisitaEndereco" class="info-value" value="${card.endereco || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CONTATO</div>
+                            <input type="text" id="editVisitaContato" class="info-value" value="${card.contato || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">TELEFONE</div>
+                            <input type="text" id="editVisitaTelefone" class="info-value" value="${card.telefone || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">DATA VISITA</div>
+                            <input type="date" id="editVisitaData" class="info-value" value="${card.dataVisita || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">TÉCNICO</div>
+                            <input type="text" id="editVisitaTecnico" class="info-value" value="${card.tecnico || ''}">
+                        </div>
+                        <div class="info-item full-width">
+                            <div class="info-label">OBSERVAÇÕES</div>
+                            <textarea id="editVisitaObs" class="info-value">${card.observacoes || ''}</textarea>
+                        </div>
+                    </div>
+                `;
+                
+                modalFooter.innerHTML = `
+                    <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
+                    <button class="btn-small success" onclick="salvarEdicaoVisita('${card.id}')">SALVAR</button>
+                `;
+            }
+            
+            document.getElementById('viewModal').classList.remove('active');
+            modal.classList.add('active');
+        }
+        
+        async function salvarEdicaoCotacao(id) {
+            mostrarLoading(true);
+            
+            try {
+                const dadosAtualizados = {
+                    empresa: document.getElementById('editEmpresa').value,
+                    contato: document.getElementById('editContato').value,
+                    telefone: document.getElementById('editTelefone').value,
+                    email: document.getElementById('editEmail').value,
+                    descricao: document.getElementById('editDescricao').value,
+                    material: document.getElementById('editMaterial').value,
+                    quantidade: document.getElementById('editQuantidade').value,
+                    prazo: document.getElementById('editPrazo').value,
+                    infoAdicional: document.getElementById('editObs').value,
+                    observacoes: document.getElementById('editObs').value
+                };
+                
+                const card = cotacoes.find(c => c.id === id);
+                Object.assign(card, dadosAtualizados);
+                
+                await fetch(`${API_URL}/api/cotacoes/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(card)
+                });
+                
+                fecharEditModal();
+                await carregarDados();
+            } catch (erro) {
+                console.error('Erro ao salvar:', erro);
+                alert('Erro ao salvar alterações');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+        
+        async function salvarEdicaoVisita(id) {
+            mostrarLoading(true);
+            
+            try {
+                const dadosAtualizados = {
+                    empresa: document.getElementById('editVisitaEmpresa').value,
+                    endereco: document.getElementById('editVisitaEndereco').value,
+                    contato: document.getElementById('editVisitaContato').value,
+                    telefone: document.getElementById('editVisitaTelefone').value,
+                    dataVisita: document.getElementById('editVisitaData').value,
+                    tecnico: document.getElementById('editVisitaTecnico').value,
+                    observacoes: document.getElementById('editVisitaObs').value
+                };
+                
+                const card = visitas.find(v => v.id === id);
+                Object.assign(card, dadosAtualizados);
+                
+                await fetch(`${API_URL}/api/visitas/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(card)
+                });
+                
+                fecharEditModal();
+                await carregarDados();
+            } catch (erro) {
+                console.error('Erro ao salvar:', erro);
+                alert('Erro ao salvar alterações');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+        
         // ========== FUNÇÕES DE ARQUIVAMENTO ==========
         async function arquivarCard(id, tipo) {
             try {
@@ -1845,7 +2098,7 @@
                 });
                 
                 fecharModal();
-                await carregarDados(); // recarregar tudo para consistência
+                await carregarDados();
             } catch (erro) {
                 console.error('Erro ao arquivar:', erro);
                 alert('Erro ao arquivar');
@@ -1916,7 +2169,7 @@
             }
         }
         
-        // ========== FUNÇÕES DE CRIAÇÃO ==========
+        // ========== FUNÇÕES DE CRIAÇÃO (NOVO) ==========
         function abrirMenuNovo() {
             document.getElementById('modalSelecaoNovo').classList.add('active');
         }
@@ -1926,13 +2179,201 @@
         }
         
         function abrirModalNovoOrcamento() {
-            alert('Função de novo orçamento será implementada em breve');
             fecharModalSelecao();
+            
+            const modal = document.getElementById('editModal');
+            const modalTitle = document.getElementById('editModalTitle');
+            const modalBody = document.getElementById('editModalBody');
+            const modalFooter = document.getElementById('editModalFooter');
+            
+            modalTitle.textContent = 'NOVO ORÇAMENTO';
+            
+            modalBody.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item full-width">
+                        <div class="info-label">EMPRESA *</div>
+                        <input type="text" id="novaEmpresa" class="info-value" placeholder="Razão social">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">CONTATO *</div>
+                        <input type="text" id="novoContato" class="info-value" placeholder="Nome">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">TELEFONE *</div>
+                        <input type="text" id="novoTelefone" class="info-value" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">E-MAIL</div>
+                        <input type="email" id="novoEmail" class="info-value" placeholder="email@empresa.com">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">DESCRIÇÃO *</div>
+                        <textarea id="novaDescricao" class="info-value" placeholder="Descreva o serviço"></textarea>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">MATERIAL</div>
+                        <input type="text" id="novoMaterial" class="info-value" placeholder="Ex: Aço Carbono">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">QUANTIDADE</div>
+                        <input type="number" id="novaQuantidade" class="info-value" placeholder="Quantidade">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">PRAZO</div>
+                        <input type="text" id="novoPrazo" class="info-value" placeholder="Ex: 15 dias">
+                    </div>
+                </div>
+            `;
+            
+            modalFooter.innerHTML = `
+                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
+                <button class="btn-small success" onclick="salvarNovoOrcamento()">SALVAR</button>
+            `;
+            
+            modal.classList.add('active');
         }
         
         function abrirModalNovaVisita() {
-            alert('Função de nova visita será implementada em breve');
             fecharModalSelecao();
+            
+            const modal = document.getElementById('editModal');
+            const modalTitle = document.getElementById('editModalTitle');
+            const modalBody = document.getElementById('editModalBody');
+            const modalFooter = document.getElementById('editModalFooter');
+            
+            modalTitle.textContent = 'NOVA VISITA';
+            
+            modalBody.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item full-width">
+                        <div class="info-label">EMPRESA *</div>
+                        <input type="text" id="novaVisitaEmpresa" class="info-value" placeholder="Razão social">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">ENDEREÇO</div>
+                        <input type="text" id="novaVisitaEndereco" class="info-value" placeholder="Endereço completo">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">CONTATO</div>
+                        <input type="text" id="novaVisitaContato" class="info-value" placeholder="Nome">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">TELEFONE</div>
+                        <input type="text" id="novaVisitaTelefone" class="info-value" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">DATA VISITA</div>
+                        <input type="date" id="novaVisitaData" class="info-value">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">TÉCNICO</div>
+                        <input type="text" id="novaVisitaTecnico" class="info-value" placeholder="Nome do técnico">
+                    </div>
+                </div>
+            `;
+            
+            modalFooter.innerHTML = `
+                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
+                <button class="btn-small success" onclick="salvarNovaVisita()">SALVAR</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        async function salvarNovoOrcamento() {
+            const empresa = document.getElementById('novaEmpresa').value;
+            const contato = document.getElementById('novoContato').value;
+            const telefone = document.getElementById('novoTelefone').value;
+            
+            if (!empresa || !contato || !telefone) {
+                alert('Preencha os campos obrigatórios');
+                return;
+            }
+            
+            mostrarLoading(true);
+            
+            try {
+                const novoOrcamento = {
+                    id: 'COT' + Date.now(),
+                    vendedorId: usuarioAtual.id,
+                    empresa: empresa,
+                    contato: contato,
+                    telefone: telefone,
+                    email: document.getElementById('novoEmail').value,
+                    descricao: document.getElementById('novaDescricao').value || '',
+                    material: document.getElementById('novoMaterial').value || '',
+                    quantidade: document.getElementById('novaQuantidade').value || '',
+                    prazo: document.getElementById('novoPrazo').value || '',
+                    infoAdicional: '',
+                    arquivos: [],
+                    status: 'Novo Orçamento',
+                    dataCriacao: new Date().toISOString().split('T')[0],
+                    observacoes: ''
+                };
+                
+                await fetch(`${API_URL}/api/cotacoes`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(novoOrcamento)
+                });
+                
+                fecharEditModal();
+                await carregarDados();
+                mudarAba('orcamentos');
+            } catch (erro) {
+                console.error('Erro ao criar:', erro);
+                alert('Erro ao criar orçamento');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+        
+        async function salvarNovaVisita() {
+            const empresa = document.getElementById('novaVisitaEmpresa').value;
+            
+            if (!empresa) {
+                alert('Preencha o campo Empresa');
+                return;
+            }
+            
+            mostrarLoading(true);
+            
+            try {
+                const novaVisita = {
+                    id: 'VIS' + Date.now(),
+                    vendedorId: usuarioAtual.id,
+                    empresa: empresa,
+                    endereco: document.getElementById('novaVisitaEndereco').value || '',
+                    contato: document.getElementById('novaVisitaContato').value || '',
+                    telefone: document.getElementById('novaVisitaTelefone').value || '',
+                    dataVisita: document.getElementById('novaVisitaData').value || '',
+                    tecnico: document.getElementById('novaVisitaTecnico').value || '',
+                    status: 'Agendar Mapeamento',
+                    observacoes: '',
+                    dataCriacao: new Date().toISOString().split('T')[0]
+                };
+                
+                await fetch(`${API_URL}/api/visitas`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(novaVisita)
+                });
+                
+                fecharEditModal();
+                await carregarDados();
+                mudarAba('visitas');
+            } catch (erro) {
+                console.error('Erro ao criar:', erro);
+                alert('Erro ao criar visita');
+            } finally {
+                mostrarLoading(false);
+            }
         }
         
         // ========== FUNÇÃO CRIAR VISITA (CORRIGIDA) ==========
@@ -1971,7 +2412,7 @@
                 const dados = await resposta.json();
                 
                 if (dados.sucesso) {
-                    alert('Visita técnica agendada com sucesso!');
+                    alert('✅ Novo fluxo de visita adicionado!');
                     await carregarDados();
                     mudarAba('visitas');
                 } else {
@@ -2224,11 +2665,6 @@
         
         function fecharConfirmModal() {
             document.getElementById('confirmModal').classList.remove('active');
-        }
-        
-        // Função editarCard placeholder
-        function editarCard(id, tipo) {
-            alert('Função de edição será implementada em breve');
         }
     </script>
 </body>
