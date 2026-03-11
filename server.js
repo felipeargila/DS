@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,39 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
+
+// Configuração do multer para uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['.pdf', '.dwg', '.dxf', '.step', '.stp', '.jpg', '.jpeg', '.png'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowedTypes.includes(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Tipo de arquivo não permitido'));
+        }
+    }
+});
+
+// Servir arquivos estáticos da pasta uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Conectar ao banco de dados SQLite
 const db = new sqlite3.Database('./database.db', (err) => {
@@ -42,7 +76,7 @@ function criarTabelas() {
         )
     `);
 
-    // Tabela de cotações (SEM CAMPO DE VALOR)
+    // Tabela de cotações (com campo arquivos)
     db.run(`
         CREATE TABLE IF NOT EXISTS cotacoes (
             id TEXT PRIMARY KEY,
@@ -64,7 +98,7 @@ function criarTabelas() {
         )
     `);
 
-    // Tabela de visitas técnicas (SEM PPO/RELATO, só observacoes)
+    // Tabela de visitas técnicas (só observacoes)
     db.run(`
         CREATE TABLE IF NOT EXISTS visitas (
             id TEXT PRIMARY KEY,
@@ -285,6 +319,35 @@ app.delete('/api/vendedores/:id', verificarToken, verificarMaster, (req, res) =>
     });
 });
 
+// ========== ROTAS DE UPLOAD ==========
+app.post('/api/upload', upload.array('arquivos', 10), (req, res) => {
+    try {
+        const files = req.files.map(file => ({
+            filename: file.filename,
+            originalname: file.originalname,
+            path: file.path,
+            size: file.size,
+            url: `/uploads/${file.filename}`
+        }));
+        
+        res.json({ sucesso: true, arquivos: files });
+    } catch (error) {
+        res.status(500).json({ erro: error.message });
+    }
+});
+
+app.delete('/api/upload/:filename', verificarToken, (req, res) => {
+    const filepath = path.join(__dirname, 'uploads', req.params.filename);
+    
+    fs.unlink(filepath, (err) => {
+        if (err) {
+            res.status(500).json({ erro: err.message });
+        } else {
+            res.json({ sucesso: true });
+        }
+    });
+});
+
 // ========== ROTAS DE COTAÇÕES ==========
 app.get('/api/cotacoes', verificarToken, (req, res) => {
     let query = 'SELECT * FROM cotacoes';
@@ -362,7 +425,7 @@ app.delete('/api/cotacoes/:id', verificarToken, (req, res) => {
     });
 });
 
-// ========== ROTAS DE VISITAS (SEM PPO/RELATO) ==========
+// ========== ROTAS DE VISITAS ==========
 app.get('/api/visitas', verificarToken, (req, res) => {
     let query = 'SELECT * FROM visitas';
     let params = [];
