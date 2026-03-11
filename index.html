@@ -192,15 +192,16 @@
             display: none;
         }
         
-        .vendedor-info {
-            background: #f8f9fa;
+        .access-granted {
+            background: #d4edda;
+            color: #155724;
             padding: 10px;
             border-radius: 4px;
             margin-bottom: 20px;
             text-align: center;
-            color: #283944;
             font-weight: 500;
-            border-left: 4px solid #b7ab97;
+            border-left: 4px solid #28a745;
+            display: none;
         }
     </style>
 </head>
@@ -219,14 +220,13 @@
             
             <div class="code-input-area">
                 <input type="text" class="code-input" id="accessCode" maxlength="10" placeholder="CÓDIGO">
-                <p class="code-hint">Digite o código de acesso do seu vendedor</p>
+                <p class="code-hint">Digite seu código de acesso</p>
                 <div class="error-message" id="codeError"></div>
-                <div class="loading" id="loadingCode">Validando código...</div>
+                <div class="loading" id="loadingCode">Validando...</div>
+                <div class="access-granted" id="accessGranted">✓ ACESSO PERMITIDO</div>
             </div>
             
             <div class="form-section" id="formSection">
-                <div class="vendedor-info" id="vendedorInfo"></div>
-                
                 <h2 style="margin-bottom: 20px; color: #283944;">SOLICITAR ORÇAMENTO</h2>
                 
                 <form id="quotationForm">
@@ -301,13 +301,13 @@
         const accessCode = document.getElementById('accessCode');
         const codeError = document.getElementById('codeError');
         const loadingCode = document.getElementById('loadingCode');
+        const accessGranted = document.getElementById('accessGranted');
         const formSection = document.getElementById('formSection');
-        const vendedorInfo = document.getElementById('vendedorInfo');
         const quotationForm = document.getElementById('quotationForm');
         const successMessage = document.getElementById('successMessage');
         const loadingSubmit = document.getElementById('loadingSubmit');
         
-        let vendedorAtual = null; // Guarda o vendedor após validação
+        let vendedorAtual = null; // Guarda o vendedor após validação (interno)
         
         // Validação do código de acesso em tempo real
         accessCode.addEventListener('input', async function(e) {
@@ -315,39 +315,34 @@
             
             // Esconde mensagens anteriores
             codeError.style.display = 'none';
+            accessGranted.style.display = 'none';
             formSection.classList.remove('active');
-            vendedorInfo.innerHTML = '';
             
-            if (code.length >= 3) { // Mínimo de 3 caracteres
+            if (code.length >= 3) {
                 loadingCode.style.display = 'block';
                 accessCode.disabled = true;
                 
                 try {
-                    // Buscar vendedor pelo código de acesso
                     const resposta = await fetch(`/api/vendedores/codigo/${code}`);
                     const dados = await resposta.json();
                     
                     if (dados.sucesso && dados.vendedor) {
-                        // Código válido!
+                        // Código válido - guarda vendedor mas não mostra nome
                         vendedorAtual = dados.vendedor;
+                        accessGranted.style.display = 'block';
                         formSection.classList.add('active');
                         accessCode.style.borderColor = '#b7ab97';
-                        
-                        // Mostrar mensagem de boas-vindas
-                        vendedorInfo.innerHTML = `✅ Atendimento: ${dados.vendedor.nome}`;
-                        
-                        // Opcional: tocar um som ou algo do tipo
                     } else {
                         // Código inválido
                         codeError.style.display = 'block';
-                        codeError.textContent = '❌ Código inválido. Verifique com seu vendedor.';
+                        codeError.textContent = '❌ Código inválido';
                         accessCode.style.borderColor = '#dc3545';
                         vendedorAtual = null;
                     }
                 } catch (erro) {
                     console.error('Erro ao validar código:', erro);
                     codeError.style.display = 'block';
-                    codeError.textContent = '❌ Erro ao validar. Tente novamente.';
+                    codeError.textContent = '❌ Erro ao validar';
                     accessCode.style.borderColor = '#dc3545';
                 } finally {
                     loadingCode.style.display = 'none';
@@ -364,7 +359,7 @@
             e.preventDefault();
             
             if (!vendedorAtual) {
-                alert('Código de acesso inválido. Digite o código novamente.');
+                alert('Código inválido. Digite novamente.');
                 return;
             }
             
@@ -401,8 +396,8 @@
                     successMessage.style.display = 'block';
                     quotationForm.reset();
                     accessCode.value = '';
+                    accessGranted.style.display = 'none';
                     formSection.classList.remove('active');
-                    vendedorInfo.innerHTML = '';
                     vendedorAtual = null;
                     
                     setTimeout(() => {
@@ -413,7 +408,7 @@
                 }
             } catch (erro) {
                 console.error('Erro:', erro);
-                alert('Erro de conexão com o servidor. Tente novamente.');
+                alert('Erro de conexão com o servidor.');
             } finally {
                 loadingSubmit.style.display = 'none';
             }
@@ -423,13 +418,13 @@
         accessCode.addEventListener('focus', function() {
             if (this.value.length > 0) {
                 this.value = '';
+                accessGranted.style.display = 'none';
                 formSection.classList.remove('active');
-                vendedorInfo.innerHTML = '';
                 vendedorAtual = null;
             }
         });
         
-        // Converter para maiúsculas enquanto digita
+        // Converter para maiúsculas
         accessCode.addEventListener('keyup', function() {
             this.value = this.value.toUpperCase();
         });
