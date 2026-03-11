@@ -38,14 +38,8 @@
         }
         
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         h1 {
@@ -54,7 +48,6 @@
             margin-bottom: 10px;
             text-align: center;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
         
         .subtitle {
@@ -79,10 +72,11 @@
             border-radius: 4px;
             outline: none;
             transition: all 0.3s;
-            letter-spacing: 8px;
+            letter-spacing: 4px;
             font-weight: 400;
             background: white;
             color: #283944;
+            text-transform: uppercase;
         }
         
         .code-input:focus {
@@ -124,7 +118,6 @@
             color: #283944;
             font-weight: 500;
             font-size: 14px;
-            letter-spacing: 0.3px;
         }
         
         input, textarea, select {
@@ -143,52 +136,11 @@
         input:focus, textarea:focus, select:focus {
             border-color: #b7ab97;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(183, 171, 151, 0.2);
         }
         
         textarea {
             min-height: 100px;
             resize: vertical;
-        }
-        
-        .file-upload {
-            border: 2px dashed #ddd;
-            padding: 30px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .file-upload:hover {
-            border-color: #b7ab97;
-            background: #f8f6f2;
-        }
-        
-        .file-upload input {
-            display: none;
-        }
-        
-        .file-upload span {
-            font-size: 40px;
-            color: #b7ab97;
-            margin-bottom: 10px;
-            display: block;
-        }
-        
-        .file-list {
-            margin-top: 15px;
-        }
-        
-        .file-item {
-            background: #f0f0f0;
-            padding: 8px 15px;
-            border-radius: 4px;
-            display: inline-block;
-            margin: 5px;
-            font-size: 14px;
-            color: #283944;
-            font-weight: 300;
         }
         
         button {
@@ -202,7 +154,6 @@
             cursor: pointer;
             width: 100%;
             transition: all 0.3s;
-            letter-spacing: 0.5px;
             text-transform: uppercase;
             font-family: 'Chakra Petch', sans-serif;
         }
@@ -233,206 +184,195 @@
             border-left: 4px solid #b7ab97;
         }
         
-        ::placeholder {
-            color: #aaa;
-            font-weight: 300;
-            font-family: 'Chakra Petch', sans-serif;
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #283944;
+            font-weight: 500;
+            display: none;
         }
         
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23283944' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
+        .vendedor-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #283944;
+            font-weight: 500;
+            border-left: 4px solid #b7ab97;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <!-- LOGO CENTRALIZADA -->
+            <!-- LOGO -->
             <div style="text-align: center; margin-bottom: 25px;">
                 <img src="https://maqcare.dsindustria.com.br/wp-content/uploads/2026/03/LOGO.png" 
                      alt="Logo Maqcare" 
-                     style="max-width: 200px; height: auto; display: inline-block;">
+                     style="max-width: 200px; height: auto;">
             </div>
 
             <h1>PORTAL DE COTAÇÕES</h1>
             <p class="subtitle">Soluções em Usinagem de Precisão</p>
             
             <div class="code-input-area">
-                <input type="text" class="code-input" id="accessCode" maxlength="6" placeholder="······">
-                <p class="code-hint">Digite o código de acesso fornecido</p>
-                <div class="error-message" id="codeError">Código inválido. Tente novamente.</div>
+                <input type="text" class="code-input" id="accessCode" maxlength="10" placeholder="CÓDIGO">
+                <p class="code-hint">Digite o código de acesso do seu vendedor</p>
+                <div class="error-message" id="codeError"></div>
+                <div class="loading" id="loadingCode">Validando código...</div>
             </div>
             
             <div class="form-section" id="formSection">
-                <h2 style="margin-bottom: 20px; color: #283944; font-weight: 500;">SOLICITAR ORÇAMENTO</h2>
+                <div class="vendedor-info" id="vendedorInfo"></div>
+                
+                <h2 style="margin-bottom: 20px; color: #283944;">SOLICITAR ORÇAMENTO</h2>
                 
                 <form id="quotationForm">
                     <div class="form-group">
                         <label>EMPRESA *</label>
-                        <input type="text" id="empresa" placeholder="Razão social ou nome fantasia" required>
+                        <input type="text" id="empresa" required>
                     </div>
                     
                     <div class="form-group">
-                        <label>NOME DO CONTATO *</label>
-                        <input type="text" id="contato" placeholder="Nome completo" required>
+                        <label>CONTATO *</label>
+                        <input type="text" id="contato" required>
                     </div>
                     
                     <div class="form-group">
                         <label>E-MAIL *</label>
-                        <input type="email" id="email" placeholder="seu@email.com" required>
+                        <input type="email" id="email" required>
                     </div>
                     
                     <div class="form-group">
                         <label>TELEFONE *</label>
-                        <input type="tel" id="telefone" placeholder="(11) 99999-9999" required>
+                        <input type="tel" id="telefone" required>
                     </div>
                     
                     <div class="form-group">
-                        <label>DESCRIÇÃO DO SERVIÇO / PEÇAS *</label>
-                        <textarea id="descricao" placeholder="Descreva o que precisa: tipo de peça, acabamento, tolerâncias, etc." required></textarea>
+                        <label>DESCRIÇÃO *</label>
+                        <textarea id="descricao" required></textarea>
                     </div>
                     
                     <div class="form-group">
                         <label>MATERIAL</label>
                         <select id="material">
                             <option value="">Selecione...</option>
-                            <option value="aco_carbono">Aço Carbono</option>
-                            <option value="aco_inox">Aço Inoxidável</option>
-                            <option value="aluminio">Alumínio</option>
-                            <option value="bronze">Bronze</option>
-                            <option value="ferro">Ferro Fundido</option>
-                            <option value="plasticos">Plásticos / Polímeros</option>
-                            <option value="outro">Outro</option>
+                            <option value="Aço Carbono">Aço Carbono</option>
+                            <option value="Aço Inoxidável">Aço Inoxidável</option>
+                            <option value="Alumínio">Alumínio</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Ferro Fundido">Ferro Fundido</option>
+                            <option value="Plástico">Plástico</option>
+                            <option value="Outro">Outro</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label>QUANTIDADE</label>
-                        <input type="number" id="quantidade" min="1" placeholder="Quantidade de peças">
+                        <input type="number" id="quantidade" min="1">
                     </div>
                     
                     <div class="form-group">
                         <label>PRAZO DESEJADO</label>
-                        <input type="text" id="prazo" placeholder="Ex: 15 dias, 30 dias, urgente">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>ANEXAR ARQUIVOS</label>
-                        <div class="file-upload" id="fileUploadArea">
-                            <span>+</span>
-                            <p>Arraste arquivos ou clique para selecionar</p>
-                            <p style="font-size: 12px; color: #888;">PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)</p>
-                            <input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png">
-                        </div>
-                        <div class="file-list" id="fileList"></div>
+                        <input type="text" id="prazo" placeholder="Ex: 15 dias">
                     </div>
                     
                     <div class="form-group">
                         <label>INFORMAÇÕES ADICIONAIS</label>
-                        <textarea id="infoAdicional" placeholder="Especificações técnicas, normas, observações importantes..."></textarea>
+                        <textarea id="infoAdicional"></textarea>
                     </div>
                     
                     <button type="submit">ENVIAR SOLICITAÇÃO</button>
                 </form>
                 
                 <div class="success-message" id="successMessage">
-                    ORÇAMENTO ENVIADO COM SUCESSO. RETORNAREMOS EM BREVE.
+                    ORÇAMENTO ENVIADO COM SUCESSO!
                 </div>
+                
+                <div class="loading" id="loadingSubmit">Enviando...</div>
             </div>
         </div>
     </div>
     
     <script>
-        // ALTERE ESTE CÓDIGO PARA O QUE DESEJAR
-        const SECRET_CODE = "260378";
-        
+        // Elementos da página
         const accessCode = document.getElementById('accessCode');
         const codeError = document.getElementById('codeError');
+        const loadingCode = document.getElementById('loadingCode');
         const formSection = document.getElementById('formSection');
-        const fileUploadArea = document.getElementById('fileUploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
+        const vendedorInfo = document.getElementById('vendedorInfo');
         const quotationForm = document.getElementById('quotationForm');
         const successMessage = document.getElementById('successMessage');
+        const loadingSubmit = document.getElementById('loadingSubmit');
         
-        let uploadedFiles = [];
+        let vendedorAtual = null; // Guarda o vendedor após validação
         
-        // Validação do código de acesso
-        accessCode.addEventListener('input', function(e) {
-            const code = e.target.value;
+        // Validação do código de acesso em tempo real
+        accessCode.addEventListener('input', async function(e) {
+            const code = e.target.value.trim().toUpperCase();
             
-            if (code.length === 6) {
-                if (code === SECRET_CODE) {
-                    formSection.classList.add('active');
-                    codeError.style.display = 'none';
-                    accessCode.style.borderColor = '#b7ab97';
-                } else {
-                    formSection.classList.remove('active');
+            // Esconde mensagens anteriores
+            codeError.style.display = 'none';
+            formSection.classList.remove('active');
+            vendedorInfo.innerHTML = '';
+            
+            if (code.length >= 3) { // Mínimo de 3 caracteres
+                loadingCode.style.display = 'block';
+                accessCode.disabled = true;
+                
+                try {
+                    // Buscar vendedor pelo código de acesso
+                    const resposta = await fetch(`/api/vendedores/codigo/${code}`);
+                    const dados = await resposta.json();
+                    
+                    if (dados.sucesso && dados.vendedor) {
+                        // Código válido!
+                        vendedorAtual = dados.vendedor;
+                        formSection.classList.add('active');
+                        accessCode.style.borderColor = '#b7ab97';
+                        
+                        // Mostrar mensagem de boas-vindas
+                        vendedorInfo.innerHTML = `✅ Atendimento: ${dados.vendedor.nome}`;
+                        
+                        // Opcional: tocar um som ou algo do tipo
+                    } else {
+                        // Código inválido
+                        codeError.style.display = 'block';
+                        codeError.textContent = '❌ Código inválido. Verifique com seu vendedor.';
+                        accessCode.style.borderColor = '#dc3545';
+                        vendedorAtual = null;
+                    }
+                } catch (erro) {
+                    console.error('Erro ao validar código:', erro);
                     codeError.style.display = 'block';
+                    codeError.textContent = '❌ Erro ao validar. Tente novamente.';
                     accessCode.style.borderColor = '#dc3545';
+                } finally {
+                    loadingCode.style.display = 'none';
+                    accessCode.disabled = false;
                 }
             } else {
-                formSection.classList.remove('active');
-                codeError.style.display = 'none';
                 accessCode.style.borderColor = '#ddd';
+                vendedorAtual = null;
             }
         });
         
-        // Upload de arquivos
-        fileUploadArea.addEventListener('click', () => fileInput.click());
-        
-        fileUploadArea.addEventListener('dragover', (e) => {
+        // Enviar formulário
+        quotationForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            fileUploadArea.style.background = '#f8f6f2';
-        });
-        
-        fileUploadArea.addEventListener('dragleave', () => {
-            fileUploadArea.style.background = '';
-        });
-        
-        fileUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileUploadArea.style.background = '';
-            handleFiles(e.dataTransfer.files);
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
-        
-        function handleFiles(files) {
-            for (let file of files) {
-                if (file.size <= 10 * 1024 * 1024) { // 10MB
-                    uploadedFiles.push({
-                        name: file.name,
-                        size: file.size,
-                        type: file.type
-                    });
-                }
+            
+            if (!vendedorAtual) {
+                alert('Código de acesso inválido. Digite o código novamente.');
+                return;
             }
-            updateFileList();
-        }
-        
-        function updateFileList() {
-            if (uploadedFiles.length > 0) {
-                fileList.innerHTML = uploadedFiles.map(f => 
-                    `<span class="file-item">📄 ${f.name}</span>`
-                ).join('');
-            } else {
-                fileList.innerHTML = '';
-            }
-        }
-        
-        // Envio do formulário
-        quotationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            
+            loadingSubmit.style.display = 'block';
             
             const formData = {
                 id: 'COT' + Date.now(),
+                vendedorId: vendedorAtual.id,
                 empresa: document.getElementById('empresa').value,
                 contato: document.getElementById('contato').value,
                 email: document.getElementById('email').value,
@@ -442,26 +382,56 @@
                 quantidade: document.getElementById('quantidade').value,
                 prazo: document.getElementById('prazo').value,
                 infoAdicional: document.getElementById('infoAdicional').value,
-                arquivos: uploadedFiles,
+                arquivos: [],
                 status: 'Novo Orçamento',
                 dataCriacao: new Date().toISOString().split('T')[0],
                 observacoes: ''
             };
             
-            // Salva no localStorage (depois substituiremos por API)
-            let cotacoes = JSON.parse(localStorage.getItem('cotacoes') || '[]');
-            cotacoes.push(formData);
-            localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
-            
-            // Mensagem de sucesso
-            successMessage.style.display = 'block';
-            quotationForm.reset();
-            uploadedFiles = [];
-            updateFileList();
-            
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 5000);
+            try {
+                const resposta = await fetch('/api/cotacoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const dados = await resposta.json();
+                
+                if (dados.sucesso) {
+                    successMessage.style.display = 'block';
+                    quotationForm.reset();
+                    accessCode.value = '';
+                    formSection.classList.remove('active');
+                    vendedorInfo.innerHTML = '';
+                    vendedorAtual = null;
+                    
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000);
+                } else {
+                    alert('Erro ao enviar: ' + dados.erro);
+                }
+            } catch (erro) {
+                console.error('Erro:', erro);
+                alert('Erro de conexão com o servidor. Tente novamente.');
+            } finally {
+                loadingSubmit.style.display = 'none';
+            }
+        });
+        
+        // Limpar código quando clicar no campo
+        accessCode.addEventListener('focus', function() {
+            if (this.value.length > 0) {
+                this.value = '';
+                formSection.classList.remove('active');
+                vendedorInfo.innerHTML = '';
+                vendedorAtual = null;
+            }
+        });
+        
+        // Converter para maiúsculas enquanto digita
+        accessCode.addEventListener('keyup', function() {
+            this.value = this.value.toUpperCase();
         });
     </script>
 </body>
