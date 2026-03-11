@@ -157,6 +157,15 @@
             color: #283944;
         }
         
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
         .tab-menu {
             display: flex;
             gap: 10px;
@@ -190,72 +199,23 @@
             background: #e0e0e0;
         }
         
-        .header-actions {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 14px;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-        
-        .btn-primary {
-            background: #b7ab97;
-            color: #283944;
-        }
-        
-        .btn-primary:hover {
-            background: #a59984;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #b7ab97;
-            color: #b7ab97;
-        }
-        
-        .btn-outline:hover {
-            background: #b7ab97;
-            color: #283944;
-        }
-        
-        .btn-success {
+        .btn-novo {
             background: #28a745;
             color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: all 0.3s;
         }
         
-        .btn-success:hover {
+        .btn-novo:hover {
             background: #218838;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #c82333;
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            color: #283944;
-        }
-        
-        .btn-warning:hover {
-            background: #e0a800;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .filter-bar {
@@ -274,7 +234,7 @@
             font-weight: 500;
         }
         
-        .filter-bar select, .filter-bar input {
+        .filter-bar select {
             padding: 8px 12px;
             border: 2px solid #ddd;
             border-radius: 4px;
@@ -282,7 +242,7 @@
             min-width: 200px;
         }
         
-        .filter-bar select:focus, .filter-bar input:focus {
+        .filter-bar select:focus {
             border-color: #b7ab97;
             outline: none;
         }
@@ -445,6 +405,11 @@
             font-size: 12px;
             color: #b7ab97;
             font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .card-files:hover {
+            text-decoration: underline;
         }
         
         .vendedor-badge {
@@ -532,15 +497,6 @@
             background: #218838;
         }
         
-        .btn-small.success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-small.success:hover {
-            background: #218838;
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -572,10 +528,6 @@
         .modal-content.small {
             max-width: 400px;
             text-align: center;
-        }
-        
-        .modal-content.large {
-            max-width: 900px;
         }
         
         .modal-header {
@@ -809,33 +761,6 @@
             text-align: center;
         }
         
-        /* Tabelas */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .data-table th {
-            background: #283944;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 500;
-        }
-        
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .data-table tr:hover {
-            background: #f5f5f5;
-        }
-        
-        /* Cards de estatísticas */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -861,6 +786,37 @@
             font-size: 14px;
             color: #666;
             text-transform: uppercase;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .data-table th {
+            background: #283944;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .code-6digits {
+            font-family: monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
         }
     </style>
 </head>
@@ -890,36 +846,25 @@
                 </div>
             </header>
             
+            <!-- Barra de navegação com abas e botão NOVO -->
+            <div class="nav-bar">
+                <div class="tab-menu">
+                    <button class="tab-btn active" onclick="mudarAba('orcamentos')">ORÇAMENTOS</button>
+                    <button class="tab-btn" onclick="mudarAba('visitas')">VISITAS</button>
+                    <button class="tab-btn" onclick="mudarAba('arquivados')">ARQUIVADOS</button>
+                    <button class="tab-btn" id="tabRelatorios" style="display: none;" onclick="mudarAba('relatorios')">RELATÓRIOS</button>
+                    <button class="tab-btn" id="tabVendedores" style="display: none;" onclick="mudarAba('vendedores')">VENDEDORES</button>
+                </div>
+                
+                <button class="btn-novo" onclick="abrirMenuNovo()">+ NOVO</button>
+            </div>
+            
             <!-- Barra de filtro (só para master) -->
             <div id="filterBar" class="filter-bar" style="display: none;">
                 <label>FILTRAR POR VENDEDOR:</label>
                 <select id="filtroVendedor" onchange="aplicarFiltro()">
                     <option value="todos">TODOS OS VENDEDORES</option>
                 </select>
-                
-                <label>PERÍODO:</label>
-                <select id="filtroPeriodo" onchange="aplicarFiltro()">
-                    <option value="7">Últimos 7 dias</option>
-                    <option value="15">Últimos 15 dias</option>
-                    <option value="30" selected>Últimos 30 dias</option>
-                    <option value="90">Últimos 90 dias</option>
-                    <option value="365">Último ano</option>
-                    <option value="todos">Todo período</option>
-                </select>
-            </div>
-            
-            <div class="tab-menu">
-                <button class="tab-btn active" onclick="mudarAba('orcamentos')">ORÇAMENTOS</button>
-                <button class="tab-btn" onclick="mudarAba('visitas')">VISITAS</button>
-                <button class="tab-btn" onclick="mudarAba('arquivados')">ARQUIVADOS</button>
-                <button class="tab-btn" onclick="mudarAba('relatorios')">RELATÓRIOS</button>
-                <button class="tab-btn" id="tabVendedores" style="display: none;" onclick="mudarAba('vendedores')">VENDEDORES</button>
-            </div>
-            
-            <div class="header-actions">
-                <button class="btn btn-success" onclick="abrirMenuNovo()">+ NOVO</button>
-                <button class="btn btn-outline" onclick="exportarDados()">EXPORTAR</button>
-                <button class="btn btn-primary" onclick="carregarDados()">ATUALIZAR</button>
             </div>
             
             <div id="loading" class="loading" style="display: none;">
@@ -953,10 +898,21 @@
                 </div>
             </div>
             
-            <!-- Seção Relatórios -->
+            <!-- Seção Relatórios (só master vê) -->
             <div id="sectionRelatorios" class="kanban-section">
                 <div class="stats-grid" id="statsContainer">
-                    <!-- Estatísticas serão inseridas aqui -->
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Total de Orçamentos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Convertidos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0%</div>
+                        <div class="stat-label">Taxa de Conversão</div>
+                    </div>
                 </div>
                 
                 <div style="background: white; border-radius: 4px; padding: 20px; margin-bottom: 20px;">
@@ -975,38 +931,20 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <div style="background: white; border-radius: 4px; padding: 20px;">
-                    <h3 style="color: #283944; margin-bottom: 20px;">HISTÓRICO DE MOVIMENTAÇÕES</h3>
-                    <table class="data-table" id="tabelaHistorico">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Ação</th>
-                                <th>Detalhes</th>
-                                <th>Responsável</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historicoBody">
-                            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
             
-            <!-- Seção Gerenciar Vendedores (só para master) -->
+            <!-- Seção Gerenciar Vendedores (só master vê) -->
             <div id="sectionVendedores" class="kanban-section">
                 <div style="background: white; border-radius: 4px; padding: 20px;">
                     <h3 style="color: #283944; margin-bottom: 20px;">GERENCIAR VENDEDORES</h3>
-                    <button class="btn btn-success" onclick="abrirModalNovoVendedor()" style="margin-bottom: 20px;">+ NOVO VENDEDOR</button>
+                    <button class="btn-novo" onclick="abrirModalNovoVendedor()" style="margin-bottom: 20px;">+ NOVO VENDEDOR</button>
                     
                     <table class="data-table" id="vendedoresTable">
                         <thead>
                             <tr>
                                 <th>Nome</th>
                                 <th>Login</th>
-                                <th>Código</th>
+                                <th>Código (6 dígitos)</th>
                                 <th>Tipo</th>
                                 <th>Status</th>
                                 <th>Ações</th>
@@ -1021,7 +959,7 @@
         </div>
     </div>
     
-    <!-- Modais -->
+    <!-- Modal de Seleção (Novo) -->
     <div class="modal" id="modalSelecaoNovo">
         <div class="modal-content small">
             <div class="modal-header">
@@ -1038,6 +976,7 @@
         </div>
     </div>
     
+    <!-- Modal de Visualização -->
     <div class="modal" id="viewModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1049,6 +988,7 @@
         </div>
     </div>
     
+    <!-- Modal de Edição -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1060,16 +1000,7 @@
         </div>
     </div>
     
-    <div class="modal" id="historicoModal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2 id="historicoModalTitle">Histórico</h2>
-                <span class="close" onclick="fecharHistoricoModal()">&times;</span>
-            </div>
-            <div class="modal-body" id="historicoModalBody"></div>
-        </div>
-    </div>
-    
+    <!-- Modal de Confirmação -->
     <div class="modal" id="confirmModal">
         <div class="modal-content small">
             <h3 id="confirmTitle" style="margin-bottom: 15px;">Confirmar</h3>
@@ -1106,10 +1037,8 @@
         let visitas = [];
         let arquivados = [];
         let vendedores = [];
-        let historico = [];
         let usuarioAtual = null;
         let filtroAtivo = 'todos';
-        let periodoAtivo = '30';
         let draggedItem = null;
         
         // ========== VERIFICAR LOGIN AO INICIAR ==========
@@ -1131,7 +1060,9 @@
                     usuarioAtual = dados.usuario;
                     mostrarPainel();
                     carregarDados();
-                    carregarVendedores();
+                    if (usuarioAtual.tipo === 'master') {
+                        carregarVendedores();
+                    }
                 } else {
                     mostrarLogin();
                 }
@@ -1154,6 +1085,7 @@
             
             if (usuarioAtual.tipo === 'master') {
                 document.getElementById('filterBar').style.display = 'flex';
+                document.getElementById('tabRelatorios').style.display = 'inline-block';
                 document.getElementById('tabVendedores').style.display = 'inline-block';
             }
         }
@@ -1176,7 +1108,9 @@
                     usuarioAtual = dados.usuario;
                     mostrarPainel();
                     carregarDados();
-                    carregarVendedores();
+                    if (usuarioAtual.tipo === 'master') {
+                        carregarVendedores();
+                    }
                 } else {
                     document.getElementById('loginError').style.display = 'block';
                 }
@@ -1194,8 +1128,6 @@
         
         // ========== CARREGAR VENDEDORES ==========
         async function carregarVendedores() {
-            if (usuarioAtual.tipo !== 'master') return;
-            
             try {
                 const resposta = await fetch(`${API_URL}/api/vendedores`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -1215,7 +1147,7 @@
                     html += `<tr>
                         <td>${v.nome}</td>
                         <td>${v.login}</td>
-                        <td>${v.codigoAcesso}</td>
+                        <td class="code-6digits">${v.codigoAcesso}</td>
                         <td>${v.tipo}</td>
                         <td>${v.ativo ? 'Ativo' : 'Inativo'}</td>
                         <td>
@@ -1233,9 +1165,7 @@
         
         function aplicarFiltro() {
             filtroAtivo = document.getElementById('filtroVendedor').value;
-            periodoAtivo = document.getElementById('filtroPeriodo').value;
             renderizarKanbans();
-            carregarRelatorios();
         }
         
         // ========== CARREGAR DADOS PRINCIPAIS ==========
@@ -1279,7 +1209,7 @@
             
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
-                const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=${periodoAtivo}`, { headers });
+                const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=30`, { headers });
                 const dados = await resposta.json();
                 
                 // Estatísticas gerais
@@ -1297,10 +1227,6 @@
                         <div class="stat-value">${stats.total ? ((stats.convertidos / stats.total * 100) || 0).toFixed(1) : 0}%</div>
                         <div class="stat-label">Taxa de Conversão</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.tempoMedioConversao ? stats.tempoMedioConversao.toFixed(1) : '-'}</div>
-                        <div class="stat-label">Dias p/ Conversão</div>
-                    </div>
                 `;
                 
                 // Desempenho por vendedor
@@ -1315,22 +1241,6 @@
                     </tr>`;
                 });
                 document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="4" class="empty-state">Nenhum dado no período</td></tr>';
-                
-                // Histórico recente
-                const respHistorico = await fetch(`${API_URL}/api/relatorios/historico/recentes`, { headers });
-                const historicoRecente = await respHistorico.json();
-                
-                let historicoHtml = '';
-                historicoRecente?.forEach(h => {
-                    historicoHtml += `<tr>
-                        <td>${new Date(h.data).toLocaleString('pt-BR')}</td>
-                        <td>${h.tipo}</td>
-                        <td>${h.acao}</td>
-                        <td>${h.de ? `${h.de} → ${h.para}` : '-'}</td>
-                        <td>${h.vendedorNome || '-'}</td>
-                    </tr>`;
-                });
-                document.getElementById('historicoBody').innerHTML = historicoHtml || '<tr><td colspan="5" class="empty-state">Nenhuma movimentação recente</td></tr>';
                 
             } catch (erro) {
                 console.error('Erro ao carregar relatórios:', erro);
@@ -1366,19 +1276,6 @@
             return lista.filter(item => item.vendedorId === vendedorId);
         }
         
-        function filtrarPorPeriodo(lista) {
-            if (periodoAtivo === 'todos' || usuarioAtual.tipo !== 'master') return lista;
-            
-            const dias = parseInt(periodoAtivo);
-            const dataLimite = new Date();
-            dataLimite.setDate(dataLimite.getDate() - dias);
-            
-            return lista.filter(item => {
-                const dataItem = new Date(item.dataCriacao || item.dataArquivamento);
-                return dataItem >= dataLimite;
-            });
-        }
-        
         // ========== RENDERIZAR KANBANS ==========
         function renderizarKanbans() {
             renderizarKanbanCotacoes();
@@ -1390,8 +1287,7 @@
             const container = document.getElementById('kanbanCotacoes');
             container.innerHTML = '';
             
-            let listaFiltrada = filtrarPorVendedor(cotacoes);
-            listaFiltrada = filtrarPorPeriodo(listaFiltrada);
+            const listaFiltrada = filtrarPorVendedor(cotacoes);
             
             colunasCotacoes.forEach(coluna => {
                 const cardsColuna = listaFiltrada.filter(c => c.status === coluna);
@@ -1417,8 +1313,7 @@
             const container = document.getElementById('kanbanVisitas');
             container.innerHTML = '';
             
-            let listaFiltrada = filtrarPorVendedor(visitas);
-            listaFiltrada = filtrarPorPeriodo(listaFiltrada);
+            const listaFiltrada = filtrarPorVendedor(visitas);
             
             colunasVisitas.forEach(coluna => {
                 const cardsColuna = listaFiltrada.filter(v => v.status === coluna);
@@ -1444,8 +1339,7 @@
             const container = document.getElementById('arquivadosContainer');
             const countSpan = document.getElementById('arquivadosCount');
             
-            let listaFiltrada = filtrarPorVendedor(arquivados);
-            listaFiltrada = filtrarPorPeriodo(listaFiltrada);
+            const listaFiltrada = filtrarPorVendedor(arquivados);
             countSpan.textContent = listaFiltrada.length;
             
             if (listaFiltrada.length === 0) {
@@ -1469,6 +1363,7 @@
             
             const diasSemRetorno = card.status === 'Sem Retorno' ? calcularDias(card.dataCriacao) : 0;
             const vendedorNome = vendedores.find(v => v.id === card.vendedorId)?.nome || '---';
+            const totalArquivos = card.arquivos ? card.arquivos.length : 0;
             
             return `
                 <div class="card draggable" draggable="true" data-id="${card.id}" data-tipo="cotacao" data-status="${card.status}" style="border-left-color: ${borderColor}">
@@ -1488,6 +1383,7 @@
                         <strong>Material:</strong> ${card.material || '---'}<br>
                         <strong>Data:</strong> ${card.dataCriacao || '---'}
                     </div>
+                    ${totalArquivos > 0 ? `<div class="card-files" onclick="verArquivos('${card.id}', 'cotacao')">📎 ${totalArquivos} arquivo(s)</div>` : ''}
                     ${usuarioAtual.tipo === 'master' ? `<div class="vendedor-badge">${vendedorNome}</div>` : ''}
                     <div class="card-actions">
                         <button class="btn-small edit" onclick="editarCard('${card.id}', 'cotacao')">EDITAR</button>
@@ -1660,7 +1556,7 @@
             }
         }
         
-        // ========== VISUALIZAR CARD ==========
+        // ========== FUNÇÕES DE VISUALIZAÇÃO ==========
         function visualizarCard(id, tipo) {
             const modal = document.getElementById('viewModal');
             const modalTitle = document.getElementById('modalTitle');
@@ -1679,12 +1575,12 @@
                 if (card.arquivos && card.arquivos.length) {
                     arquivosHtml = `
                         <div class="info-item full-width">
-                            <div class="info-label">ARQUIVOS</div>
+                            <div class="info-label">ARQUIVOS ANEXADOS</div>
                             <div class="files-list">
                                 ${card.arquivos.map(arq => `
                                     <div class="file-item">
-                                        <span class="file-name" onclick="baixarArquivo('${arq.filename}')">📄 ${arq.originalname || arq.name}</span>
-                                        <span class="file-size">${arq.size ? (arq.size / 1024).toFixed(2) + ' KB' : ''}</span>
+                                        <span class="file-name" onclick="window.open('${arq.url}', '_blank')">📄 ${arq.originalname}</span>
+                                        <span class="file-size">${(arq.size / 1024).toFixed(2)} KB</span>
                                     </div>
                                 `).join('')}
                             </div>
@@ -1734,14 +1630,6 @@
                             <div class="info-label">PRAZO</div>
                             <div class="info-value">${card.prazo || '---'}</div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">VALOR ESTIMADO</div>
-                            <div class="info-value">${card.valorEstimado || '---'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">CONDIÇÕES</div>
-                            <div class="info-value">${card.condicoesPagamento || '---'}</div>
-                        </div>
                         <div class="info-item full-width">
                             <div class="info-label">OBSERVAÇÕES</div>
                             <div class="info-value">${card.observacoes || '---'}</div>
@@ -1762,7 +1650,6 @@
                 modalFooter.innerHTML = `
                     <button class="btn-small edit" onclick="editarCard('${card.id}', 'cotacao')">EDITAR</button>
                     <button class="btn-small archive" onclick="arquivarCard('${card.id}', 'cotacao')">📦 ARQUIVAR</button>
-                    <button class="btn-small" onclick="verHistorico('${card.id}')">📋 HISTÓRICO</button>
                     <button class="btn-small delete" onclick="confirmarExclusao('${card.id}', 'cotacao')">🗑️ EXCLUIR</button>
                     <button class="btn-small" onclick="fecharModal()">FECHAR</button>
                 `;
@@ -1805,14 +1692,6 @@
                             <div class="info-value">${vendedorNome}</div>
                         </div>
                         <div class="info-item full-width">
-                            <div class="info-label">RELATO</div>
-                            <div class="info-value">${card.relatoVisita || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">PPO</div>
-                            <div class="info-value">${card.ppo || '---'}</div>
-                        </div>
-                        <div class="info-item full-width">
                             <div class="info-label">OBSERVAÇÕES</div>
                             <div class="info-value">${card.observacoes || '---'}</div>
                         </div>
@@ -1831,7 +1710,6 @@
                 modalFooter.innerHTML = `
                     <button class="btn-small edit" onclick="editarCard('${card.id}', 'visita')">EDITAR</button>
                     <button class="btn-small archive" onclick="arquivarCard('${card.id}', 'visita')">📦 ARQUIVAR</button>
-                    <button class="btn-small" onclick="verHistorico('${card.id}')">📋 HISTÓRICO</button>
                     <button class="btn-small delete" onclick="confirmarExclusao('${card.id}', 'visita')">🗑️ EXCLUIR</button>
                     <button class="btn-small" onclick="fecharModal()">FECHAR</button>
                 `;
@@ -1920,204 +1798,7 @@
         
         // ========== FUNÇÕES DE EDIÇÃO ==========
         function editarCard(id, tipo) {
-            const modal = document.getElementById('editModal');
-            const modalTitle = document.getElementById('editModalTitle');
-            const modalBody = document.getElementById('editModalBody');
-            const modalFooter = document.getElementById('editModalFooter');
-            
-            if (tipo === 'cotacao') {
-                const card = cotacoes.find(c => c.id === id);
-                if (!card) return;
-                
-                modalTitle.textContent = 'EDITAR ORÇAMENTO';
-                
-                modalBody.innerHTML = `
-                    <div class="info-grid">
-                        <div class="info-item full-width">
-                            <div class="info-label">EMPRESA</div>
-                            <input type="text" id="editEmpresa" class="info-value" value="${card.empresa || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">CONTATO</div>
-                            <input type="text" id="editContato" class="info-value" value="${card.contato || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">TELEFONE</div>
-                            <input type="text" id="editTelefone" class="info-value" value="${card.telefone || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">E-MAIL</div>
-                            <input type="email" id="editEmail" class="info-value" value="${card.email || ''}">
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">DESCRIÇÃO</div>
-                            <textarea id="editDescricao" class="info-value">${card.descricao || ''}</textarea>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">MATERIAL</div>
-                            <input type="text" id="editMaterial" class="info-value" value="${card.material || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">QUANTIDADE</div>
-                            <input type="text" id="editQuantidade" class="info-value" value="${card.quantidade || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">PRAZO</div>
-                            <input type="text" id="editPrazo" class="info-value" value="${card.prazo || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">VALOR ESTIMADO</div>
-                            <input type="text" id="editValor" class="info-value" value="${card.valorEstimado || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">CONDIÇÕES</div>
-                            <input type="text" id="editCondicoes" class="info-value" value="${card.condicoesPagamento || ''}">
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">OBSERVAÇÕES</div>
-                            <textarea id="editObs" class="info-value">${card.observacoes || ''}</textarea>
-                        </div>
-                    </div>
-                `;
-                
-                modalFooter.innerHTML = `
-                    <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
-                    <button class="btn-small success" onclick="salvarEdicaoCotacao('${card.id}')">SALVAR</button>
-                `;
-            } else {
-                const card = visitas.find(v => v.id === id);
-                if (!card) return;
-                
-                modalTitle.textContent = 'EDITAR VISITA';
-                
-                modalBody.innerHTML = `
-                    <div class="info-grid">
-                        <div class="info-item full-width">
-                            <div class="info-label">EMPRESA</div>
-                            <input type="text" id="editVisitaEmpresa" class="info-value" value="${card.empresa || ''}">
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">ENDEREÇO</div>
-                            <input type="text" id="editVisitaEndereco" class="info-value" value="${card.endereco || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">CONTATO</div>
-                            <input type="text" id="editVisitaContato" class="info-value" value="${card.contato || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">TELEFONE</div>
-                            <input type="text" id="editVisitaTelefone" class="info-value" value="${card.telefone || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">DATA VISITA</div>
-                            <input type="date" id="editVisitaData" class="info-value" value="${card.dataVisita || ''}">
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">TÉCNICO</div>
-                            <input type="text" id="editVisitaTecnico" class="info-value" value="${card.tecnico || ''}">
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">RELATO</div>
-                            <textarea id="editVisitaRelato" class="info-value">${card.relatoVisita || ''}</textarea>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">PPO</div>
-                            <textarea id="editVisitaPPO" class="info-value">${card.ppo || ''}</textarea>
-                        </div>
-                        <div class="info-item full-width">
-                            <div class="info-label">OBSERVAÇÕES</div>
-                            <textarea id="editVisitaObs" class="info-value">${card.observacoes || ''}</textarea>
-                        </div>
-                    </div>
-                `;
-                
-                modalFooter.innerHTML = `
-                    <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
-                    <button class="btn-small success" onclick="salvarEdicaoVisita('${card.id}')">SALVAR</button>
-                `;
-            }
-            
-            document.getElementById('viewModal').classList.remove('active');
-            modal.classList.add('active');
-        }
-        
-        async function salvarEdicaoCotacao(id) {
-            mostrarLoading(true);
-            
-            try {
-                const dadosAtualizados = {
-                    empresa: document.getElementById('editEmpresa').value,
-                    contato: document.getElementById('editContato').value,
-                    telefone: document.getElementById('editTelefone').value,
-                    email: document.getElementById('editEmail').value,
-                    descricao: document.getElementById('editDescricao').value,
-                    material: document.getElementById('editMaterial').value,
-                    quantidade: document.getElementById('editQuantidade').value,
-                    prazo: document.getElementById('editPrazo').value,
-                    infoAdicional: document.getElementById('editObs').value,
-                    valorEstimado: document.getElementById('editValor').value,
-                    condicoesPagamento: document.getElementById('editCondicoes').value,
-                    observacoes: document.getElementById('editObs').value
-                };
-                
-                const card = cotacoes.find(c => c.id === id);
-                Object.assign(card, dadosAtualizados);
-                
-                await fetch(`${API_URL}/api/cotacoes/${id}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(card)
-                });
-                
-                fecharEditModal();
-                await carregarDados();
-            } catch (erro) {
-                console.error('Erro ao salvar:', erro);
-                alert('Erro ao salvar alterações');
-            } finally {
-                mostrarLoading(false);
-            }
-        }
-        
-        async function salvarEdicaoVisita(id) {
-            mostrarLoading(true);
-            
-            try {
-                const dadosAtualizados = {
-                    empresa: document.getElementById('editVisitaEmpresa').value,
-                    endereco: document.getElementById('editVisitaEndereco').value,
-                    contato: document.getElementById('editVisitaContato').value,
-                    telefone: document.getElementById('editVisitaTelefone').value,
-                    dataVisita: document.getElementById('editVisitaData').value,
-                    tecnico: document.getElementById('editVisitaTecnico').value,
-                    relatoVisita: document.getElementById('editVisitaRelato').value,
-                    ppo: document.getElementById('editVisitaPPO').value,
-                    observacoes: document.getElementById('editVisitaObs').value
-                };
-                
-                const card = visitas.find(v => v.id === id);
-                Object.assign(card, dadosAtualizados);
-                
-                await fetch(`${API_URL}/api/visitas/${id}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(card)
-                });
-                
-                fecharEditModal();
-                await carregarDados();
-            } catch (erro) {
-                console.error('Erro ao salvar:', erro);
-                alert('Erro ao salvar alterações');
-            } finally {
-                mostrarLoading(false);
-            }
+            alert('Função de edição será implementada em breve');
         }
         
         // ========== FUNÇÕES DE ARQUIVAMENTO ==========
@@ -2232,40 +1913,6 @@
             }
         }
         
-        // ========== HISTÓRICO ==========
-        async function verHistorico(entidadeId) {
-            try {
-                const resposta = await fetch(`${API_URL}/api/relatorios/historico/${entidadeId}`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                const historico = await resposta.json();
-                
-                const modal = document.getElementById('historicoModal');
-                document.getElementById('historicoModalTitle').textContent = 'HISTÓRICO DE MOVIMENTAÇÕES';
-                
-                let html = '<table class="data-table">';
-                html += '<tr><th>Data</th><th>Ação</th><th>De</th><th>Para</th><th>Responsável</th></tr>';
-                
-                historico.forEach(h => {
-                    html += `<tr>
-                        <td>${new Date(h.data).toLocaleString('pt-BR')}</td>
-                        <td>${h.acao}</td>
-                        <td>${h.de || '-'}</td>
-                        <td>${h.para || '-'}</td>
-                        <td>${h.vendedorNome || '-'}</td>
-                    </tr>`;
-                });
-                
-                html += '</table>';
-                document.getElementById('historicoModalBody').innerHTML = html || '<p class="empty-state">Nenhum histórico encontrado</p>';
-                
-                modal.classList.add('active');
-            } catch (erro) {
-                console.error('Erro ao carregar histórico:', erro);
-                alert('Erro ao carregar histórico');
-            }
-        }
-        
         // ========== FUNÇÕES DE CRIAÇÃO ==========
         function abrirMenuNovo() {
             document.getElementById('modalSelecaoNovo').classList.add('active');
@@ -2276,200 +1923,13 @@
         }
         
         function abrirModalNovoOrcamento() {
+            alert('Função de novo orçamento será implementada em breve');
             fecharModalSelecao();
-            
-            const modal = document.getElementById('editModal');
-            const modalTitle = document.getElementById('editModalTitle');
-            const modalBody = document.getElementById('editModalBody');
-            const modalFooter = document.getElementById('editModalFooter');
-            
-            modalTitle.textContent = 'NOVO ORÇAMENTO';
-            
-            modalBody.innerHTML = `
-                <div class="info-grid">
-                    <div class="info-item full-width">
-                        <div class="info-label">EMPRESA *</div>
-                        <input type="text" id="novaEmpresa" class="info-value" placeholder="Razão social">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">CONTATO *</div>
-                        <input type="text" id="novoContato" class="info-value" placeholder="Nome">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">TELEFONE *</div>
-                        <input type="text" id="novoTelefone" class="info-value" placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">E-MAIL</div>
-                        <input type="email" id="novoEmail" class="info-value" placeholder="email@empresa.com">
-                    </div>
-                    <div class="info-item full-width">
-                        <div class="info-label">DESCRIÇÃO *</div>
-                        <textarea id="novaDescricao" class="info-value" placeholder="Descreva o serviço"></textarea>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">MATERIAL</div>
-                        <input type="text" id="novoMaterial" class="info-value" placeholder="Ex: Aço Carbono">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">QUANTIDADE</div>
-                        <input type="number" id="novaQuantidade" class="info-value" placeholder="Quantidade">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">PRAZO</div>
-                        <input type="text" id="novoPrazo" class="info-value" placeholder="Ex: 15 dias">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">VALOR ESTIMADO</div>
-                        <input type="text" id="novoValor" class="info-value" placeholder="R$">
-                    </div>
-                </div>
-            `;
-            
-            modalFooter.innerHTML = `
-                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
-                <button class="btn-small success" onclick="salvarNovoOrcamento()">SALVAR</button>
-            `;
-            
-            modal.classList.add('active');
         }
         
         function abrirModalNovaVisita() {
+            alert('Função de nova visita será implementada em breve');
             fecharModalSelecao();
-            
-            const modal = document.getElementById('editModal');
-            const modalTitle = document.getElementById('editModalTitle');
-            const modalBody = document.getElementById('editModalBody');
-            const modalFooter = document.getElementById('editModalFooter');
-            
-            modalTitle.textContent = 'NOVA VISITA';
-            
-            modalBody.innerHTML = `
-                <div class="info-grid">
-                    <div class="info-item full-width">
-                        <div class="info-label">EMPRESA *</div>
-                        <input type="text" id="novaVisitaEmpresa" class="info-value" placeholder="Razão social">
-                    </div>
-                    <div class="info-item full-width">
-                        <div class="info-label">ENDEREÇO</div>
-                        <input type="text" id="novaVisitaEndereco" class="info-value" placeholder="Endereço completo">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">CONTATO</div>
-                        <input type="text" id="novaVisitaContato" class="info-value" placeholder="Nome">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">TELEFONE</div>
-                        <input type="text" id="novaVisitaTelefone" class="info-value" placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">DATA VISITA</div>
-                        <input type="date" id="novaVisitaData" class="info-value">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">TÉCNICO</div>
-                        <input type="text" id="novaVisitaTecnico" class="info-value" placeholder="Nome do técnico">
-                    </div>
-                </div>
-            `;
-            
-            modalFooter.innerHTML = `
-                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
-                <button class="btn-small success" onclick="salvarNovaVisita()">SALVAR</button>
-            `;
-            
-            modal.classList.add('active');
-        }
-        
-        async function salvarNovoOrcamento() {
-            const empresa = document.getElementById('novaEmpresa').value;
-            const contato = document.getElementById('novoContato').value;
-            const telefone = document.getElementById('novoTelefone').value;
-            
-            if (!empresa || !contato || !telefone) {
-                alert('Preencha os campos obrigatórios');
-                return;
-            }
-            
-            mostrarLoading(true);
-            
-            try {
-                const novoOrcamento = {
-                    id: 'COT' + Date.now(),
-                    vendedorId: usuarioAtual.id,
-                    empresa: empresa,
-                    contato: contato,
-                    telefone: telefone,
-                    email: document.getElementById('novoEmail').value,
-                    descricao: document.getElementById('novaDescricao').value || '',
-                    material: document.getElementById('novoMaterial').value || '',
-                    quantidade: document.getElementById('novaQuantidade').value || '',
-                    prazo: document.getElementById('novoPrazo').value || '',
-                    infoAdicional: '',
-                    valorEstimado: document.getElementById('novoValor').value || '',
-                    arquivos: [],
-                    status: 'Novo Orçamento',
-                    dataCriacao: new Date().toISOString().split('T')[0],
-                    observacoes: ''
-                };
-                
-                await fetch(`${API_URL}/api/cotacoes`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(novoOrcamento)
-                });
-                
-                fecharEditModal();
-                await carregarDados();
-            } catch (erro) {
-                console.error('Erro ao criar:', erro);
-                alert('Erro ao criar orçamento');
-            } finally {
-                mostrarLoading(false);
-            }
-        }
-        
-        async function salvarNovaVisita() {
-            const empresa = document.getElementById('novaVisitaEmpresa').value;
-            
-            if (!empresa) {
-                alert('Preencha o campo Empresa');
-                return;
-            }
-            
-            mostrarLoading(true);
-            
-            try {
-                const novaVisita = {
-                    id: 'VIS' + Date.now(),
-                    vendedorId: usuarioAtual.id,
-                    empresa: empresa,
-                    endereco: document.getElementById('novaVisitaEndereco').value || '',
-                    contato: document.getElementById('novaVisitaContato').value || '',
-                    telefone: document.getElementById('novaVisitaTelefone').value || '',
-                    dataVisita: document.getElementById('novaVisitaData').value || '',
-                    tecnico: document.getElementById('novaVisitaTecnico').value || '',
-                    status: 'Agendar Mapeamento',
-                    dataCriacao: new Date().toISOString().split('T')[0]
-                };
-                
-                await fetch(`${API_URL}/api/visitas`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(novaVisita)
-                });
-                
-                fecharEditModal();
-                await carregarDados();
-            } catch (erro) {
-                console.error('Erro ao criar:', erro);
-                alert('Erro ao criar visita');
-            } finally {
-                mostrarLoading(false);
-            }
         }
         
         // ========== FUNÇÕES DE VENDEDORES ==========
@@ -2496,8 +1956,8 @@
                         <input type="password" id="novoVendedorSenha" class="info-value" placeholder="senha">
                     </div>
                     <div class="info-item">
-                        <div class="info-label">CÓDIGO *</div>
-                        <input type="text" id="novoVendedorCodigo" class="info-value" placeholder="código para clientes" maxlength="10">
+                        <div class="info-label">CÓDIGO (6 dígitos) *</div>
+                        <input type="text" id="novoVendedorCodigo" class="info-value" placeholder="Ex: ABC123" maxlength="6" style="text-transform:uppercase">
                     </div>
                     <div class="info-item">
                         <div class="info-label">TIPO</div>
@@ -2521,11 +1981,16 @@
             const nome = document.getElementById('novoVendedorNome').value;
             const login = document.getElementById('novoVendedorLogin').value;
             const senha = document.getElementById('novoVendedorSenha').value;
-            const codigo = document.getElementById('novoVendedorCodigo').value;
+            const codigo = document.getElementById('novoVendedorCodigo').value.toUpperCase();
             const tipo = document.getElementById('novoVendedorTipo').value;
             
             if (!nome || !login || !senha || !codigo) {
                 alert('Preencha todos os campos');
+                return;
+            }
+            
+            if (codigo.length !== 6) {
+                alert('Código deve ter exatamente 6 caracteres');
                 return;
             }
             
@@ -2537,7 +2002,7 @@
                     nome: nome,
                     login: login,
                     senha: senha,
-                    codigoAcesso: codigo.toUpperCase(),
+                    codigoAcesso: codigo,
                     tipo: tipo
                 };
                 
@@ -2582,8 +2047,8 @@
                         <input type="text" id="editVendedorLogin" class="info-value" value="${vendedor.login}">
                     </div>
                     <div class="info-item">
-                        <div class="info-label">CÓDIGO</div>
-                        <input type="text" id="editVendedorCodigo" class="info-value" value="${vendedor.codigoAcesso}">
+                        <div class="info-label">CÓDIGO (6 dígitos)</div>
+                        <input type="text" id="editVendedorCodigo" class="info-value" value="${vendedor.codigoAcesso}" maxlength="6" style="text-transform:uppercase">
                     </div>
                     <div class="info-item">
                         <div class="info-label">TIPO</div>
@@ -2613,9 +2078,14 @@
         async function salvarEdicaoVendedor(id) {
             const nome = document.getElementById('editVendedorNome').value;
             const login = document.getElementById('editVendedorLogin').value;
-            const codigo = document.getElementById('editVendedorCodigo').value;
+            const codigo = document.getElementById('editVendedorCodigo').value.toUpperCase();
             const tipo = document.getElementById('editVendedorTipo').value;
             const ativo = document.getElementById('editVendedorAtivo').value;
+            
+            if (codigo.length !== 6) {
+                alert('Código deve ter exatamente 6 caracteres');
+                return;
+            }
             
             mostrarLoading(true);
             
@@ -2690,7 +2160,6 @@
             } else if (aba === 'vendedores') {
                 btns[4].classList.add('active');
                 sections.vendedores.classList.add('active');
-                carregarVendedores();
             }
         }
         
@@ -2702,72 +2171,16 @@
             document.getElementById('editModal').classList.remove('active');
         }
         
-        function fecharHistoricoModal() {
-            document.getElementById('historicoModal').classList.remove('active');
-        }
-        
         function fecharConfirmModal() {
             document.getElementById('confirmModal').classList.remove('active');
         }
         
-        function baixarArquivo(filename) {
-            window.open(`/uploads/${filename}`, '_blank');
+        function verArquivos(id, tipo) {
+            visualizarCard(id, tipo);
         }
         
         async function criarVisita(id) {
-            const cotacao = cotacoes.find(c => c.id === id);
-            if (!cotacao) return;
-            
-            mostrarLoading(true);
-            
-            try {
-                const novaVisita = {
-                    id: 'VIS' + Date.now(),
-                    cotacaoId: id,
-                    vendedorId: usuarioAtual.id,
-                    empresa: cotacao.empresa,
-                    contato: cotacao.contato,
-                    telefone: cotacao.telefone,
-                    endereco: '',
-                    status: 'Agendar Mapeamento',
-                    dataVisita: '',
-                    tecnico: '',
-                    observacoes: '',
-                    dataCriacao: new Date().toISOString().split('T')[0]
-                };
-                
-                await fetch(`${API_URL}/api/visitas`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(novaVisita)
-                });
-                
-                await carregarDados();
-            } catch (erro) {
-                console.error('Erro ao criar visita:', erro);
-                alert('Erro ao criar visita');
-            } finally {
-                mostrarLoading(false);
-            }
-        }
-        
-        function exportarDados() {
-            const dados = {
-                cotacoes: cotacoes,
-                visitas: visitas,
-                arquivados: arquivados,
-                dataExportacao: new Date().toISOString()
-            };
-            
-            const blob = new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
+            alert('Função de criar visita será implementada em breve');
         }
     </script>
 </body>
