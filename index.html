@@ -6,10 +6,58 @@
   <title></title>
   <meta name="Generator" content="Cocoa HTML Writer">
   <meta name="CocoaVersion" content="2487.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Chakra Petch', sans-serif;
+    }
+    
+    body {
+        background: #283944;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .container {
+        max-width: 600px;
+        width: 100%;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 4px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        animation: slideUp 0.5s ease;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }  /* ← FECHA A KEYFRAMES CORRETAMENTE */
+    
+    h1 {
+        color: #283944;
+        font-size: 28px;
+        margin-bottom: 10px;
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Resto do CSS continua aqui... */
+</style>
 </head>
 <body>
 <p class="p1">&lt;!DOCTYPE html&gt;</p>
