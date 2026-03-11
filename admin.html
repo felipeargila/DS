@@ -129,6 +129,24 @@
             color: #283944;
         }
         
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #283944;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
         .kanban-section {
             display: none;
         }
@@ -245,6 +263,14 @@
             background: #f0f0f0;
         }
         
+        .icon-btn.delete:hover {
+            color: #dc3545;
+        }
+        
+        .icon-btn.archive:hover {
+            color: #ffc107;
+        }
+        
         .card-company {
             font-weight: 600;
             color: #283944;
@@ -317,6 +343,24 @@
         
         .btn-small.visita:hover {
             background: #a59984;
+        }
+        
+        .btn-small.delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-small.delete:hover {
+            background: #c82333;
+        }
+        
+        .btn-small.archive {
+            background: #ffc107;
+            color: #283944;
+        }
+        
+        .btn-small.archive:hover {
+            background: #e0a800;
         }
         
         .modal {
@@ -466,6 +510,8 @@
             justify-content: flex-end;
             gap: 15px;
             margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
         
         .empty-state {
@@ -485,6 +531,30 @@
             font-weight: 600;
             text-transform: uppercase;
             display: inline-block;
+        }
+        
+        .confirm-modal {
+            background: white;
+            border-radius: 4px;
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .confirm-modal h3 {
+            color: #283944;
+            margin-bottom: 15px;
+        }
+        
+        .confirm-modal p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .confirm-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
         }
     </style>
 </head>
@@ -526,8 +596,18 @@
                 <span class="close" onclick="fecharModal()">&times;</span>
             </div>
             <div class="modal-body" id="modalBody"></div>
-            <div class="modal-footer">
-                <button class="btn-small" onclick="fecharModal()">FECHAR</button>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação -->
+    <div class="modal" id="confirmModal">
+        <div class="confirm-modal">
+            <h3 id="confirmTitle">Confirmar exclusão</h3>
+            <p id="confirmMessage">Tem certeza que deseja excluir este item?</p>
+            <div class="confirm-actions">
+                <button class="btn-small" onclick="fecharConfirmModal()">CANCELAR</button>
+                <button class="btn-small delete" id="confirmBtn">EXCLUIR</button>
             </div>
         </div>
     </div>
@@ -554,6 +634,8 @@
         let cotacoes = [];
         let visitas = [];
         let draggedItem = null;
+        let itemParaExcluir = null;
+        let tipoParaExcluir = null;
         
         document.addEventListener('DOMContentLoaded', function() {
             carregarDados();
@@ -635,6 +717,8 @@
                         <span class="card-id">${card.id}</span>
                         <div class="card-actions-top">
                             <button class="icon-btn" onclick="visualizarCard('${card.id}', 'cotacao')">👁️</button>
+                            <button class="icon-btn archive" onclick="arquivarCard('${card.id}', 'cotacao')">📦</button>
+                            <button class="icon-btn delete" onclick="confirmarExclusao('${card.id}', 'cotacao')">🗑️</button>
                         </div>
                     </div>
                     <div class="card-company">${card.empresa || 'Sem empresa'}</div>
@@ -661,6 +745,8 @@
                         <span class="card-id">${card.id}</span>
                         <div class="card-actions-top">
                             <button class="icon-btn" onclick="visualizarCard('${card.id}', 'visita')">👁️</button>
+                            <button class="icon-btn archive" onclick="arquivarCard('${card.id}', 'visita')">📦</button>
+                            <button class="icon-btn delete" onclick="confirmarExclusao('${card.id}', 'visita')">🗑️</button>
                         </div>
                     </div>
                     <div class="card-company">${card.empresa || 'Sem empresa'}</div>
@@ -750,6 +836,7 @@
             const modal = document.getElementById('viewModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
             
             if (tipo === 'cotacao') {
                 const card = cotacoes.find(c => c.id === id);
@@ -828,6 +915,12 @@
                         </select>
                     </div>
                 `;
+                
+                modalFooter.innerHTML = `
+                    <button class="btn-small archive" onclick="arquivarCard('${card.id}', 'cotacao')">📦 ARQUIVAR</button>
+                    <button class="btn-small delete" onclick="confirmarExclusao('${card.id}', 'cotacao')">🗑️ EXCLUIR</button>
+                    <button class="btn-small" onclick="fecharModal()">FECHAR</button>
+                `;
             } else {
                 const card = visitas.find(v => v.id === id);
                 if (!card) return;
@@ -875,6 +968,12 @@
                         </select>
                     </div>
                 `;
+                
+                modalFooter.innerHTML = `
+                    <button class="btn-small archive" onclick="arquivarCard('${card.id}', 'visita')">📦 ARQUIVAR</button>
+                    <button class="btn-small delete" onclick="confirmarExclusao('${card.id}', 'visita')">🗑️ EXCLUIR</button>
+                    <button class="btn-small" onclick="fecharModal()">FECHAR</button>
+                `;
             }
             
             modal.classList.add('active');
@@ -899,20 +998,70 @@
             renderizarKanbans();
         }
         
+        function arquivarCard(id, tipo) {
+            if (tipo === 'cotacao') {
+                cotacoes = cotacoes.filter(c => c.id !== id);
+                localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+            } else {
+                visitas = visitas.filter(v => v.id !== id);
+                localStorage.setItem('visitas', JSON.stringify(visitas));
+            }
+            
+            fecharModal();
+            renderizarKanbans();
+            alert('Item arquivado com sucesso!');
+        }
+        
+        function confirmarExclusao(id, tipo) {
+            itemParaExcluir = id;
+            tipoParaExcluir = tipo;
+            
+            const confirmModal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = 'Confirmar exclusão';
+            document.getElementById('confirmMessage').textContent = 'Tem certeza que deseja excluir permanentemente este item? Esta ação não pode ser desfeita.';
+            document.getElementById('confirmBtn').onclick = function() {
+                excluirCard();
+            };
+            
+            confirmModal.classList.add('active');
+        }
+        
+        function excluirCard() {
+            if (itemParaExcluir && tipoParaExcluir) {
+                if (tipoParaExcluir === 'cotacao') {
+                    cotacoes = cotacoes.filter(c => c.id !== itemParaExcluir);
+                    localStorage.setItem('cotacoes', JSON.stringify(cotacoes));
+                } else {
+                    visitas = visitas.filter(v => v.id !== itemParaExcluir);
+                    localStorage.setItem('visitas', JSON.stringify(visitas));
+                }
+                
+                fecharConfirmModal();
+                fecharModal();
+                renderizarKanbans();
+                alert('Item excluído permanentemente!');
+            }
+        }
+        
+        function fecharConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            itemParaExcluir = null;
+            tipoParaExcluir = null;
+        }
+        
         function mudarAba(aba) {
-            const btnOrc = document.querySelectorAll('.tab-btn')[0];
-            const btnVis = document.querySelectorAll('.tab-btn')[1];
+            const btns = document.querySelectorAll('.tab-btn');
             const sectionOrc = document.getElementById('sectionOrcamentos');
             const sectionVis = document.getElementById('sectionVisitas');
             
+            btns.forEach(btn => btn.classList.remove('active'));
+            
             if (aba === 'orcamentos') {
-                btnOrc.classList.add('active');
-                btnVis.classList.remove('active');
+                btns[0].classList.add('active');
                 sectionOrc.classList.add('active');
                 sectionVis.classList.remove('active');
             } else {
-                btnVis.classList.add('active');
-                btnOrc.classList.remove('active');
+                btns[1].classList.add('active');
                 sectionVis.classList.add('active');
                 sectionOrc.classList.remove('active');
             }
@@ -947,6 +1096,7 @@
             visitas.push(novaVisita);
             localStorage.setItem('visitas', JSON.stringify(visitas));
             renderizarKanbans();
+            alert('Visita técnica criada com sucesso!');
         }
         
         function editarRelato(id) {
