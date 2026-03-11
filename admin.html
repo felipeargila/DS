@@ -1070,4 +1070,442 @@
         }
         
         function abrirModalNovoOrcamento() {
-            fe
+            fecharModalSelecao();
+            
+            const modal = document.getElementById('viewModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+            
+            modalTitle.textContent = 'NOVO ORÇAMENTO';
+            
+            modalBody.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item full-width">
+                        <div class="info-label">EMPRESA *</div>
+                        <input type="text" id="novaEmpresa" class="info-value" style="width:100%; padding:8px;" placeholder="Razão social ou nome fantasia">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">CONTATO *</div>
+                        <input type="text" id="novoContato" class="info-value" style="width:100%; padding:8px;" placeholder="Nome completo">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">TELEFONE *</div>
+                        <input type="text" id="novoTelefone" class="info-value" style="width:100%; padding:8px;" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">E-MAIL</div>
+                        <input type="email" id="novoEmail" class="info-value" style="width:100%; padding:8px;" placeholder="email@empresa.com">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">DESCRIÇÃO *</div>
+                        <textarea id="novaDescricao" class="info-value" style="width:100%; padding:8px; min-height:100px;" placeholder="Descreva o serviço ou peças necessárias"></textarea>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">MATERIAL</div>
+                        <select id="novoMaterial" class="info-value" style="width:100%; padding:8px;">
+                            <option value="">Selecione...</option>
+                            <option value="Aço Carbono">Aço Carbono</option>
+                            <option value="Aço Inoxidável">Aço Inoxidável</option>
+                            <option value="Alumínio">Alumínio</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Ferro Fundido">Ferro Fundido</option>
+                            <option value="Plástico">Plástico</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">QUANTIDADE</div>
+                        <input type="number" id="novaQuantidade" class="info-value" style="width:100%; padding:8px;" min="1" placeholder="Quantidade">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">PRAZO</div>
+                        <input type="text" id="novoPrazo" class="info-value" style="width:100%; padding:8px;" placeholder="Ex: 15 dias">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">OBSERVAÇÕES</div>
+                        <textarea id="novoObs" class="info-value" style="width:100%; padding:8px;" placeholder="Informações adicionais"></textarea>
+                    </div>
+                </div>
+            `;
+            
+            modalFooter.innerHTML = `
+                <button class="btn-small" onclick="fecharModal()">CANCELAR</button>
+                <button class="btn-small success" onclick="salvarNovoOrcamento()" style="background:#28a745; color:white;">SALVAR</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function abrirModalNovaVisita() {
+            fecharModalSelecao();
+            
+            const modal = document.getElementById('viewModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+            
+            modalTitle.textContent = 'NOVA VISITA TÉCNICA';
+            
+            modalBody.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item full-width">
+                        <div class="info-label">EMPRESA *</div>
+                        <input type="text" id="novaVisitaEmpresa" class="info-value" style="width:100%; padding:8px;" placeholder="Razão social ou nome fantasia">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">ENDEREÇO</div>
+                        <input type="text" id="novaVisitaEndereco" class="info-value" style="width:100%; padding:8px;" placeholder="Rua, número, complemento">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">CONTATO</div>
+                        <input type="text" id="novaVisitaContato" class="info-value" style="width:100%; padding:8px;" placeholder="Nome do contato">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">TELEFONE</div>
+                        <input type="text" id="novaVisitaTelefone" class="info-value" style="width:100%; padding:8px;" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">DATA DA VISITA</div>
+                        <input type="date" id="novaVisitaData" class="info-value" style="width:100%; padding:8px;">
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">TÉCNICO</div>
+                        <input type="text" id="novaVisitaTecnico" class="info-value" style="width:100%; padding:8px;" placeholder="Nome do técnico">
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="info-label">OBSERVAÇÕES</div>
+                        <textarea id="novaVisitaObs" class="info-value" style="width:100%; padding:8px;" placeholder="Observações iniciais"></textarea>
+                    </div>
+                </div>
+            `;
+            
+            modalFooter.innerHTML = `
+                <button class="btn-small" onclick="fecharModal()">CANCELAR</button>
+                <button class="btn-small success" onclick="salvarNovaVisita()" style="background:#28a745; color:white;">SALVAR</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function salvarNovoOrcamento() {
+            const empresa = document.getElementById('novaEmpresa')?.value;
+            const contato = document.getElementById('novoContato')?.value;
+            const telefone = document.getElementById('novoTelefone')?.value;
+            
+            if (!empresa || !contato || !telefone) {
+                alert('Preencha os campos obrigatórios: Empresa, Contato e Telefone');
+                return;
+            }
+            
+            const novoOrcamento = {
+                id: 'COT' + Date.now(),
+                empresa: empresa,
+                contato: contato,
+                email: document.getElementById('novoEmail')?.value || '',
+                telefone: telefone,
+                descricao: document.getElementById('novaDescricao')?.value || '',
+                material: document.getElementById('novoMaterial')?.value || '',
+                quantidade: document.getElementById('novaQuantidade')?.value || '',
+                prazo: document.getElementById('novoPrazo')?.value || '',
+                infoAdicional: document.getElementById('novoObs')?.value || '',
+                arquivos: [],
+                status: 'Novo Orçamento',
+                dataCriacao: new Date().toISOString().split('T')[0],
+                observacoes: '',
+                criadoManualmente: true
+            };
+            
+            cotacoes.push(novoOrcamento);
+            salvarDados();
+            
+            fecharModal();
+            renderizarKanbans();
+            initDragAndDrop();
+            
+            alert('Orçamento criado com sucesso!');
+        }
+        
+        function salvarNovaVisita() {
+            const empresa = document.getElementById('novaVisitaEmpresa')?.value;
+            
+            if (!empresa) {
+                alert('Preencha o campo Empresa');
+                return;
+            }
+            
+            const novaVisita = {
+                id: 'VIS' + Date.now(),
+                empresa: empresa,
+                endereco: document.getElementById('novaVisitaEndereco')?.value || '',
+                contato: document.getElementById('novaVisitaContato')?.value || '',
+                telefone: document.getElementById('novaVisitaTelefone')?.value || '',
+                dataVisita: document.getElementById('novaVisitaData')?.value || '',
+                tecnico: document.getElementById('novaVisitaTecnico')?.value || '',
+                observacoes: document.getElementById('novaVisitaObs')?.value || '',
+                status: 'Agendar Mapeamento',
+                relatoVisita: '',
+                ppo: '',
+                dataCriacao: new Date().toISOString().split('T')[0],
+                criadoManualmente: true
+            };
+            
+            visitas.push(novaVisita);
+            salvarDados();
+            
+            fecharModal();
+            renderizarKanbans();
+            initDragAndDrop();
+            
+            alert('Visita criada com sucesso!');
+        }
+        
+        function visualizarCard(id, tipo) {
+            // Função existente - manter como estava
+        }
+        
+        function visualizarArquivado(id, tipo) {
+            // Função para visualizar arquivados
+            const item = arquivados.find(i => i.id === id && i.tipo === tipo);
+            if (!item) return;
+            
+            const modal = document.getElementById('viewModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+            
+            modalTitle.textContent = tipo === 'cotacao' ? 'ORÇAMENTO ARQUIVADO' : 'VISITA ARQUIVADA';
+            
+            let html = '<div class="info-grid">';
+            
+            if (tipo === 'cotacao') {
+                html += `
+                    <div class="info-item full-width"><span class="info-label">EMPRESA</span><div class="info-value">${item.empresa || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">CONTATO</span><div class="info-value">${item.contato || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">TELEFONE</span><div class="info-value">${item.telefone || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">E-MAIL</span><div class="info-value">${item.email || '---'}</div></div>
+                    <div class="info-item full-width"><span class="info-label">DESCRIÇÃO</span><div class="info-value">${item.descricao || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">MATERIAL</span><div class="info-value">${item.material || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">QUANTIDADE</span><div class="info-value">${item.quantidade || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">PRAZO</span><div class="info-value">${item.prazo || '---'}</div></div>
+                `;
+            } else {
+                html += `
+                    <div class="info-item full-width"><span class="info-label">EMPRESA</span><div class="info-value">${item.empresa || '---'}</div></div>
+                    <div class="info-item full-width"><span class="info-label">ENDEREÇO</span><div class="info-value">${item.endereco || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">CONTATO</span><div class="info-value">${item.contato || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">TELEFONE</span><div class="info-value">${item.telefone || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">DATA VISITA</span><div class="info-value">${item.dataVisita || '---'}</div></div>
+                    <div class="info-item"><span class="info-label">TÉCNICO</span><div class="info-value">${item.tecnico || '---'}</div></div>
+                `;
+            }
+            
+            html += `
+                <div class="info-item"><span class="info-label">ARQUIVADO EM</span><div class="info-value">${item.dataArquivamento || '---'}</div></div>
+                <div class="info-item"><span class="info-label">MOTIVO</span><div class="info-value">${item.motivo || '---'}</div></div>
+            </div>
+            `;
+            
+            modalBody.innerHTML = html;
+            modalFooter.innerHTML = `
+                <button class="btn-small restore" onclick="restaurarArquivado('${item.id}', '${item.tipo}')">↩️ RESTAURAR</button>
+                <button class="btn-small delete" onclick="confirmarExclusaoArquivado('${item.id}', '${item.tipo}')">🗑️ EXCLUIR</button>
+                <button class="btn-small" onclick="fecharModal()">FECHAR</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function arquivarCard(id, tipo) {
+            let item = null;
+            
+            if (tipo === 'cotacao') {
+                const index = cotacoes.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    item = { ...cotacoes[index], tipo: 'cotacao', dataArquivamento: new Date().toISOString().split('T')[0], motivo: 'Arquivado manualmente' };
+                    cotacoes.splice(index, 1);
+                }
+            } else {
+                const index = visitas.findIndex(v => v.id === id);
+                if (index !== -1) {
+                    item = { ...visitas[index], tipo: 'visita', dataArquivamento: new Date().toISOString().split('T')[0], motivo: 'Arquivado manualmente' };
+                    visitas.splice(index, 1);
+                }
+            }
+            
+            if (item) {
+                arquivados.push(item);
+                salvarDados();
+                renderizarKanbans();
+                initDragAndDrop();
+            }
+        }
+        
+        function restaurarArquivado(id, tipo) {
+            const index = arquivados.findIndex(i => i.id === id && i.tipo === tipo);
+            if (index === -1) return;
+            
+            const item = arquivados[index];
+            delete item.dataArquivamento;
+            delete item.motivo;
+            delete item.tipo;
+            
+            if (tipo === 'cotacao') {
+                cotacoes.push(item);
+            } else {
+                visitas.push(item);
+            }
+            
+            arquivados.splice(index, 1);
+            salvarDados();
+            
+            fecharModal();
+            renderizarKanbans();
+            initDragAndDrop();
+            
+            alert('Item restaurado com sucesso!');
+        }
+        
+        function confirmarExclusao(id, tipo) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = 'Confirmar exclusão';
+            document.getElementById('confirmMessage').textContent = 'Tem certeza que deseja excluir permanentemente este item?';
+            document.getElementById('confirmBtn').onclick = function() {
+                excluirCard(id, tipo);
+            };
+            modal.classList.add('active');
+        }
+        
+        function confirmarExclusaoArquivado(id, tipo) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = 'Confirmar exclusão';
+            document.getElementById('confirmMessage').textContent = 'Tem certeza que deseja excluir permanentemente este item arquivado?';
+            document.getElementById('confirmBtn').onclick = function() {
+                excluirArquivado(id, tipo);
+            };
+            modal.classList.add('active');
+        }
+        
+        function excluirCard(id, tipo) {
+            if (tipo === 'cotacao') {
+                cotacoes = cotacoes.filter(c => c.id !== id);
+            } else {
+                visitas = visitas.filter(v => v.id !== id);
+            }
+            
+            salvarDados();
+            fecharConfirmModal();
+            fecharModal();
+            renderizarKanbans();
+            initDragAndDrop();
+        }
+        
+        function excluirArquivado(id, tipo) {
+            arquivados = arquivados.filter(i => !(i.id === id && i.tipo === tipo));
+            salvarDados();
+            fecharConfirmModal();
+            fecharModal();
+            renderizarKanbans();
+        }
+        
+        function fecharConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+        
+        function mudarAba(aba) {
+            const btns = document.querySelectorAll('.tab-btn');
+            const sections = {
+                orcamentos: document.getElementById('sectionOrcamentos'),
+                visitas: document.getElementById('sectionVisitas'),
+                arquivados: document.getElementById('sectionArquivados')
+            };
+            
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            if (aba === 'orcamentos') {
+                btns[0].classList.add('active');
+                sections.orcamentos.classList.add('active');
+                sections.visitas.classList.remove('active');
+                sections.arquivados.classList.remove('active');
+            } else if (aba === 'visitas') {
+                btns[1].classList.add('active');
+                sections.visitas.classList.add('active');
+                sections.orcamentos.classList.remove('active');
+                sections.arquivados.classList.remove('active');
+            } else {
+                btns[2].classList.add('active');
+                sections.arquivados.classList.add('active');
+                sections.orcamentos.classList.remove('active');
+                sections.visitas.classList.remove('active');
+            }
+        }
+        
+        function fecharModal() {
+            document.getElementById('viewModal').classList.remove('active');
+        }
+        
+        function editarCard(id, tipo) {
+            alert('Função de edição será implementada em breve');
+        }
+        
+        function editarRelato(id) {
+            alert('Função de relato será implementada em breve');
+        }
+        
+        function editarPPO(id) {
+            alert('Função de PPO será implementada em breve');
+        }
+        
+        function criarVisita(id) {
+            const cotacao = cotacoes.find(c => c.id === id);
+            if (!cotacao) return;
+            
+            const novaVisita = {
+                id: 'VIS' + Date.now(),
+                cotacaoId: id,
+                empresa: cotacao.empresa,
+                endereco: '',
+                contato: cotacao.contato,
+                telefone: cotacao.telefone,
+                status: 'Agendar Mapeamento',
+                dataVisita: '',
+                tecnico: '',
+                observacoes: '',
+                relatoVisita: '',
+                ppo: '',
+                dataCriacao: new Date().toISOString().split('T')[0]
+            };
+            
+            visitas.push(novaVisita);
+            salvarDados();
+            renderizarKanbans();
+            initDragAndDrop();
+            
+            alert('Visita técnica criada com sucesso!');
+        }
+        
+        function exportarDados() {
+            const dados = {
+                cotacoes: cotacoes,
+                visitas: visitas,
+                arquivados: arquivados,
+                dataExportacao: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+        
+        function recarregarCards() {
+            carregarDados();
+            processarArquivamentoAutomatico();
+            renderizarKanbans();
+            initDragAndDrop();
+        }
+    </script>
+</body>
+</html>
