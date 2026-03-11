@@ -136,6 +136,8 @@
         
         .btn-success:hover {
             background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .btn-danger {
@@ -145,15 +147,6 @@
         
         .btn-danger:hover {
             background: #c82333;
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            color: #283944;
-        }
-        
-        .btn-warning:hover {
-            background: #e0a800;
         }
         
         .kanban-section {
@@ -419,6 +412,11 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
         
+        .modal-content.small {
+            max-width: 400px;
+            text-align: center;
+        }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -479,6 +477,24 @@
             color: #283944;
             font-weight: 500;
             word-break: break-word;
+        }
+        
+        .info-value input,
+        .info-value select,
+        .info-value textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 14px;
+        }
+        
+        .info-value input:focus,
+        .info-value select:focus,
+        .info-value textarea:focus {
+            border-color: #b7ab97;
+            outline: none;
         }
         
         .files-list {
@@ -571,28 +587,41 @@
             margin-left: 5px;
         }
         
-        .confirm-modal {
-            background: white;
-            border-radius: 4px;
-            padding: 30px;
-            max-width: 400px;
-            text-align: center;
-        }
-        
-        .confirm-modal h3 {
-            color: #283944;
-            margin-bottom: 15px;
-        }
-        
-        .confirm-modal p {
-            color: #666;
-            margin-bottom: 25px;
-        }
-        
-        .confirm-actions {
+        .option-buttons {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .option-btn {
+            padding: 20px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .option-btn.orcamento {
+            background: #283944;
+            color: white;
+        }
+        
+        .option-btn.orcamento:hover {
+            background: #1a2a33;
+            transform: scale(1.05);
+        }
+        
+        .option-btn.visita {
+            background: #b7ab97;
+            color: #283944;
+        }
+        
+        .option-btn.visita:hover {
+            background: #a59984;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -611,6 +640,7 @@
             </div>
             
             <div class="header-actions">
+                <button class="btn btn-success" onclick="abrirMenuNovo()">+ NOVO</button>
                 <button class="btn btn-outline" onclick="exportarDados()">EXPORTAR</button>
                 <button class="btn btn-primary" onclick="recarregarCards()">ATUALIZAR</button>
             </div>
@@ -642,7 +672,24 @@
         </div>
     </div>
     
-    <!-- Modal de Visualização -->
+    <!-- Modal de Seleção (Novo) -->
+    <div class="modal" id="modalSelecaoNovo">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2>CRIAR NOVO</h2>
+                <span class="close" onclick="fecharModalSelecao()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px;">O que deseja criar?</p>
+                <div class="option-buttons">
+                    <button class="option-btn orcamento" onclick="abrirModalNovoOrcamento()">ORÇAMENTO</button>
+                    <button class="option-btn visita" onclick="abrirModalNovaVisita()">VISITA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Visualização/Edição -->
     <div class="modal" id="viewModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -667,7 +714,7 @@
     </div>
     
     <script>
-        // Colunas do Kanban de Cotações (com "Sem Retorno" no lugar de "Pedido Recusado")
+        // Colunas do Kanban de Cotações
         const colunasCotacoes = [
             'Novo Orçamento',
             'Orçamento Enviado',
@@ -689,9 +736,6 @@
         let visitas = [];
         let arquivados = [];
         let draggedItem = null;
-        let itemParaExcluir = null;
-        let tipoParaExcluir = null;
-        let itemParaRestaurar = null;
         
         document.addEventListener('DOMContentLoaded', function() {
             carregarDados();
@@ -727,7 +771,7 @@
                             dataArquivamento: new Date().toISOString().split('T')[0],
                             motivo: '30+ dias em Sem Retorno'
                         });
-                        return false; // Remove da lista de cotações
+                        return false;
                     }
                 }
                 return true;
@@ -744,13 +788,12 @@
                             dataArquivamento: new Date().toISOString().split('T')[0],
                             motivo: '30+ dias em Sem Retorno'
                         });
-                        return false; // Remove da lista de visitas
+                        return false;
                     }
                 }
                 return true;
             });
             
-            // Adicionar aos arquivados
             if (arquivadosHoje.length > 0) {
                 arquivados = [...arquivados, ...arquivadosHoje];
                 salvarDados();
@@ -794,8 +837,6 @@
                 
                 container.appendChild(columnEl);
             });
-            
-            initDragAndDrop();
         }
         
         function renderizarKanbanVisitas() {
@@ -820,8 +861,6 @@
                 
                 container.appendChild(columnEl);
             });
-            
-            initDragAndDrop();
         }
         
         function renderizarArquivados() {
@@ -913,7 +952,7 @@
             return `
                 <div class="card arquivado">
                     <div class="card-header">
-                        <span class="card-id">${item.id} (ARQUIVADO)</span>
+                        <span class="card-id">${item.id}</span>
                         <div class="card-actions-top">
                             <span class="badge">${item.motivo || 'Arquivado'}</span>
                             <button class="icon-btn" onclick="visualizarArquivado('${item.id}', 'cotacao')">👁️</button>
@@ -935,7 +974,7 @@
             return `
                 <div class="card arquivado">
                     <div class="card-header">
-                        <span class="card-id">${item.id} (ARQUIVADO)</span>
+                        <span class="card-id">${item.id}</span>
                         <div class="card-actions-top">
                             <span class="badge">${item.motivo || 'Arquivado'}</span>
                             <button class="icon-btn" onclick="visualizarArquivado('${item.id}', 'visita')">👁️</button>
@@ -1003,7 +1042,6 @@
                 return;
             }
             
-            // Atualizar status
             if (tipo === 'cotacao') {
                 const index = cotacoes.findIndex(c => c.id === cardId);
                 if (index !== -1) {
@@ -1020,40 +1058,16 @@
             
             processarArquivamentoAutomatico();
             renderizarKanbans();
+            initDragAndDrop();
         }
         
-        function visualizarCard(id, tipo) {
-            const modal = document.getElementById('viewModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-            const modalFooter = document.getElementById('modalFooter');
-            
-            if (tipo === 'cotacao') {
-                const card = cotacoes.find(c => c.id === id);
-                if (!card) return;
-                
-                modalTitle.textContent = 'Detalhes do Orçamento';
-                
-                let arquivosHtml = '';
-                if (card.arquivos && card.arquivos.length) {
-                    arquivosHtml = `
-                        <div class="info-item full-width">
-                            <div class="info-label">ARQUIVOS ANEXADOS</div>
-                            <div class="files-list">
-                                ${card.arquivos.map(arq => `
-                                    <div class="file-item">
-                                        <span class="file-name">📄 ${arq.name}</span>
-                                        <span class="file-size">${(arq.size / 1024).toFixed(2)} KB</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                modalBody.innerHTML = `
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">EMPRESA</div>
-                            <div class="info-value">${card.empresa || '---'}</div>
-                       
+        function abrirMenuNovo() {
+            document.getElementById('modalSelecaoNovo').classList.add('active');
+        }
+        
+        function fecharModalSelecao() {
+            document.getElementById('modalSelecaoNovo').classList.remove('active');
+        }
+        
+        function abrirModalNovoOrcamento() {
+            fe
