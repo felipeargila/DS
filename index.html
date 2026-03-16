@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DS MaqCare Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    :root {
+      --ds-navy: #293944;
+      --ds-sand: #B5A997;
+      --ds-cream: #F8F6F2;
+      --ds-border: #E7E2DA;
+      --ds-text: #24323B;
+    }
+    * { font-family: 'Inter', sans-serif; }
+    body { background: var(--ds-cream); color: var(--ds-text); }
+    .tab-btn.active { background: #fff; color: var(--ds-navy); }
+    .kpi-card, .panel, .result-card, .crm-card, .archive-card { background:#fff; border:1px solid var(--ds-border); }
+    .result-card:hover { box-shadow: 0 12px 30px rgba(41,57,68,.08); transform: translateY(-1px); }
+    .result-card { transition: all .15s ease; }
+    .status-badge { font-size:11px; font-weight:700; padding:4px 8px; border-radius:999px; display:inline-flex; align-items:center; }
+    .badge-category { background:#eee7dd; color:#5a4637; }
+    .badge-cluster { background:#e9eef1; color:#293944; }
+    .badge-contact { background:#eef8ef; color:#2d6c37; }
+    .chip { display:inline-flex; align-items:center; gap:8px; background:#efe7db; color:#4f4135; font-size:12px; font-weight:600; padding:6px 10px; border-radius:999px; }
+    .chip button { color:#6b5d52; }
+    .kanban-col { min-height: 420px; min-width: 280px; }
+    .kanban-dropzone.drag-over { outline:2px dashed var(--ds-navy); outline-offset:-8px; background:#f7fafc; }
+    .crm-card.dragging { opacity:.55; }
+    .loading { animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+    .panel-title { font-weight:700; color:var(--ds-navy); }
+    select, input, textarea { outline:none; }
+    .sticky-filters { position: sticky; top: 120px; }
+    @media (max-width: 1023px) { .sticky-filters { position: static; } }
+  </style>
+</head>
+<body>
+  <header class="sticky top-0 z-20 border-b" style="background: var(--ds-navy); border-color: rgba(255,255,255,.08);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <img src="https://maqcare.dsindustria.com.br/wp-content/uploads/2026/03/LOGO.png" alt="DS MaqCare" class="h-14 w-auto rounded-lg bg-white/90 p-2" />
+          <div>
+            <div class="text-white text-2xl font-bold leading-tight">DS MaqCare Intelligence</div>
+            <div class="text-white/70 text-sm">Prospecção comercial industrial</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="tab-btn active px-4 py-2 rounded-full text-sm font-semibold transition" data-tab="industrias" style="background: rgba(255,255,255,.12); color: #fff;">INDÚSTRIAS</button>
+          <button class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition" data-tab="crm" style="background: rgba(255,255,255,.12); color: #fff;">CRM</button>
+          <button class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition" data-tab="arquivados" style="background: rgba(255,255,255,.12); color: #fff;">ARQUIVADOS</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="activeChips" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 flex flex-wrap gap-2"></div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <section id="section-industrias">
+      <div class="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-6">
+        <aside class="sticky-filters space-y-4">
+          <div class="panel rounded-2xl shadow-sm p-4">
+            <div class="panel-title text-base mb-4">Filtros</div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Estado</label>
+                <select id="filterEstado" class="w-full border rounded-xl px-3 py-2.5 text-sm bg-white" style="border-color: var(--ds-border);"></select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Cidade</label>
+                <select id="filterCidade" class="w-full border rounded-xl px-3 py-2.5 text-sm bg-white" style="border-color: var(--ds-border);">
+                  <option value="">Selecione</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Segmento</label>
+                <select id="filterCategoria" class="w-full border rounded-xl px-3 py-2.5 text-sm bg-white" style="border-color: var(--ds-border);">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Cluster</label>
+                <select id="filterCluster" class="w-full border rounded-xl px-3 py-2.5 text-sm bg-white" style="border-color: var(--ds-border);">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">CNAE</label>
+                <input id="filterCNAE" type="text" placeholder="Ex.: 2311700" class="w-full border rounded-xl px-3 py-2.5 text-sm bg-white" style="border-color: var(--ds-border);">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Buscar por nome, CNPJ ou e-mail</label>
+                <input id="filterBusca" type="text" placeholder="Buscar..." class="w-full border rounded-xl px-3 py-2.5 text-sm bg-white" style="border-color: var(--ds-border);">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center gap-2 text-sm"><input id="filterComTelefone" type="checkbox"> Com telefone</label>
+                <label class="flex items-center gap-2 text-sm"><input id="filterComEmail" type="checkbox"> Com e-mail</label>
+                <label class="flex items-center gap-2 text-sm"><input id="filterMatriz" type="checkbox"> Só matriz</label>
+                <label class="flex items-center gap-2 text-sm"><input id="filterFilial" type="checkbox"> Só filial</label>
+              </div>
+              <div class="flex gap-2 pt-2">
+                <button id="clearFiltersBtn" class="flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold border" style="border-color: var(--ds-border);">Limpar</button>
+                <button id="addFilteredToCRMBtn" class="flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold text-white" style="background: var(--ds-navy);">Adicionar filtrados</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel rounded-2xl shadow-sm p-4">
+            <div class="panel-title text-base mb-3">Leitura rápida</div>
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between"><span class="text-slate-500">Base carregada</span><span class="font-semibold" id="loadedStateLabel">-</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Registros no estado</span><span class="font-semibold" id="stateLoadedCount">0</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Resultados no filtro</span><span class="font-semibold" id="filteredCount">0</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">No CRM</span><span class="font-semibold" id="crmCountMini">0</span></div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="min-w-0">
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
+            <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Total na base do estado</div><div id="kpiTotalEstado" class="text-2xl font-bold">0</div></div>
+            <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Resultado atual</div><div id="kpiResultadoAtual" class="text-2xl font-bold">0</div></div>
+            <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Com telefone</div><div id="kpiComTelefone" class="text-2xl font-bold">0</div></div>
+            <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Com e-mail</div><div id="kpiComEmail" class="text-2xl font-bold">0</div></div>
+          </div>
+
+          <div class="panel rounded-2xl shadow-sm p-4 mb-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <div class="panel-title text-base">Indústrias</div>
+                <div class="text-sm text-slate-500">Busca operacional para prospecção comercial.</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-slate-500">Ordenar</label>
+                <select id="sortBy" class="border rounded-xl px-3 py-2 text-sm bg-white" style="border-color: var(--ds-border);">
+                  <option value="nome">Nome</option>
+                  <option value="cidade">Cidade</option>
+                  <option value="categoria">Segmento</option>
+                  <option value="cnae">CNAE</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="loadingState" class="hidden panel rounded-2xl p-6 text-sm loading">Carregando base do estado...</div>
+          <div id="resultsList" class="space-y-3"></div>
+
+          <div class="flex items-center justify-between mt-4 text-sm">
+            <div id="paginationInfo" class="text-slate-500"></div>
+            <div class="flex items-center gap-2">
+              <button id="prevPageBtn" class="px-3 py-2 rounded-xl border" style="border-color: var(--ds-border);">‹ Anterior</button>
+              <span id="pageNumber" class="px-3 py-2 rounded-xl text-white" style="background: var(--ds-navy);">1</span>
+              <button id="nextPageBtn" class="px-3 py-2 rounded-xl border" style="border-color: var(--ds-border);">Próxima ›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-crm" class="hidden">
+      <div class="grid grid-cols-2 xl:grid-cols-6 gap-3 mb-4" id="crmKpis"></div>
+      <div class="panel rounded-2xl shadow-sm p-4 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <div class="panel-title text-base">CRM operacional</div>
+          <div class="text-sm text-slate-500">Movimente os cards, registre observações e arquive quando necessário.</div>
+        </div>
+        <div class="flex gap-2">
+          <button id="exportCRMBtn" class="px-3 py-2 rounded-xl border text-sm font-semibold" style="border-color: var(--ds-border);">Exportar CRM</button>
+          <button id="clearCRMBtn" class="px-3 py-2 rounded-xl text-sm font-semibold text-white" style="background: var(--ds-navy);">Limpar CRM</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto pb-2">
+        <div id="crmBoard" class="flex gap-4 min-w-max"></div>
+      </div>
+    </section>
+
+    <section id="section-arquivados" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Arquivados</div><div id="archiveTotal" class="text-2xl font-bold">0</div></div>
+        <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Com telefone</div><div id="archivePhone" class="text-2xl font-bold">0</div></div>
+        <div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">Com e-mail</div><div id="archiveEmail" class="text-2xl font-bold">0</div></div>
+      </div>
+      <div class="panel rounded-2xl shadow-sm p-4 mb-4">
+        <div class="panel-title text-base">Arquivados</div>
+        <div class="text-sm text-slate-500">Empresas removidas do pipeline, com opção de restaurar.</div>
+      </div>
+      <div id="archiveList" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    </section>
+  </main>
+
+  <script>
+    const APP = {
+      stateFiles: ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"],
+      crmStages: [
+        { key: 'industria', label: 'INDÚSTRIA' },
+        { key: 'sem_contato', label: 'SEM CONTATO' },
+        { key: 'primeiro_contato', label: 'PRIMEIRO CONTATO' },
+        { key: 'contato_adquirido', label: 'CONTATO ADQUIRIDO' },
+        { key: 'email_enviado', label: 'EMAIL ENVIADO' },
+        { key: 'concluido', label: 'CONCLUÍDO' },
+      ],
+      storageKeys: {
+        crm: 'ds_maqcare_crm_v1',
+        archive: 'ds_maqcare_archive_v1'
+      },
+      pageSize: 20,
+      currentTab: 'industrias',
+      loadedState: null,
+      loadedCityCode: '',
+      loadedCityName: '',
+      cityMap: [],
+      loadedData: [],
+      filteredData: [],
+      currentPage: 1,
+      crm: {},
+      archive: {},
+    };
+
+    const els = {};
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function init() {
+      bindElements();
+      loadLocalState();
+      setupTabs();
+      setupFilters();
+      populateStateFilter();
+      renderCRM();
+      renderArchive();
+      refreshMiniCounts();
+      const defaultUF = 'SP';
+      els.filterEstado.value = defaultUF;
+      await loadStateCities(defaultUF);
+    }
+
+    function bindElements() {
+      Object.assign(els, {
+        filterEstado: document.getElementById('filterEstado'),
+        filterCidade: document.getElementById('filterCidade'),
+        filterCategoria: document.getElementById('filterCategoria'),
+        filterCluster: document.getElementById('filterCluster'),
+        filterCNAE: document.getElementById('filterCNAE'),
+        filterBusca: document.getElementById('filterBusca'),
+        filterComTelefone: document.getElementById('filterComTelefone'),
+        filterComEmail: document.getElementById('filterComEmail'),
+        filterMatriz: document.getElementById('filterMatriz'),
+        filterFilial: document.getElementById('filterFilial'),
+        clearFiltersBtn: document.getElementById('clearFiltersBtn'),
+        addFilteredToCRMBtn: document.getElementById('addFilteredToCRMBtn'),
+        activeChips: document.getElementById('activeChips'),
+        loadedStateLabel: document.getElementById('loadedStateLabel'),
+        stateLoadedCount: document.getElementById('stateLoadedCount'),
+        filteredCount: document.getElementById('filteredCount'),
+        crmCountMini: document.getElementById('crmCountMini'),
+        kpiTotalEstado: document.getElementById('kpiTotalEstado'),
+        kpiResultadoAtual: document.getElementById('kpiResultadoAtual'),
+        kpiComTelefone: document.getElementById('kpiComTelefone'),
+        kpiComEmail: document.getElementById('kpiComEmail'),
+        loadingState: document.getElementById('loadingState'),
+        resultsList: document.getElementById('resultsList'),
+        sortBy: document.getElementById('sortBy'),
+        paginationInfo: document.getElementById('paginationInfo'),
+        prevPageBtn: document.getElementById('prevPageBtn'),
+        nextPageBtn: document.getElementById('nextPageBtn'),
+        pageNumber: document.getElementById('pageNumber'),
+        crmBoard: document.getElementById('crmBoard'),
+        crmKpis: document.getElementById('crmKpis'),
+        clearCRMBtn: document.getElementById('clearCRMBtn'),
+        exportCRMBtn: document.getElementById('exportCRMBtn'),
+        archiveList: document.getElementById('archiveList'),
+        archiveTotal: document.getElementById('archiveTotal'),
+        archivePhone: document.getElementById('archivePhone'),
+        archiveEmail: document.getElementById('archiveEmail'),
+      });
+    }
+
+    function setupTabs() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => setTab(btn.dataset.tab));
+      });
+      setTab('industrias');
+    }
+
+    function setTab(tab) {
+      APP.currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+        if (btn.dataset.tab === tab) {
+          btn.style.background = '#fff';
+          btn.style.color = 'var(--ds-navy)';
+        } else {
+          btn.style.background = 'rgba(255,255,255,.12)';
+          btn.style.color = '#fff';
+        }
+      });
+      document.getElementById('section-industrias').classList.toggle('hidden', tab !== 'industrias');
+      document.getElementById('section-crm').classList.toggle('hidden', tab !== 'crm');
+      document.getElementById('section-arquivados').classList.toggle('hidden', tab !== 'arquivados');
+    }
+
+    function setupFilters() {
+      els.filterEstado.addEventListener('change', async () => {
+        await loadStateCities(els.filterEstado.value);
+      });
+      els.filterCidade.addEventListener('change', async () => {
+        await loadCityData(els.filterEstado.value, els.filterCidade.value);
+      });
+      [
+        els.filterCategoria,
+        els.filterCluster,
+        els.filterCNAE,
+        els.filterBusca,
+        els.filterComTelefone,
+        els.filterComEmail,
+        els.filterMatriz,
+        els.filterFilial,
+        els.sortBy,
+      ].forEach(el => el.addEventListener('input', applyFilters));
+      [els.filterComTelefone, els.filterComEmail, els.filterMatriz, els.filterFilial].forEach(el => el.addEventListener('change', applyFilters));
+      els.clearFiltersBtn.addEventListener('click', clearFilters);
+      els.addFilteredToCRMBtn.addEventListener('click', addFilteredToCRM);
+      els.prevPageBtn.addEventListener('click', () => changePage(-1));
+      els.nextPageBtn.addEventListener('click', () => changePage(1));
+      els.clearCRMBtn.addEventListener('click', clearCRM);
+      els.exportCRMBtn.addEventListener('click', exportCRM);
+    }
+
+    function populateStateFilter() {
+      els.filterEstado.innerHTML = APP.stateFiles.map(uf => `<option value="${uf}">${uf}</option>`).join('');
+    }
+
+    async function loadStateCities(uf) {
+      APP.loadedState = uf;
+      APP.loadedCityCode = '';
+      APP.loadedCityName = '';
+      APP.loadedData = [];
+      APP.filteredData = [];
+      APP.cityMap = [];
+      resetIndustryFilters(true);
+      els.loadingState.classList.remove('hidden');
+      els.resultsList.innerHTML = '';
+      try {
+        APP.cityMap = await fetchCityMap(uf);
+        fillCitySelect(APP.cityMap);
+        populateDynamicFilters();
+        renderEmptyCityState();
+      } catch (error) {
+        fillCitySelect([]);
+        els.resultsList.innerHTML = `<div class="panel rounded-2xl p-5 text-sm text-red-700">${escapeHtml(error.message)}</div>`;
+        updateIndustryKPIs();
+      } finally {
+        els.loadingState.classList.add('hidden');
+      }
+    }
+
+    async function fetchCityMap(uf) {
+      const attempts = [
+        { path: `data/${uf}/cidades.json`, type: 'json' },
+        { path: `data/${uf}/cidades.js`, type: 'js' },
+      ];
+
+      for (const attempt of attempts) {
+        const response = await fetch(attempt.path, { cache: 'no-store' });
+        if (!response.ok) continue;
+        const raw = await response.text();
+        const parsed = attempt.type === 'json' ? JSON.parse(raw) : parsePossiblyJSObject(raw);
+        const normalized = normalizeCityMap(parsed);
+        if (normalized.length) return normalized;
+      }
+
+      throw new Error(`Não foi possível carregar a relação de cidades do estado ${uf}. Verifique se existe /data/${uf}/cidades.json ou /data/${uf}/cidades.js.`);
+    }
+
+    async function loadCityData(uf, cityCode) {
+      APP.loadedState = uf;
+      APP.loadedCityCode = cityCode || '';
+      APP.loadedCityName = getCityNameByCode(cityCode) || '';
+      resetIndustryFilters(false);
+      if (!cityCode) {
+        APP.loadedData = [];
+        APP.filteredData = [];
+        populateDynamicFilters();
+        renderEmptyCityState();
+        return;
+      }
+
+      els.loadingState.classList.remove('hidden');
+      els.resultsList.innerHTML = '';
+      try {
+        APP.loadedData = await fetchCityFile(uf, cityCode);
+        normalizeLoadedData();
+        populateDynamicFilters();
+        APP.currentPage = 1;
+        applyFilters();
+      } catch (error) {
+        APP.loadedData = [];
+        APP.filteredData = [];
+        els.resultsList.innerHTML = `<div class="panel rounded-2xl p-5 text-sm text-red-700">${escapeHtml(error.message)}</div>`;
+        updateIndustryKPIs();
+      } finally {
+        els.loadingState.classList.add('hidden');
+      }
+    }
+
+    async function fetchCityFile(uf, cityCode) {
+      const attempts = [
+        { path: `data/${uf}/${cityCode}.json`, type: 'json' },
+        { path: `data/${uf}/${cityCode}.js`, type: 'js' },
+      ];
+
+      for (const attempt of attempts) {
+        const response = await fetch(attempt.path, { cache: 'no-store' });
+        if (!response.ok) continue;
+        const raw = await response.text();
+        const parsed = attempt.type === 'json' ? JSON.parse(raw) : parsePossiblyJSObject(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed?.dados)) return parsed.dados;
+        if (Array.isArray(parsed?.empresas)) return parsed.empresas;
+      }
+
+      throw new Error(`Não foi possível carregar a cidade ${APP.loadedCityName || cityCode}. Verifique se existe /data/${uf}/${cityCode}.json ou /data/${uf}/${cityCode}.js.`);
+    }
+
+    function parsePossiblyJSObject(raw) {
+      const sanitized = String(raw || '').trim()
+        .replace(/^\s*(window\.)?[a-zA-Z_$][\w$]*\s*=\s*/, '')
+        .replace(/;\s*$/, '');
+      return Function(`return (${sanitized})`)();
+    }
+
+    function normalizeCityMap(input) {
+      if (Array.isArray(input)) {
+        return input
+          .map(item => ({
+            codigo: String(item.codigo || item.code || item.id || item.value || '').trim(),
+            nome: String(item.nome || item.name || item.label || item.cidade || '').trim(),
+          }))
+          .filter(item => item.codigo && item.nome)
+          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      }
+
+      if (input && typeof input === 'object') {
+        return Object.entries(input)
+          .map(([codigo, nome]) => ({ codigo: String(codigo).trim(), nome: String(nome).trim() }))
+          .filter(item => item.codigo && item.nome)
+          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      }
+
+      return [];
+    }
+
+    function fillCitySelect(cityMap) {
+      const current = els.filterCidade.value;
+      els.filterCidade.innerHTML = `<option value="">Selecione</option>` + cityMap.map(item => `<option value="${escapeHtml(item.codigo)}">${escapeHtml(item.nome)}</option>`).join('');
+      if (cityMap.some(item => item.codigo === current)) els.filterCidade.value = current;
+    }
+
+    function getCityNameByCode(code) {
+      return APP.cityMap.find(item => item.codigo === code)?.nome || '';
+    }
+
+    function renderEmptyCityState() {
+      updateIndustryKPIs();
+      els.paginationInfo.textContent = 'Selecione uma cidade';
+      els.pageNumber.textContent = '1';
+      els.prevPageBtn.disabled = true;
+      els.nextPageBtn.disabled = true;
+      els.resultsList.innerHTML = `<div class="panel rounded-2xl p-5 text-sm text-slate-500">Selecione uma cidade para carregar a base e manter a dashboard leve.</div>`;
+    }
+
+    function resetIndustryFilters(clearCity) {
+      if (clearCity) els.filterCidade.value = '';
+      els.filterCategoria.value = '';
+      els.filterCluster.value = '';
+      els.filterCNAE.value = '';
+      els.filterBusca.value = '';
+      els.filterComTelefone.checked = false;
+      els.filterComEmail.checked = false;
+      els.filterMatriz.checked = false;
+      els.filterFilial.checked = false;
+      els.sortBy.value = 'nome';
+    }
+
+    function normalizeLoadedData() {
+      APP.loadedData = APP.loadedData.map(item => ({
+        ...item,
+        cidade: item.cidade || item.municipio || item.municipio_nome || item.municipio_codigo || '',
+        categoria: item.categoria || 'outros industriais',
+        cluster: item.cluster || 'outros',
+        rotulo: item.rotulo || item.descricao_cnae || item.categoria || '',
+        nome_fantasia: item.nome_fantasia || item.razao_social || '(sem nome fantasia)',
+        cnpj: formatCNPJ(item.cnpj || ''),
+      }));
+    }
+
+    function populateDynamicFilters() {
+      const categorias = uniqueSorted(APP.loadedData.map(i => i.categoria).filter(Boolean));
+      const clusters = uniqueSorted(APP.loadedData.map(i => i.cluster).filter(Boolean));
+      fillSelect(els.filterCategoria, categorias, 'Todos');
+      fillSelect(els.filterCluster, clusters, 'Todos');
+      els.loadedStateLabel.textContent = [APP.loadedState || '-', APP.loadedCityName || ''].filter(Boolean).join(' / ');
+      els.stateLoadedCount.textContent = formatNumber(APP.loadedData.length);
+    }
+
+    function fillSelect(el, values, emptyLabel) {
+      const current = el.value;
+      el.innerHTML = `<option value="">${emptyLabel}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+      if (values.includes(current)) el.value = current;
+    }
+
+    function applyFilters() {
+      const cidade = APP.loadedCityName || '';
+      const categoria = els.filterCategoria.value;
+      const cluster = els.filterCluster.value;
+      const cnae = sanitizeDigits(els.filterCNAE.value);
+      const busca = normalizeText(els.filterBusca.value);
+      const onlyPhone = els.filterComTelefone.checked;
+      const onlyEmail = els.filterComEmail.checked;
+      const onlyMatriz = els.filterMatriz.checked;
+      const onlyFilial = els.filterFilial.checked;
+
+      APP.filteredData = APP.loadedData.filter(item => {
+        if (categoria && item.categoria !== categoria) return false;
+        if (cluster && item.cluster !== cluster) return false;
+        if (cnae && sanitizeDigits(item.cnae_principal || '') !== cnae) return false;
+        if (onlyPhone && !hasPhone(item)) return false;
+        if (onlyEmail && !hasEmail(item)) return false;
+        if (onlyMatriz && item.matriz_filial !== '1') return false;
+        if (onlyFilial && item.matriz_filial !== '2') return false;
+        if (busca) {
+          const hay = normalizeText([
+            item.nome_fantasia,
+            item.cnpj,
+            item.email,
+            item.cidade,
+            item.categoria,
+            item.cluster,
+            item.descricao_cnae,
+          ].join(' '));
+          if (!hay.includes(busca)) return false;
+        }
+        return true;
+      });
+
+      sortFilteredData();
+      APP.currentPage = 1;
+      renderActiveChips();
+      updateIndustryKPIs();
+      renderResults();
+    }
+
+    function sortFilteredData() {
+      const sortBy = els.sortBy.value;
+      APP.filteredData.sort((a, b) => {
+        if (sortBy === 'cidade') return String(a.cidade).localeCompare(String(b.cidade), 'pt-BR');
+        if (sortBy === 'categoria') return String(a.categoria).localeCompare(String(b.categoria), 'pt-BR');
+        if (sortBy === 'cnae') return String(a.cnae_principal).localeCompare(String(b.cnae_principal), 'pt-BR');
+        return String(a.nome_fantasia).localeCompare(String(b.nome_fantasia), 'pt-BR');
+      });
+    }
+
+    function renderActiveChips() {
+      const chips = [];
+      const mapping = [
+        ['Estado', els.filterEstado.value],
+        ['Cidade', APP.loadedCityName || ''],
+        ['Segmento', els.filterCategoria.value],
+        ['Cluster', els.filterCluster.value],
+        ['CNAE', sanitizeDigits(els.filterCNAE.value)],
+      ];
+      mapping.forEach(([label, value]) => { if (value) chips.push({ label, value }); });
+      if (els.filterComTelefone.checked) chips.push({ label: 'Contato', value: 'Com telefone' });
+      if (els.filterComEmail.checked) chips.push({ label: 'Contato', value: 'Com e-mail' });
+      if (els.filterMatriz.checked) chips.push({ label: 'Tipo', value: 'Só matriz' });
+      if (els.filterFilial.checked) chips.push({ label: 'Tipo', value: 'Só filial' });
+      if (els.filterBusca.value.trim()) chips.push({ label: 'Busca', value: els.filterBusca.value.trim() });
+      els.activeChips.innerHTML = chips.map(ch => `<span class="chip">${escapeHtml(ch.label)}: ${escapeHtml(ch.value)} <button onclick='removeChip(${JSON.stringify(ch.label)})'>×</button></span>`).join('');
+    }
+
+    window.removeChip = function(label) {
+      const map = {
+        'Cidade': () => { els.filterCidade.value = ''; loadCityData(els.filterEstado.value, ''); return; },
+        'Segmento': () => els.filterCategoria.value = '',
+        'Cluster': () => els.filterCluster.value = '',
+        'CNAE': () => els.filterCNAE.value = '',
+        'Busca': () => els.filterBusca.value = '',
+        'Contato': () => { els.filterComTelefone.checked = false; els.filterComEmail.checked = false; },
+        'Tipo': () => { els.filterMatriz.checked = false; els.filterFilial.checked = false; },
+      };
+      if (map[label]) map[label]();
+      applyFilters();
+    };
+
+    function updateIndustryKPIs() {
+      const phoneCount = APP.filteredData.filter(hasPhone).length;
+      const emailCount = APP.filteredData.filter(hasEmail).length;
+      els.kpiTotalEstado.textContent = formatNumber(APP.loadedData.length);
+      els.kpiResultadoAtual.textContent = formatNumber(APP.filteredData.length);
+      els.kpiComTelefone.textContent = formatNumber(phoneCount);
+      els.kpiComEmail.textContent = formatNumber(emailCount);
+      els.filteredCount.textContent = formatNumber(APP.filteredData.length);
+      els.stateLoadedCount.textContent = formatNumber(APP.loadedData.length);
+      refreshMiniCounts();
+    }
+
+    function renderResults() {
+      if (!APP.loadedCityCode) {
+        renderEmptyCityState();
+        return;
+      }
+      if (!APP.filteredData.length) {
+        els.resultsList.innerHTML = `<div class="panel rounded-2xl p-5 text-sm text-slate-500">Nenhum resultado encontrado com os filtros atuais.</div>`;
+        els.paginationInfo.textContent = '0 resultados';
+        els.pageNumber.textContent = '1';
+        els.prevPageBtn.disabled = true;
+        els.nextPageBtn.disabled = true;
+        return;
+      }
+      const totalPages = Math.max(1, Math.ceil(APP.filteredData.length / APP.pageSize));
+      APP.currentPage = Math.min(APP.currentPage, totalPages);
+      const start = (APP.currentPage - 1) * APP.pageSize;
+      const pageItems = APP.filteredData.slice(start, start + APP.pageSize);
+      els.resultsList.innerHTML = pageItems.map(item => renderIndustryCard(item)).join('');
+      els.paginationInfo.textContent = `${formatNumber(start + 1)}–${formatNumber(Math.min(start + APP.pageSize, APP.filteredData.length))} de ${formatNumber(APP.filteredData.length)}`;
+      els.pageNumber.textContent = String(APP.currentPage);
+      els.prevPageBtn.disabled = APP.currentPage === 1;
+      els.nextPageBtn.disabled = APP.currentPage === totalPages;
+      document.querySelectorAll('[data-add-crm]').forEach(btn => {
+        btn.addEventListener('click', () => addItemToCRM(btn.dataset.addCrm));
+      });
+    }
+
+    function renderIndustryCard(item) {
+      const phoneLine = [item.telefone1, item.telefone2].filter(Boolean).join(' · ') || 'Sem telefone';
+      const address = [item.endereco, item.bairro, item.cidade, item.uf].filter(Boolean).join(' · ');
+      const encoded = encodeURIComponent(JSON.stringify(item));
+      return `
+        <div class="result-card rounded-2xl p-4 shadow-sm">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="status-badge badge-category">${escapeHtml(item.categoria || 'Sem categoria')}</span>
+                <span class="status-badge badge-cluster">${escapeHtml(item.cluster || 'Sem cluster')}</span>
+                ${hasPhone(item) || hasEmail(item) ? '<span class="status-badge badge-contact">contato disponível</span>' : ''}
+              </div>
+              <div class="text-lg font-bold text-slate-900">${escapeHtml(item.nome_fantasia || '(sem nome)')}</div>
+              <div class="text-sm text-slate-500 mt-1">CNPJ ${escapeHtml(item.cnpj || '-')} · ${item.matriz_filial === '1' ? 'Matriz' : 'Filial'}</div>
+              <div class="text-sm mt-3 text-slate-700"><strong>CNAE:</strong> ${escapeHtml(item.cnae_principal || '-')} · ${escapeHtml(item.descricao_cnae || item.rotulo || '-')}</div>
+              <div class="text-sm mt-1 text-slate-700"><strong>Local:</strong> ${escapeHtml([item.cidade, item.uf].filter(Boolean).join(' / ') || '-')}</div>
+              <div class="text-sm mt-1 text-slate-700"><strong>Contato:</strong> ${escapeHtml(phoneLine)} ${item.email ? `· ${escapeHtml(item.email)}` : ''}</div>
+              <div class="text-sm mt-1 text-slate-700"><strong>Endereço:</strong> ${escapeHtml(address || '-')}</div>
+            </div>
+            <div class="flex flex-col gap-2 lg:w-48">
+              <button class="px-3 py-2 rounded-xl text-sm font-semibold text-white" style="background: var(--ds-navy);" data-add-crm="${escapeHtml(item.cnpj)}">+ CRM</button>
+              <button class="px-3 py-2 rounded-xl text-sm font-semibold border" style="border-color: var(--ds-border);" onclick="copyCompany('${'${encoded}'}')">Copiar dados</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    window.copyCompany = function(payload) {
+      const item = JSON.parse(decodeURIComponent(payload));
+      const text = [
+        item.nome_fantasia,
+        `CNPJ: ${item.cnpj}`,
+        `Cidade/UF: ${[item.cidade, item.uf].filter(Boolean).join(' / ')}`,
+        `Segmento: ${item.categoria}`,
+        `CNAE: ${item.cnae_principal} - ${item.descricao_cnae || item.rotulo || ''}`,
+        `Telefone: ${[item.telefone1, item.telefone2].filter(Boolean).join(' · ') || '-'}`,
+        `E-mail: ${item.email || '-'}`,
+      ].join('\n');
+      navigator.clipboard.writeText(text);
+    };
+
+    function changePage(delta) {
+      const totalPages = Math.max(1, Math.ceil(APP.filteredData.length / APP.pageSize));
+      APP.currentPage = Math.min(totalPages, Math.max(1, APP.currentPage + delta));
+      renderResults();
+    }
+
+    function clearFilters() {
+      resetIndustryFilters(false);
+      applyFilters();
+    }
+
+    function loadLocalState() {
+      try {
+        APP.crm = JSON.parse(localStorage.getItem(APP.storageKeys.crm) || '{}');
+        APP.archive = JSON.parse(localStorage.getItem(APP.storageKeys.archive) || '{}');
+      } catch {
+        APP.crm = {};
+        APP.archive = {};
+      }
+    }
+
+    function persistLocalState() {
+      localStorage.setItem(APP.storageKeys.crm, JSON.stringify(APP.crm));
+      localStorage.setItem(APP.storageKeys.archive, JSON.stringify(APP.archive));
+      refreshMiniCounts();
+    }
+
+    function getFilterSnapshot() {
+      return {
+        estado: els.filterEstado.value || '',
+        cidade: APP.loadedCityName || '',
+        categoria: els.filterCategoria.value || '',
+        cluster: els.filterCluster.value || '',
+        cnae: sanitizeDigits(els.filterCNAE.value),
+        busca: els.filterBusca.value.trim(),
+      };
+    }
+
+    function addFilteredToCRM() {
+      let added = 0;
+      APP.filteredData.forEach(item => {
+        if (!APP.crm[item.cnpj] && !APP.archive[item.cnpj]) {
+          APP.crm[item.cnpj] = buildCRMRecord(item, 'industria');
+          added += 1;
+        }
+      });
+      persistLocalState();
+      renderCRM();
+      alert(`${added} empresa(s) adicionada(s) ao CRM.`);
+    }
+
+    function addItemToCRM(cnpj) {
+      const item = APP.loadedData.find(i => i.cnpj === cnpj) || APP.filteredData.find(i => i.cnpj === cnpj);
+      if (!item) return;
+      if (APP.crm[cnpj] || APP.archive[cnpj]) return;
+      APP.crm[cnpj] = buildCRMRecord(item, 'industria');
+      persistLocalState();
+      renderCRM();
+    }
+
+    function buildCRMRecord(item, stage) {
+      return {
+        ...item,
+        stage,
+        observacoes: '',
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString(),
+        origemFiltro: getFilterSnapshot(),
+      };
+    }
+
+    function renderCRM() {
+      const values = Object.values(APP.crm);
+      els.crmBoard.innerHTML = APP.crmStages.map(stage => {
+        const cards = values.filter(v => v.stage === stage.key);
+        return `
+          <div class="kanban-col rounded-2xl panel shadow-sm p-3 kanban-dropzone" data-stage="${stage.key}">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <div class="font-bold text-sm" style="color: var(--ds-navy);">${stage.label}</div>
+              <div class="text-xs font-semibold px-2 py-1 rounded-full" style="background:#efe7db; color:#5c4a38;">${cards.length}</div>
+            </div>
+            <div class="space-y-3">${cards.map(renderCRMCard).join('') || '<div class="text-sm text-slate-400 p-2">Sem cards</div>'}</div>
+          </div>`;
+      }).join('');
+      bindCRMEvents();
+      renderCRMKpis();
+    }
+
+    function renderCRMCard(item) {
+      return `
+        <div class="crm-card rounded-2xl p-3 shadow-sm" draggable="true" data-cnpj="${escapeHtml(item.cnpj)}">
+          <div class="text-sm font-bold text-slate-900">${escapeHtml(item.nome_fantasia || '(sem nome)')}</div>
+          <div class="text-xs text-slate-500 mt-1">${escapeHtml(item.cnpj)} · ${escapeHtml([item.cidade, item.uf].filter(Boolean).join(' / '))}</div>
+          <div class="text-xs text-slate-600 mt-2">${escapeHtml(item.categoria || '-')} · ${escapeHtml(item.cnae_principal || '-')}</div>
+          <div class="text-xs text-slate-600 mt-1">${escapeHtml([item.telefone1, item.telefone2].filter(Boolean).join(' · ') || 'Sem telefone')}</div>
+          <div class="text-xs text-slate-600 mt-1 break-all">${escapeHtml(item.email || 'Sem e-mail')}</div>
+          <textarea class="w-full mt-3 border rounded-xl px-3 py-2 text-sm" style="border-color: var(--ds-border);" rows="3" placeholder="Observações" data-notes="${escapeHtml(item.cnpj)}">${escapeHtml(item.observacoes || '')}</textarea>
+          <div class="text-[11px] text-slate-400 mt-2">Origem: ${escapeHtml(formatOrigin(item.origemFiltro))}</div>
+          <div class="flex gap-2 mt-3">
+            <button class="flex-1 px-2 py-2 rounded-xl border text-xs font-semibold" style="border-color: var(--ds-border);" data-archive="${escapeHtml(item.cnpj)}">Arquivar</button>
+            <button class="flex-1 px-2 py-2 rounded-xl text-xs font-semibold text-white" style="background: var(--ds-navy);" data-copy-crm="${escapeHtml(item.cnpj)}">Copiar</button>
+          </div>
+        </div>`;
+    }
+
+    function renderCRMKpis() {
+      const values = Object.values(APP.crm);
+      const map = {
+        total: values.length,
+        industria: values.filter(v => v.stage === 'industria').length,
+        sem_contato: values.filter(v => v.stage === 'sem_contato').length,
+        primeiro_contato: values.filter(v => v.stage === 'primeiro_contato').length,
+        contato_adquirido: values.filter(v => v.stage === 'contato_adquirido').length,
+        concluido: values.filter(v => v.stage === 'concluido').length,
+      };
+      const items = [
+        ['Cards no CRM', map.total],
+        ['Indústria', map.industria],
+        ['Sem contato', map.sem_contato],
+        ['Primeiro contato', map.primeiro_contato],
+        ['Contato adquirido', map.contato_adquirido],
+        ['Concluído', map.concluido],
+      ];
+      els.crmKpis.innerHTML = items.map(([label, value]) => `<div class="kpi-card rounded-2xl p-4"><div class="text-xs text-slate-500 mb-1">${label}</div><div class="text-2xl font-bold">${formatNumber(value)}</div></div>`).join('');
+    }
+
+    function bindCRMEvents() {
+      document.querySelectorAll('.crm-card').forEach(card => {
+        card.addEventListener('dragstart', onDragStart);
+        card.addEventListener('dragend', onDragEnd);
+      });
+      document.querySelectorAll('.kanban-dropzone').forEach(zone => {
+        zone.addEventListener('dragover', onDragOver);
+        zone.addEventListener('dragleave', onDragLeave);
+        zone.addEventListener('drop', onDrop);
+      });
+      document.querySelectorAll('[data-notes]').forEach(el => {
+        el.addEventListener('change', () => {
+          const cnpj = el.dataset.notes;
+          if (!APP.crm[cnpj]) return;
+          APP.crm[cnpj].observacoes = el.value;
+          APP.crm[cnpj].atualizadoEm = new Date().toISOString();
+          persistLocalState();
+        });
+      });
+      document.querySelectorAll('[data-archive]').forEach(btn => {
+        btn.addEventListener('click', () => archiveCRMCard(btn.dataset.archive));
+      });
+      document.querySelectorAll('[data-copy-crm]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = APP.crm[btn.dataset.copyCrm];
+          if (!item) return;
+          navigator.clipboard.writeText([
+            item.nome_fantasia,
+            `CNPJ: ${item.cnpj}`,
+            `Cidade/UF: ${[item.cidade, item.uf].filter(Boolean).join(' / ')}`,
+            `Segmento: ${item.categoria}`,
+            `Contato: ${[item.telefone1, item.telefone2].filter(Boolean).join(' · ') || '-'}`,
+            `E-mail: ${item.email || '-'}`,
+            `Observações: ${item.observacoes || '-'}`,
+          ].join('\n'));
+        });
+      });
+    }
+
+    function onDragStart(e) {
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', e.currentTarget.dataset.cnpj);
+    }
+    function onDragEnd(e) { e.currentTarget.classList.remove('dragging'); }
+    function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+    function onDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      const cnpj = e.dataTransfer.getData('text/plain');
+      const stage = e.currentTarget.dataset.stage;
+      if (!APP.crm[cnpj]) return;
+      APP.crm[cnpj].stage = stage;
+      APP.crm[cnpj].atualizadoEm = new Date().toISOString();
+      persistLocalState();
+      renderCRM();
+    }
+
+    function archiveCRMCard(cnpj) {
+      if (!APP.crm[cnpj]) return;
+      APP.archive[cnpj] = { ...APP.crm[cnpj], arquivadoEm: new Date().toISOString() };
+      delete APP.crm[cnpj];
+      persistLocalState();
+      renderCRM();
+      renderArchive();
+    }
+
+    function renderArchive() {
+      const values = Object.values(APP.archive);
+      document.getElementById('archiveTotal').textContent = formatNumber(values.length);
+      document.getElementById('archivePhone').textContent = formatNumber(values.filter(hasPhone).length);
+      document.getElementById('archiveEmail').textContent = formatNumber(values.filter(hasEmail).length);
+      if (!values.length) {
+        document.getElementById('archiveList').innerHTML = `<div class="archive-card rounded-2xl p-5 text-sm text-slate-500">Nenhum card arquivado.</div>`;
+        return;
+      }
+      document.getElementById('archiveList').innerHTML = values.sort((a,b) => String(a.nome_fantasia).localeCompare(String(b.nome_fantasia), 'pt-BR')).map(item => `
+        <div class="archive-card rounded-2xl p-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-base font-bold text-slate-900">${escapeHtml(item.nome_fantasia || '(sem nome)')}</div>
+              <div class="text-sm text-slate-500 mt-1">${escapeHtml(item.cnpj)} · ${escapeHtml([item.cidade, item.uf].filter(Boolean).join(' / '))}</div>
+              <div class="text-sm mt-2 text-slate-700">${escapeHtml(item.categoria || '-')} · ${escapeHtml(item.cnae_principal || '-')}</div>
+            </div>
+            <button class="px-3 py-2 rounded-xl text-sm font-semibold text-white" style="background: var(--ds-navy);" data-restore="${escapeHtml(item.cnpj)}">Restaurar</button>
+          </div>
+          <div class="text-sm text-slate-600 mt-3">Observações: ${escapeHtml(item.observacoes || '-')}</div>
+        </div>
+      `).join('');
+      document.querySelectorAll('[data-restore]').forEach(btn => {
+        btn.addEventListener('click', () => restoreArchived(btn.dataset.restore));
+      });
+    }
+
+    function restoreArchived(cnpj) {
+      if (!APP.archive[cnpj]) return;
+      APP.crm[cnpj] = { ...APP.archive[cnpj], stage: APP.archive[cnpj].stage || 'industria' };
+      delete APP.archive[cnpj];
+      persistLocalState();
+      renderCRM();
+      renderArchive();
+    }
+
+    function clearCRM() {
+      if (!confirm('Limpar todo o CRM?')) return;
+      APP.crm = {};
+      persistLocalState();
+      renderCRM();
+    }
+
+    function exportCRM() {
+      const rows = Object.values(APP.crm);
+      if (!rows.length) return alert('CRM vazio.');
+      const headers = ['cnpj','nome_fantasia','cidade','uf','categoria','cluster','cnae_principal','telefone1','telefone2','email','stage','observacoes'];
+      const csv = [headers.join(';')].concat(rows.map(r => headers.map(h => csvEscape(r[h] || '')).join(';'))).join('\n');
+      downloadFile(csv, 'crm_ds_maqcare.csv', 'text/csv;charset=utf-8;');
+    }
+
+    function refreshMiniCounts() {
+      document.getElementById('crmCountMini').textContent = formatNumber(Object.keys(APP.crm).length);
+    }
+
+    function formatOrigin(origin) {
+      if (!origin) return '-';
+      return [origin.estado, origin.cidade, origin.categoria].filter(Boolean).join(' · ') || '-';
+    }
+
+    function hasPhone(item) { return Boolean((item.telefone1 && item.telefone1.trim()) || (item.telefone2 && item.telefone2.trim())); }
+    function hasEmail(item) { return Boolean(item.email && item.email.trim()); }
+    function formatNumber(v) { return new Intl.NumberFormat('pt-BR').format(v || 0); }
+    function sanitizeDigits(v) { return String(v || '').replace(/\D/g, ''); }
+    function normalizeText(v) { return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
+    function uniqueSorted(arr) { return [...new Set(arr)].sort((a,b) => String(a).localeCompare(String(b), 'pt-BR')); }
+    function csvEscape(value) { return `"${String(value).replaceAll('"','""')}"`; }
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+    function formatCNPJ(v) {
+      const digits = sanitizeDigits(v);
+      if (digits.length !== 14) return v || '';
+      return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
