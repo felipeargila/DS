@@ -470,6 +470,31 @@
             margin-top: 5px;
         }
         
+        .aprovado-info {
+            background: #d4edda;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        
+        .aprovado-link {
+            color: #155724;
+            word-break: break-all;
+        }
+        
+        .aprovado-link a {
+            color: #155724;
+            text-decoration: underline;
+        }
+        
+        .aprovado-valor {
+            font-weight: 600;
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
         .card-actions {
             display: flex;
             gap: 8px;
@@ -716,6 +741,27 @@
             outline: none;
         }
         
+        .aprovado-fields {
+            background: #f5f5f5;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .aprovado-fields input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Chakra Petch', sans-serif;
+            margin-bottom: 10px;
+        }
+        
+        .aprovado-fields input:focus {
+            border-color: #b7ab97;
+            outline: none;
+        }
+        
         .modal-footer {
             display: flex;
             justify-content: flex-end;
@@ -810,6 +856,7 @@
             text-align: center;
         }
         
+        /* Estatísticas */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -837,38 +884,13 @@
             text-transform: uppercase;
         }
         
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 4px;
-            overflow: hidden;
+        .stat-periodo {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
         }
         
-        .data-table th {
-            background: #283944;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 500;
-        }
-        
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .data-table tr:hover {
-            background: #f5f5f5;
-        }
-        
-        .code-6digits {
-            font-family: monospace;
-            font-size: 14px;
-            letter-spacing: 2px;
-        }
-        
-        /* Estilos para a aba de clientes */
+        /* Clientes */
         .clientes-container {
             background: white;
             border-radius: 4px;
@@ -887,27 +909,20 @@
         .cliente-card {
             background: #f9f9f9;
             border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
             border-left: 4px solid #b7ab97;
-            transition: all 0.3s;
         }
         
-        .cliente-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .cliente-header {
+        .cliente-resumo {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
             cursor: pointer;
         }
         
         .cliente-nome {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #283944;
         }
@@ -918,6 +933,34 @@
             font-family: monospace;
         }
         
+        .btn-ver-mais {
+            background: transparent;
+            border: 2px solid #b7ab97;
+            color: #b7ab97;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn-ver-mais:hover {
+            background: #b7ab97;
+            color: #283944;
+        }
+        
+        .cliente-detalhes {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+        
+        .cliente-detalhes.visible {
+            display: block;
+        }
+        
         .cliente-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -925,54 +968,24 @@
             margin-bottom: 15px;
         }
         
-        .stat-item {
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            text-align: center;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-        }
-        
-        .stat-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #283944;
-        }
-        
-        .total-compras {
-            font-size: 16px;
-            font-weight: 600;
-            color: #28a745;
-        }
-        
         .historico-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
-            display: none;
-        }
-        
-        .historico-table.visible {
-            display: table;
+            font-size: 13px;
         }
         
         .historico-table th {
             background: #f0f0f0;
-            padding: 10px;
+            padding: 8px;
             text-align: left;
             font-size: 12px;
             color: #666;
         }
         
         .historico-table td {
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #eee;
-            font-size: 13px;
         }
         
         .status-badge {
@@ -1005,13 +1018,6 @@
             border-radius: 4px;
         }
         
-        .observacoes-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        
         .observacoes-texto {
             width: 100%;
             min-height: 60px;
@@ -1022,11 +1028,6 @@
             resize: vertical;
         }
         
-        .observacoes-texto:focus {
-            border-color: #b7ab97;
-            outline: none;
-        }
-        
         .search-bar {
             padding: 8px 12px;
             border: 2px solid #ddd;
@@ -1035,6 +1036,29 @@
         }
         
         .search-bar:focus {
+            border-color: #b7ab97;
+            outline: none;
+        }
+        
+        /* Filtros de data */
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-row input,
+        .filter-row select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Chakra Petch', sans-serif;
+        }
+        
+        .filter-row input:focus,
+        .filter-row select:focus {
             border-color: #b7ab97;
             outline: none;
         }
@@ -1119,15 +1143,42 @@
                 <div class="kanban-container" id="kanbanVisitas"></div>
             </div>
             
-            <!-- Seção Arquivados -->
+            <!-- Seção Arquivados (agora com duas colunas) -->
             <div id="sectionArquivados" class="kanban-section">
-                <div class="kanban-container" style="justify-content: center;">
-                    <div class="kanban-column" style="max-width: 600px; min-width: 600px;">
+                <div class="kanban-container">
+                    <!-- Coluna Sem Retorno -->
+                    <div class="kanban-column">
                         <div class="column-header">
-                            <span>📦 ARQUIVADOS</span>
-                            <span class="column-count" id="arquivadosCount">0</span>
+                            <span>📦 SEM RETORNO (ARQUIVADOS)</span>
+                            <span class="column-count" id="semRetornoCount">0</span>
                         </div>
-                        <div class="cards-container" id="arquivadosContainer"></div>
+                        <div class="cards-container" id="semRetornoContainer"></div>
+                    </div>
+                    
+                    <!-- Coluna Aprovados Arquivados -->
+                    <div class="kanban-column">
+                        <div class="column-header">
+                            <span>✅ APROVADOS (ARQUIVADOS)</span>
+                            <span class="column-count" id="aprovadosArquivadosCount">0</span>
+                        </div>
+                        <div class="cards-container" id="aprovadosArquivadosContainer"></div>
+                        
+                        <!-- Filtros para Aprovados -->
+                        <div style="padding: 15px; background: #f0f0f0; border-top: 2px solid #b7ab97;">
+                            <label>FILTRAR POR:</label>
+                            <select id="filtroAprovados" onchange="filtrarAprovadosArquivados()">
+                                <option value="hoje">Hoje</option>
+                                <option value="semana">Esta Semana</option>
+                                <option value="mes" selected>Este Mês</option>
+                                <option value="personalizado">Personalizado</option>
+                            </select>
+                            
+                            <div id="filtroPersonalizado" style="display: none; margin-top: 10px;">
+                                <input type="date" id="dataInicio" placeholder="Data inicial">
+                                <input type="date" id="dataFim" placeholder="Data final">
+                                <button class="btn-small" onclick="aplicarFiltroPersonalizado()">Aplicar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1150,16 +1201,18 @@
             <div id="sectionRelatorios" class="kanban-section">
                 <div class="stats-grid" id="statsContainer">
                     <div class="stat-card">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Total de Orçamentos</div>
+                        <div class="stat-value" id="vendasSemana">0</div>
+                        <div class="stat-label">VENDAS DA SEMANA</div>
+                        <div class="stat-periodo" id="periodoSemana">Segunda a Sábado</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Convertidos</div>
+                        <div class="stat-value" id="vendasMes">0</div>
+                        <div class="stat-label">VENDAS DO MÊS</div>
+                        <div class="stat-periodo" id="periodoMes">-</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">0%</div>
-                        <div class="stat-label">Taxa de Conversão</div>
+                        <div class="stat-value" id="totalGeral">0</div>
+                        <div class="stat-label">TOTAL ACUMULADO</div>
                     </div>
                 </div>
                 
@@ -1172,10 +1225,11 @@
                                 <th>Total</th>
                                 <th>Convertidos</th>
                                 <th>Taxa de Conversão</th>
+                                <th>Valor Vendido</th>
                             </tr>
                         </thead>
                         <tbody id="desempenhoBody">
-                            <tr><td colspan="4" class="empty-state">Carregando...</td></tr>
+                            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1248,6 +1302,29 @@
         </div>
     </div>
     
+    <!-- Modal de Aprovação -->
+    <div class="modal" id="aprovacaoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>APROVAR ORÇAMENTO</h2>
+                <span class="close" onclick="fecharAprovacaoModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="aprovado-fields">
+                    <label>LINK DO ORÇAMENTO (DRIVE) *</label>
+                    <input type="url" id="aprovadoLink" placeholder="https://drive.google.com/...">
+                    
+                    <label>VALOR APROVADO (R$) *</label>
+                    <input type="number" id="aprovadoValor" step="0.01" min="0" placeholder="0,00">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="fecharAprovacaoModal()">CANCELAR</button>
+                <button class="btn-small success" onclick="confirmarAprovacao()">CONFIRMAR APROVAÇÃO</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Modal de Confirmação -->
     <div class="modal" id="confirmModal">
         <div class="modal-content small">
@@ -1290,6 +1367,8 @@
         let filtroAtivo = 'todos';
         let draggedItem = null;
         let autoReloadInterval = null;
+        let cardEmAprovacao = null;
+        let todosAprovadosArquivados = [];
         
         // ========== VERIFICAR LOGIN AO INICIAR ==========
         document.addEventListener('DOMContentLoaded', function() {
@@ -1472,6 +1551,7 @@
                     motivo: item.motivo
                 }));
                 
+                processarArquivamentoAutomatico();
                 renderizarKanbans();
                 initDragAndDrop();
                 if (usuarioAtual.tipo === 'master') {
@@ -1479,6 +1559,63 @@
                 }
             } catch (erro) {
                 console.error('Erro no auto-reload:', erro);
+            }
+        }
+        
+        // ========== PROCESSAR ARQUIVAMENTO AUTOMÁTICO ==========
+        function processarArquivamentoAutomatico() {
+            const hoje = new Date();
+            let arquivadosHoje = [];
+            
+            // Processar "Orçamento Enviado" com mais de 7 dias -> "Sem Retorno"
+            cotacoes = cotacoes.map(cot => {
+                if (cot.status === 'Orçamento Enviado') {
+                    const dias = calcularDias(cot.dataCriacao);
+                    if (dias >= 7) {
+                        cot.status = 'Sem Retorno';
+                    }
+                }
+                return cot;
+            });
+            
+            // Processar "Sem Retorno" com mais de 7 dias -> Arquivar
+            cotacoes = cotacoes.filter(cot => {
+                if (cot.status === 'Sem Retorno') {
+                    const dias = calcularDias(cot.dataCriacao);
+                    if (dias >= 14) { // 7 + 7 dias
+                        arquivadosHoje.push({
+                            ...cot,
+                            tipo: 'cotacao',
+                            dataArquivamento: new Date().toISOString().split('T')[0],
+                            motivo: 'Sem retorno por mais de 14 dias',
+                            subtipo: 'semRetorno'
+                        });
+                        return false;
+                    }
+                }
+                return true;
+            });
+            
+            // Processar "Pedido Aprovado" com mais de 7 dias -> Arquivar (em Aprovados)
+            cotacoes = cotacoes.filter(cot => {
+                if (cot.status === 'Pedido Aprovado') {
+                    const dias = calcularDias(cot.dataAprovacao || cot.dataCriacao);
+                    if (dias >= 7) {
+                        arquivadosHoje.push({
+                            ...cot,
+                            tipo: 'cotacao',
+                            dataArquivamento: new Date().toISOString().split('T')[0],
+                            motivo: 'Aprovado há mais de 7 dias',
+                            subtipo: 'aprovado'
+                        });
+                        return false;
+                    }
+                }
+                return true;
+            });
+            
+            if (arquivadosHoje.length > 0) {
+                arquivados = [...arquivados, ...arquivadosHoje];
             }
         }
         
@@ -1507,6 +1644,7 @@
                     motivo: item.motivo
                 }));
                 
+                processarArquivamentoAutomatico();
                 renderizarKanbans();
                 initDragAndDrop();
                 if (usuarioAtual.tipo === 'master') {
@@ -1527,38 +1665,71 @@
             
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+                
+                // Calcular vendas da semana (segunda a sábado)
+                const hoje = new Date();
+                const inicioSemana = new Date(hoje);
+                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1); // Segunda-feira
+                const fimSemana = new Date(hoje);
+                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6); // Sábado
+                
+                // Vendas do mês
+                const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+                
+                let vendasSemana = 0;
+                let vendasMes = 0;
+                let totalGeral = 0;
+                
+                // Calcular a partir das cotações aprovadas
+                cotacoes.forEach(cot => {
+                    if (cot.status === 'Pedido Aprovado' && cot.valor) {
+                        totalGeral += parseFloat(cot.valor);
+                        
+                        const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
+                        
+                        if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
+                            vendasSemana += parseFloat(cot.valor);
+                        }
+                        
+                        if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
+                            vendasMes += parseFloat(cot.valor);
+                        }
+                    }
+                });
+                
+                document.getElementById('vendasSemana').textContent = `R$ ${vendasSemana.toFixed(2)}`;
+                document.getElementById('vendasMes').textContent = `R$ ${vendasMes.toFixed(2)}`;
+                document.getElementById('totalGeral').textContent = `R$ ${totalGeral.toFixed(2)}`;
+                
+                document.getElementById('periodoSemana').textContent = 
+                    `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
+                document.getElementById('periodoMes').textContent = 
+                    inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                
+                // Desempenho por vendedor
                 const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=30`, { headers });
                 const dados = await resposta.json();
                 
-                // Estatísticas gerais
-                const stats = dados.geral || {};
-                document.getElementById('statsContainer').innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.total || 0}</div>
-                        <div class="stat-label">Total de Orçamentos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.convertidos || 0}</div>
-                        <div class="stat-label">Convertidos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.total ? ((stats.convertidos / stats.total * 100) || 0).toFixed(1) : 0}%</div>
-                        <div class="stat-label">Taxa de Conversão</div>
-                    </div>
-                `;
-                
-                // Desempenho por vendedor
                 let html = '';
-                dados.porVendedor?.forEach(v => {
-                    const taxa = v.total ? ((v.convertidos / v.total * 100) || 0).toFixed(1) : 0;
+                vendedores.forEach(v => {
+                    const cotacoesVendedor = cotacoes.filter(c => c.vendedorId === v.id);
+                    const total = cotacoesVendedor.length;
+                    const convertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
+                    const taxa = total ? ((convertidos / total * 100) || 0).toFixed(1) : 0;
+                    const valorVendido = cotacoesVendedor
+                        .filter(c => c.status === 'Pedido Aprovado')
+                        .reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                    
                     html += `<tr>
-                        <td>${v.vendedor}</td>
-                        <td>${v.total}</td>
-                        <td>${v.convertidos}</td>
+                        <td>${v.nome}</td>
+                        <td>${total}</td>
+                        <td>${convertidos}</td>
                         <td>${taxa}%</td>
+                        <td>R$ ${valorVendido.toFixed(2)}</td>
                     </tr>`;
                 });
-                document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="4" class="empty-state">Nenhum dado no período</td></tr>';
+                document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
                 
             } catch (erro) {
                 console.error('Erro ao carregar relatórios:', erro);
@@ -1654,24 +1825,112 @@
         }
         
         function renderizarArquivados() {
-            const container = document.getElementById('arquivadosContainer');
-            const countSpan = document.getElementById('arquivadosCount');
+            // Separar arquivados por tipo
+            const semRetorno = arquivados.filter(a => a.subtipo === 'semRetorno' || a.motivo?.includes('Sem retorno'));
+            const aprovados = arquivados.filter(a => a.subtipo === 'aprovado' || (a.status === 'Pedido Aprovado'));
             
-            const listaFiltrada = filtrarPorVendedor(arquivados);
-            countSpan.textContent = listaFiltrada.length;
+            todosAprovadosArquivados = aprovados;
+            
+            document.getElementById('semRetornoCount').textContent = semRetorno.length;
+            document.getElementById('aprovadosArquivadosCount').textContent = aprovados.length;
+            
+            // Renderizar Sem Retorno
+            const semRetornoContainer = document.getElementById('semRetornoContainer');
+            if (semRetorno.length === 0) {
+                semRetornoContainer.innerHTML = '<div class="empty-state">Nenhum item arquivado</div>';
+            } else {
+                semRetornoContainer.innerHTML = semRetorno.map(item => {
+                    if (item.tipo === 'cotacao') {
+                        return criarCardArquivadoCotacao(item);
+                    } else {
+                        return criarCardArquivadoVisita(item);
+                    }
+                }).join('');
+            }
+            
+            // Renderizar Aprovados (com filtro)
+            filtrarAprovadosArquivados();
+        }
+        
+        function filtrarAprovadosArquivados() {
+            const filtro = document.getElementById('filtroAprovados').value;
+            const container = document.getElementById('aprovadosArquivadosContainer');
+            const personalizadoDiv = document.getElementById('filtroPersonalizado');
+            
+            personalizadoDiv.style.display = filtro === 'personalizado' ? 'block' : 'none';
+            
+            let listaFiltrada = [...todosAprovadosArquivados];
+            const hoje = new Date();
+            
+            if (filtro === 'hoje') {
+                listaFiltrada = listaFiltrada.filter(item => {
+                    const data = new Date(item.dataAprovacao || item.dataCriacao || item.dataArquivamento);
+                    return data.toDateString() === hoje.toDateString();
+                });
+            } else if (filtro === 'semana') {
+                const inicioSemana = new Date(hoje);
+                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
+                const fimSemana = new Date(hoje);
+                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
+                
+                listaFiltrada = listaFiltrada.filter(item => {
+                    const data = new Date(item.dataAprovacao || item.dataCriacao || item.dataArquivamento);
+                    return data >= inicioSemana && data <= fimSemana;
+                });
+            } else if (filtro === 'mes') {
+                const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+                
+                listaFiltrada = listaFiltrada.filter(item => {
+                    const data = new Date(item.dataAprovacao || item.dataCriacao || item.dataArquivamento);
+                    return data >= inicioMes && data <= fimMes;
+                });
+            }
             
             if (listaFiltrada.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhum item arquivado</div>';
+                container.innerHTML = '<div class="empty-state">Nenhum item encontrado</div>';
+            } else {
+                container.innerHTML = listaFiltrada.map(item => {
+                    if (item.tipo === 'cotacao') {
+                        return criarCardArquivadoCotacao(item, true);
+                    } else {
+                        return criarCardArquivadoVisita(item, true);
+                    }
+                }).join('');
+            }
+        }
+        
+        function aplicarFiltroPersonalizado() {
+            const inicio = document.getElementById('dataInicio').value;
+            const fim = document.getElementById('dataFim').value;
+            
+            if (!inicio || !fim) {
+                alert('Selecione as datas de início e fim');
                 return;
             }
             
-            container.innerHTML = listaFiltrada.map(item => {
-                if (item.tipo === 'cotacao') {
-                    return criarCardArquivadoCotacao(item);
-                } else {
-                    return criarCardArquivadoVisita(item);
-                }
-            }).join('');
+            const dataInicio = new Date(inicio);
+            const dataFim = new Date(fim);
+            dataFim.setHours(23, 59, 59);
+            
+            const listaFiltrada = todosAprovadosArquivados.filter(item => {
+                const data = new Date(item.dataAprovacao || item.dataCriacao || item.dataArquivamento);
+                return data >= dataInicio && data <= dataFim;
+            });
+            
+            const container = document.getElementById('aprovadosArquivadosContainer');
+            
+            if (listaFiltrada.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum item encontrado</div>';
+            } else {
+                container.innerHTML = listaFiltrada.map(item => {
+                    if (item.tipo === 'cotacao') {
+                        return criarCardArquivadoCotacao(item, true);
+                    } else {
+                        return criarCardArquivadoVisita(item, true);
+                    }
+                }).join('');
+            }
         }
         
         function criarCardCotacao(card) {
@@ -1682,6 +1941,16 @@
             const diasSemRetorno = card.status === 'Sem Retorno' ? calcularDias(card.dataCriacao) : 0;
             const vendedorNome = vendedores.find(v => v.id === card.vendedorId)?.nome || '---';
             const totalArquivos = card.arquivos ? card.arquivos.length : 0;
+            
+            let aprovadoInfo = '';
+            if (card.status === 'Pedido Aprovado' && card.linkOrcamento && card.valor) {
+                aprovadoInfo = `
+                    <div class="aprovado-info">
+                        <div class="aprovado-link">🔗 <a href="${card.linkOrcamento}" target="_blank">Ver Orçamento</a></div>
+                        <div class="aprovado-valor">💰 R$ ${parseFloat(card.valor).toFixed(2)}</div>
+                    </div>
+                `;
+            }
             
             return `
                 <div class="card draggable" draggable="true" data-id="${card.id}" data-tipo="cotacao" data-status="${card.status}" style="border-left-color: ${borderColor}">
@@ -1702,6 +1971,7 @@
                         <strong>Data:</strong> ${card.dataCriacao || '---'}
                     </div>
                     ${totalArquivos > 0 ? `<div class="card-files" onclick="visualizarCard('${card.id}', 'cotacao')">📎 ${totalArquivos} arquivo(s)</div>` : ''}
+                    ${aprovadoInfo}
                     ${usuarioAtual.tipo === 'master' ? `<div class="vendedor-badge">${vendedorNome}</div>` : ''}
                     <div class="card-actions">
                         <button class="btn-small edit" onclick="editarCard('${card.id}', 'cotacao')">EDITAR</button>
@@ -1741,13 +2011,16 @@
             `;
         }
         
-        function criarCardArquivadoCotacao(item) {
+        function criarCardArquivadoCotacao(item, isAprovado = false) {
+            const valor = item.valor ? parseFloat(item.valor).toFixed(2) : '0,00';
+            
             return `
                 <div class="card arquivado">
                     <div class="card-header">
                         <span class="card-id">${item.id}</span>
                         <div class="card-actions-top">
                             <span class="badge">${item.motivo || 'Arquivado'}</span>
+                            ${isAprovado ? `<span class="badge" style="background:#28a745;">R$ ${valor}</span>` : ''}
                             <button class="icon-btn" onclick="visualizarArquivado('${item.id}', 'cotacao')">👁️</button>
                             <button class="icon-btn restore" onclick="restaurarArquivado('${item.id}', 'cotacao')">↩️</button>
                             <button class="icon-btn delete" onclick="confirmarExclusaoArquivado('${item.id}', 'cotacao')">🗑️</button>
@@ -1756,6 +2029,7 @@
                     <div class="card-company">${item.empresa || 'Sem empresa'}</div>
                     <div class="card-info">
                         <strong>Contato:</strong> ${item.contato || '---'}<br>
+                        ${isAprovado && item.linkOrcamento ? `<strong>Link:</strong> <a href="${item.linkOrcamento}" target="_blank">Ver</a><br>` : ''}
                         <strong>Arquivado em:</strong> ${item.dataArquivamento || '---'}<br>
                         <strong>Motivo:</strong> ${item.motivo || 'Manual'}
                     </div>
@@ -1763,7 +2037,7 @@
             `;
         }
         
-        function criarCardArquivadoVisita(item) {
+        function criarCardArquivadoVisita(item, isAprovado = false) {
             return `
                 <div class="card arquivado">
                     <div class="card-header">
@@ -1835,6 +2109,18 @@
                 return;
             }
             
+            // Se for mover para "Pedido Aprovado", abrir modal para preencher link e valor
+            if (novaColuna === 'Pedido Aprovado') {
+                const card = cotacoes.find(c => c.id === cardId);
+                if (!card) return;
+                
+                cardEmAprovacao = { id: cardId, card: card };
+                document.getElementById('aprovadoLink').value = card.linkOrcamento || '';
+                document.getElementById('aprovadoValor').value = card.valor || '';
+                document.getElementById('aprovacaoModal').classList.add('active');
+                return;
+            }
+            
             try {
                 const headers = { 
                     'Content-Type': 'application/json',
@@ -1882,6 +2168,54 @@
                 console.error('Erro ao mover card:', erro);
                 alert('Erro ao mover card. Tente novamente.');
                 await carregarDados();
+            }
+        }
+        
+        function fecharAprovacaoModal() {
+            document.getElementById('aprovacaoModal').classList.remove('active');
+            cardEmAprovacao = null;
+        }
+        
+        async function confirmarAprovacao() {
+            const link = document.getElementById('aprovadoLink').value;
+            const valor = document.getElementById('aprovadoValor').value;
+            
+            if (!link || !valor) {
+                alert('Preencha o link e o valor do orçamento aprovado');
+                return;
+            }
+            
+            if (!link.includes('drive.google.com') && !link.includes('docs.google.com')) {
+                alert('Por favor, use um link do Google Drive');
+                return;
+            }
+            
+            try {
+                const headers = { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                };
+                
+                const card = cotacoes.find(c => c.id === cardEmAprovacao.id);
+                if (card) {
+                    card.status = 'Pedido Aprovado';
+                    card.linkOrcamento = link;
+                    card.valor = parseFloat(valor);
+                    card.dataAprovacao = new Date().toISOString().split('T')[0];
+                    
+                    await fetch(`${API_URL}/api/cotacoes/${cardEmAprovacao.id}`, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(card)
+                    });
+                }
+                
+                fecharAprovacaoModal();
+                await carregarDados();
+                
+            } catch (erro) {
+                console.error('Erro ao aprovar:', erro);
+                alert('Erro ao aprovar orçamento');
             }
         }
         
@@ -1943,6 +2277,20 @@
                             <div class="info-label">DATA</div>
                             <div class="info-value">${card.dataCriacao || '---'}</div>
                         </div>
+                        ${card.status === 'Pedido Aprovado' ? `
+                        <div class="info-item full-width">
+                            <div class="info-label">LINK DO ORÇAMENTO</div>
+                            <div class="info-value"><a href="${card.linkOrcamento}" target="_blank">${card.linkOrcamento}</a></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">VALOR APROVADO</div>
+                            <div class="info-value">R$ ${parseFloat(card.valor).toFixed(2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">DATA APROVAÇÃO</div>
+                            <div class="info-value">${card.dataAprovacao || '---'}</div>
+                        </div>
+                        ` : ''}
                         <div class="info-item full-width">
                             <div class="info-label">DESCRIÇÃO</div>
                             <div class="info-value">${card.descricao || '---'}</div>
@@ -2178,6 +2526,16 @@
                             <div class="info-label">PRAZO</div>
                             <input type="text" id="editPrazo" class="info-value" value="${card.prazo || ''}">
                         </div>
+                        ${card.status === 'Pedido Aprovado' ? `
+                        <div class="info-item full-width">
+                            <div class="info-label">LINK DO ORÇAMENTO</div>
+                            <input type="url" id="editLink" class="info-value" value="${card.linkOrcamento || ''}">
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">VALOR APROVADO</div>
+                            <input type="number" id="editValor" class="info-value" step="0.01" value="${card.valor || ''}">
+                        </div>
+                        ` : ''}
                         <div class="info-item full-width">
                             <div class="info-label">OBSERVAÇÕES</div>
                             <textarea id="editObs" class="info-value">${card.observacoes || ''}</textarea>
@@ -2251,11 +2609,16 @@
                     material: document.getElementById('editMaterial').value,
                     quantidade: document.getElementById('editQuantidade').value,
                     prazo: document.getElementById('editPrazo').value,
-                    infoAdicional: document.getElementById('editObs').value,
                     observacoes: document.getElementById('editObs').value
                 };
                 
+                // Se for aprovado, incluir link e valor
                 const card = cotacoes.find(c => c.id === id);
+                if (card.status === 'Pedido Aprovado') {
+                    dadosAtualizados.linkOrcamento = document.getElementById('editLink').value;
+                    dadosAtualizados.valor = parseFloat(document.getElementById('editValor').value) || 0;
+                }
+                
                 Object.assign(card, dadosAtualizados);
                 
                 await fetch(`${API_URL}/api/cotacoes/${id}`, {
@@ -2419,201 +2782,13 @@
         }
         
         function abrirModalNovoOrcamento() {
+            alert('Função de novo orçamento será implementada em breve');
             fecharModalSelecao();
-            
-            const modal = document.getElementById('editModal');
-            const modalTitle = document.getElementById('editModalTitle');
-            const modalBody = document.getElementById('editModalBody');
-            const modalFooter = document.getElementById('editModalFooter');
-            
-            modalTitle.textContent = 'NOVO ORÇAMENTO';
-            
-            modalBody.innerHTML = `
-                <div class="info-grid">
-                    <div class="info-item full-width">
-                        <div class="info-label">EMPRESA *</div>
-                        <input type="text" id="novaEmpresa" class="info-value" placeholder="Razão social">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">CONTATO *</div>
-                        <input type="text" id="novoContato" class="info-value" placeholder="Nome">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">TELEFONE *</div>
-                        <input type="text" id="novoTelefone" class="info-value" placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">E-MAIL</div>
-                        <input type="email" id="novoEmail" class="info-value" placeholder="email@empresa.com">
-                    </div>
-                    <div class="info-item full-width">
-                        <div class="info-label">DESCRIÇÃO *</div>
-                        <textarea id="novaDescricao" class="info-value" placeholder="Descreva o serviço"></textarea>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">MATERIAL</div>
-                        <input type="text" id="novoMaterial" class="info-value" placeholder="Ex: Aço Carbono">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">QUANTIDADE</div>
-                        <input type="number" id="novaQuantidade" class="info-value" placeholder="Quantidade">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">PRAZO</div>
-                        <input type="text" id="novoPrazo" class="info-value" placeholder="Ex: 15 dias">
-                    </div>
-                </div>
-            `;
-            
-            modalFooter.innerHTML = `
-                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
-                <button class="btn-small success" onclick="salvarNovoOrcamento()">SALVAR</button>
-            `;
-            
-            modal.classList.add('active');
         }
         
         function abrirModalNovaVisita() {
+            alert('Função de nova visita será implementada em breve');
             fecharModalSelecao();
-            
-            const modal = document.getElementById('editModal');
-            const modalTitle = document.getElementById('editModalTitle');
-            const modalBody = document.getElementById('editModalBody');
-            const modalFooter = document.getElementById('editModalFooter');
-            
-            modalTitle.textContent = 'NOVA VISITA';
-            
-            modalBody.innerHTML = `
-                <div class="info-grid">
-                    <div class="info-item full-width">
-                        <div class="info-label">EMPRESA *</div>
-                        <input type="text" id="novaVisitaEmpresa" class="info-value" placeholder="Razão social">
-                    </div>
-                    <div class="info-item full-width">
-                        <div class="info-label">ENDEREÇO</div>
-                        <input type="text" id="novaVisitaEndereco" class="info-value" placeholder="Endereço completo">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">CONTATO</div>
-                        <input type="text" id="novaVisitaContato" class="info-value" placeholder="Nome">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">TELEFONE</div>
-                        <input type="text" id="novaVisitaTelefone" class="info-value" placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">DATA VISITA</div>
-                        <input type="date" id="novaVisitaData" class="info-value">
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">TÉCNICO</div>
-                        <input type="text" id="novaVisitaTecnico" class="info-value" placeholder="Nome do técnico">
-                    </div>
-                </div>
-            `;
-            
-            modalFooter.innerHTML = `
-                <button class="btn-small" onclick="fecharEditModal()">CANCELAR</button>
-                <button class="btn-small success" onclick="salvarNovaVisita()">SALVAR</button>
-            `;
-            
-            modal.classList.add('active');
-        }
-        
-        async function salvarNovoOrcamento() {
-            const empresa = document.getElementById('novaEmpresa').value;
-            const contato = document.getElementById('novoContato').value;
-            const telefone = document.getElementById('novoTelefone').value;
-            
-            if (!empresa || !contato || !telefone) {
-                alert('Preencha os campos obrigatórios');
-                return;
-            }
-            
-            mostrarLoading(true);
-            
-            try {
-                const novoOrcamento = {
-                    id: 'COT' + Date.now(),
-                    vendedorId: usuarioAtual.id,
-                    empresa: empresa,
-                    contato: contato,
-                    telefone: telefone,
-                    email: document.getElementById('novoEmail').value,
-                    descricao: document.getElementById('novaDescricao').value || '',
-                    material: document.getElementById('novoMaterial').value || '',
-                    quantidade: document.getElementById('novaQuantidade').value || '',
-                    prazo: document.getElementById('novoPrazo').value || '',
-                    infoAdicional: '',
-                    arquivos: [],
-                    status: 'Novo Orçamento',
-                    dataCriacao: new Date().toISOString().split('T')[0],
-                    observacoes: ''
-                };
-                
-                await fetch(`${API_URL}/api/cotacoes`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(novoOrcamento)
-                });
-                
-                fecharEditModal();
-                await carregarDados();
-                mudarAba('orcamentos');
-            } catch (erro) {
-                console.error('Erro ao criar:', erro);
-                alert('Erro ao criar orçamento');
-            } finally {
-                mostrarLoading(false);
-            }
-        }
-        
-        async function salvarNovaVisita() {
-            const empresa = document.getElementById('novaVisitaEmpresa').value;
-            
-            if (!empresa) {
-                alert('Preencha o campo Empresa');
-                return;
-            }
-            
-            mostrarLoading(true);
-            
-            try {
-                const novaVisita = {
-                    id: 'VIS' + Date.now(),
-                    vendedorId: usuarioAtual.id,
-                    empresa: empresa,
-                    endereco: document.getElementById('novaVisitaEndereco').value || '',
-                    contato: document.getElementById('novaVisitaContato').value || '',
-                    telefone: document.getElementById('novaVisitaTelefone').value || '',
-                    dataVisita: document.getElementById('novaVisitaData').value || '',
-                    tecnico: document.getElementById('novaVisitaTecnico').value || '',
-                    status: 'Agendar Mapeamento',
-                    observacoes: '',
-                    dataCriacao: new Date().toISOString().split('T')[0]
-                };
-                
-                await fetch(`${API_URL}/api/visitas`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(novaVisita)
-                });
-                
-                fecharEditModal();
-                await carregarDados();
-                mudarAba('visitas');
-            } catch (erro) {
-                console.error('Erro ao criar:', erro);
-                alert('Erro ao criar visita');
-            } finally {
-                mostrarLoading(false);
-            }
         }
         
         // ========== FUNÇÃO CRIAR VISITA ==========
@@ -2940,11 +3115,9 @@
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
                 
-                // Buscar todas as cotações
                 const respCotacoes = await fetch(`${API_URL}/api/cotacoes`, { headers });
                 const todasCotacoes = await respCotacoes.json();
                 
-                // Agrupar por CNPJ
                 const clientesMap = new Map();
                 
                 todasCotacoes.forEach(cot => {
@@ -2970,15 +3143,17 @@
                     cliente.cotacoes.push({
                         id: cot.id,
                         data: cot.dataCriacao,
+                        dataAprovacao: cot.dataAprovacao,
                         descricao: cot.descricao,
                         status: cot.status,
-                        valor: cot.valor || 0
+                        valor: cot.valor || 0,
+                        link: cot.linkOrcamento
                     });
                     
                     if (cot.status === 'Pedido Aprovado') {
                         cliente.totalCompras += (parseFloat(cot.valor) || 0);
-                        if (!cliente.ultimoPedido || cot.dataCriacao > cliente.ultimoPedido) {
-                            cliente.ultimoPedido = cot.dataCriacao;
+                        if (!cliente.ultimoPedido || cot.dataAprovacao > cliente.ultimoPedido) {
+                            cliente.ultimoPedido = cot.dataAprovacao || cot.dataCriacao;
                         }
                     }
                     
@@ -2993,7 +3168,6 @@
                 
                 clientes = Array.from(clientesMap.values());
                 
-                // Ordenar por última cotação (mais recente primeiro)
                 clientes.sort((a, b) => new Date(b.ultimaCotacao) - new Date(a.ultimaCotacao));
                 
                 renderizarClientes();
@@ -3013,64 +3187,70 @@
             
             container.innerHTML = clientes.map(cliente => `
                 <div class="cliente-card" data-cnpj="${cliente.cnpj}">
-                    <div class="cliente-header" onclick="toggleHistorico('${cliente.cnpj}')">
+                    <div class="cliente-resumo" onclick="toggleClienteDetalhes('${cliente.cnpj}')">
                         <div>
-                            <div class="cliente-nome">${cliente.empresa}</div>
-                            <div class="cliente-cnpj">${formatarCNPJ(cliente.cnpj)}</div>
+                            <span class="cliente-nome">${cliente.empresa}</span>
+                            <span class="cliente-cnpj"> - ${formatarCNPJ(cliente.cnpj)}</span>
                         </div>
-                        <span class="total-compras">R$ ${cliente.totalCompras.toFixed(2)}</span>
+                        <button class="btn-ver-mais">VER +</button>
                     </div>
                     
-                    <div class="cliente-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">Contato</div>
-                            <div class="stat-value">${cliente.contato || '-'}</div>
+                    <div class="cliente-detalhes" id="detalhes-${cliente.cnpj}">
+                        <div class="cliente-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Contato</div>
+                                <div class="stat-value">${cliente.contato || '-'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Telefone</div>
+                                <div class="stat-value">${cliente.telefone || '-'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">E-mail</div>
+                                <div class="stat-value">${cliente.email || '-'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Compras</div>
+                                <div class="stat-value">R$ ${cliente.totalCompras.toFixed(2)}</div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Telefone</div>
-                            <div class="stat-value">${cliente.telefone || '-'}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Últ. Cotação</div>
-                            <div class="stat-value">${formatarData(cliente.ultimaCotacao)}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Últ. Pedido</div>
-                            <div class="stat-value">${cliente.ultimoPedido ? formatarData(cliente.ultimoPedido) : '-'}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="observacoes-area">
-                        <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
-                        <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
-                    </div>
-                    
-                    <table class="historico-table" id="historico-${cliente.cnpj}">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>ID</th>
-                                <th>Descrição</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cliente.cotacoes.map(cot => `
+                        
+                        <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
+                        <table class="historico-table">
+                            <thead>
                                 <tr>
-                                    <td>${formatarData(cot.data)}</td>
-                                    <td>${cot.id}</td>
-                                    <td>${cot.descricao.substring(0, 30)}...</td>
-                                    <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
-                                    <td>
-                                        <button class="btn-small" onclick="visualizarCard('${cot.id}', 'cotacao')">VER</button>
-                                    </td>
+                                    <th>Data Pedido</th>
+                                    <th>Data Aprovação</th>
+                                    <th>Valor</th>
+                                    <th>Link</th>
+                                    <th>Status</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${cliente.cotacoes.map(cot => `
+                                    <tr>
+                                        <td>${formatarData(cot.data)}</td>
+                                        <td>${cot.dataAprovacao ? formatarData(cot.dataAprovacao) : '-'}</td>
+                                        <td>${cot.valor ? `R$ ${cot.valor.toFixed(2)}` : '-'}</td>
+                                        <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
+                                        <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div class="observacoes-area">
+                            <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
+                            <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
+                        </div>
+                    </div>
                 </div>
             `).join('');
+        }
+        
+        function toggleClienteDetalhes(cnpj) {
+            const detalhes = document.getElementById(`detalhes-${cnpj}`);
+            detalhes.classList.toggle('visible');
         }
         
         function formatarCNPJ(cnpj) {
@@ -3082,11 +3262,6 @@
             if (!dataString) return '-';
             const data = new Date(dataString);
             return data.toLocaleDateString('pt-BR');
-        }
-        
-        function toggleHistorico(cnpj) {
-            const historico = document.getElementById(`historico-${cnpj}`);
-            historico.classList.toggle('visible');
         }
         
         function filtrarClientes() {
@@ -3111,62 +3286,63 @@
             
             container.innerHTML = filtrados.map(cliente => `
                 <div class="cliente-card" data-cnpj="${cliente.cnpj}">
-                    <div class="cliente-header" onclick="toggleHistorico('${cliente.cnpj}')">
+                    <div class="cliente-resumo" onclick="toggleClienteDetalhes('${cliente.cnpj}')">
                         <div>
-                            <div class="cliente-nome">${cliente.empresa}</div>
-                            <div class="cliente-cnpj">${formatarCNPJ(cliente.cnpj)}</div>
+                            <span class="cliente-nome">${cliente.empresa}</span>
+                            <span class="cliente-cnpj"> - ${formatarCNPJ(cliente.cnpj)}</span>
                         </div>
-                        <span class="total-compras">R$ ${cliente.totalCompras.toFixed(2)}</span>
+                        <button class="btn-ver-mais">VER +</button>
                     </div>
                     
-                    <div class="cliente-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">Contato</div>
-                            <div class="stat-value">${cliente.contato || '-'}</div>
+                    <div class="cliente-detalhes visible" id="detalhes-${cliente.cnpj}">
+                        <div class="cliente-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">Contato</div>
+                                <div class="stat-value">${cliente.contato || '-'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Telefone</div>
+                                <div class="stat-value">${cliente.telefone || '-'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">E-mail</div>
+                                <div class="stat-value">${cliente.email || '-'}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Total Compras</div>
+                                <div class="stat-value">R$ ${cliente.totalCompras.toFixed(2)}</div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Telefone</div>
-                            <div class="stat-value">${cliente.telefone || '-'}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Últ. Cotação</div>
-                            <div class="stat-value">${formatarData(cliente.ultimaCotacao)}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Últ. Pedido</div>
-                            <div class="stat-value">${cliente.ultimoPedido ? formatarData(cliente.ultimoPedido) : '-'}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="observacoes-area">
-                        <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
-                        <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
-                    </div>
-                    
-                    <table class="historico-table" id="historico-${cliente.cnpj}">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>ID</th>
-                                <th>Descrição</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cliente.cotacoes.map(cot => `
+                        
+                        <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
+                        <table class="historico-table">
+                            <thead>
                                 <tr>
-                                    <td>${formatarData(cot.data)}</td>
-                                    <td>${cot.id}</td>
-                                    <td>${cot.descricao.substring(0, 30)}...</td>
-                                    <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
-                                    <td>
-                                        <button class="btn-small" onclick="visualizarCard('${cot.id}', 'cotacao')">VER</button>
-                                    </td>
+                                    <th>Data Pedido</th>
+                                    <th>Data Aprovação</th>
+                                    <th>Valor</th>
+                                    <th>Link</th>
+                                    <th>Status</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${cliente.cotacoes.map(cot => `
+                                    <tr>
+                                        <td>${formatarData(cot.data)}</td>
+                                        <td>${cot.dataAprovacao ? formatarData(cot.dataAprovacao) : '-'}</td>
+                                        <td>${cot.valor ? `R$ ${cot.valor.toFixed(2)}` : '-'}</td>
+                                        <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
+                                        <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div class="observacoes-area">
+                            <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
+                            <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
+                        </div>
+                    </div>
                 </div>
             `).join('');
         }
