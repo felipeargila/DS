@@ -6,7 +6,6 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,17 +50,6 @@ const upload = multer({
 // Servir arquivos estáticos da pasta uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configuração do email (substitua com seus dados da HostGator)
-const transporter = nodemailer.createTransport({
-    host: 'smtp.seudominio.com.br', // Configure com os dados da HostGator
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'osds@dsindustria.com.br',
-        pass: 'SUA_SENHA_AQUI'
-    }
-});
-
 // Conectar ao banco de dados SQLite
 const db = new sqlite3.Database('./database.db', (err) => {
     if (err) {
@@ -88,7 +76,7 @@ function criarTabelas() {
         )
     `);
 
-    // Tabela de cotações
+    // Tabela de cotações (com campos para aprovação)
     db.run(`
         CREATE TABLE IF NOT EXISTS cotacoes (
             id TEXT PRIMARY KEY,
@@ -105,8 +93,10 @@ function criarTabelas() {
             infoAdicional TEXT,
             status TEXT,
             dataCriacao TEXT,
+            dataAprovacao TEXT,
             observacoes TEXT,
             arquivos TEXT,
+            linkOrcamento TEXT,
             valor REAL DEFAULT 0,
             FOREIGN KEY(vendedorId) REFERENCES vendedores(id)
         )
@@ -132,11 +122,12 @@ function criarTabelas() {
         )
     `);
 
-    // Tabela de arquivados
+    // Tabela de arquivados (com subtipo)
     db.run(`
         CREATE TABLE IF NOT EXISTS arquivados (
             id TEXT PRIMARY KEY,
             tipo TEXT,
+            subtipo TEXT,
             dados TEXT,
             dataArquivamento TEXT,
             motivo TEXT,
@@ -166,42 +157,6 @@ function criarTabelas() {
             );
         }
     });
-}
-
-// ========== FUNÇÃO DE ENVIO DE EMAIL ==========
-async function enviarEmailCotacao(dados, arquivos) {
-    const mailOptions = {
-        from: '"Sistema de Cotações" <osds@dsindustria.com.br>',
-        to: 'osds@dsindustria.com.br',
-        subject: `Nova Cotação - ${dados.empresa}`,
-        html: `
-            <h2>Nova Solicitação de Orçamento</h2>
-            <p><strong>Empresa:</strong> ${dados.empresa}</p>
-            <p><strong>CNPJ:</strong> ${dados.cnpj}</p>
-            <p><strong>Contato:</strong> ${dados.contato}</p>
-            <p><strong>E-mail:</strong> ${dados.email}</p>
-            <p><strong>Telefone:</strong> ${dados.telefone}</p>
-            <p><strong>Descrição:</strong> ${dados.descricao}</p>
-            <p><strong>Material:</strong> ${dados.material || 'Não especificado'}</p>
-            <p><strong>Quantidade:</strong> ${dados.quantidade || 'Não especificada'}</p>
-            <p><strong>Prazo:</strong> ${dados.prazo || 'Não especificado'}</p>
-            <p><strong>Informações Adicionais:</strong> ${dados.infoAdicional || 'Nenhuma'}</p>
-            <p><strong>Data:</strong> ${dados.dataCriacao}</p>
-            <p><strong>ID da Cotação:</strong> ${dados.id}</p>
-            ${dados.primeiroAcesso ? '<p><strong>⭐ Primeiro acesso do cliente!</strong></p>' : ''}
-        `,
-        attachments: arquivos.map(arq => ({
-            filename: arq.originalname,
-            path: arq.path
-        }))
-    };
-    
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Email enviado com sucesso');
-    } catch (erro) {
-        console.error('❌ Erro ao enviar email:', erro);
-    }
 }
 
 // ========== MIDDLEWARE DE AUTENTICAÇÃO ==========
@@ -442,7 +397,6 @@ app.put('/api/clientes/:cnpj/observacoes', verificarToken, (req, res) => {
     const { observacoes } = req.body;
     const cnpj = req.params.cnpj.replace(/\D/g, '');
     
-    // Aqui você pode salvar em uma tabela separada de clientes
     res.json({ sucesso: true });
 });
 
@@ -471,9 +425,9 @@ app.get('/api/cotacoes', verificarToken, (req, res) => {
     });
 });
 
-app.post('/api/cotacoes', async (req, res) => {
+app.post('/api/cotacoes', (req, res) => {
     const { id, vendedorId, cnpj, empresa, contato, email, telefone, descricao, material, 
-            quantidade, prazo, infoAdicional, status, dataCriacao, arquivos, primeiroAcesso, valor } = req.body;
+            quantidade, prazo, infoAdicional, status, dataCriacao, arquivos, valor } = req.body;
     
     const arquivosJson = JSON.stringify(arquivos || []);
     
@@ -483,13 +437,10 @@ app.post('/api/cotacoes', async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, vendedorId, cnpj, empresa, contato, email, telefone, descricao, material, 
          quantidade, prazo, infoAdicional, status, dataCriacao, arquivosJson, valor || 0],
-        async function(err) {
+        function(err) {
             if (err) {
                 res.status(500).json({ erro: err.message });
             } else {
-                // Enviar email em background
-                enviarEmailCotacao(req.body, arquivos || []).catch(console.error);
-                
                 res.json({ sucesso: true, id: id });
             }
         }
@@ -498,14 +449,17 @@ app.post('/api/cotacoes', async (req, res) => {
 
 app.put('/api/cotacoes/:id', verificarToken, (req, res) => {
     const { empresa, contato, email, telefone, descricao, material, 
-            quantidade, prazo, infoAdicional, status, observacoes, valor } = req.body;
+            quantidade, prazo, infoAdicional, status, observacoes, 
+            linkOrcamento, valor, dataAprovacao } = req.body;
     
     db.run(
         `UPDATE cotacoes SET empresa = ?, contato = ?, email = ?, telefone = ?, 
          descricao = ?, material = ?, quantidade = ?, prazo = ?, 
-         infoAdicional = ?, status = ?, observacoes = ?, valor = ? WHERE id = ?`,
+         infoAdicional = ?, status = ?, observacoes = ?, 
+         linkOrcamento = ?, valor = ?, dataAprovacao = ? WHERE id = ?`,
         [empresa, contato, email, telefone, descricao, material, 
-         quantidade, prazo, infoAdicional, status, observacoes, valor || 0, req.params.id],
+         quantidade, prazo, infoAdicional, status, observacoes,
+         linkOrcamento, valor || 0, dataAprovacao, req.params.id],
         function(err) {
             if (err) {
                 res.status(500).json({ erro: err.message });
@@ -615,14 +569,14 @@ app.get('/api/arquivados', verificarToken, (req, res) => {
 });
 
 app.post('/api/arquivar', verificarToken, (req, res) => {
-    const { id, tipo, dados, motivo } = req.body;
+    const { id, tipo, subtipo, dados, motivo } = req.body;
     const dataArquivamento = new Date().toISOString().split('T')[0];
     const dadosJson = JSON.stringify(dados);
     
     db.run(
-        `INSERT INTO arquivados (id, tipo, dados, dataArquivamento, motivo, vendedorId) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, tipo, dadosJson, dataArquivamento, motivo, req.usuario.id],
+        `INSERT INTO arquivados (id, tipo, subtipo, dados, dataArquivamento, motivo, vendedorId) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, tipo, subtipo || 'manual', dadosJson, dataArquivamento, motivo, req.usuario.id],
         function(err) {
             if (err) {
                 res.status(500).json({ erro: err.message });
@@ -655,7 +609,8 @@ app.get('/api/relatorios/geral', verificarToken, verificarMaster, (req, res) => 
     db.all(`
         SELECT 
             COUNT(*) as total,
-            SUM(CASE WHEN status = 'Pedido Aprovado' THEN 1 ELSE 0 END) as convertidos
+            SUM(CASE WHEN status = 'Pedido Aprovado' THEN 1 ELSE 0 END) as convertidos,
+            SUM(CASE WHEN status = 'Pedido Aprovado' THEN valor ELSE 0 END) as valorTotal
         FROM cotacoes 
         WHERE julianday('now') - julianday(dataCriacao) <= ?
     `, [periodo], (err, geral) => {
@@ -668,7 +623,8 @@ app.get('/api/relatorios/geral', verificarToken, verificarMaster, (req, res) => 
             SELECT 
                 v.nome as vendedor,
                 COUNT(c.id) as total,
-                SUM(CASE WHEN c.status = 'Pedido Aprovado' THEN 1 ELSE 0 END) as convertidos
+                SUM(CASE WHEN c.status = 'Pedido Aprovado' THEN 1 ELSE 0 END) as convertidos,
+                SUM(CASE WHEN c.status = 'Pedido Aprovado' THEN c.valor ELSE 0 END) as valorVendido
             FROM vendedores v
             LEFT JOIN cotacoes c ON v.id = c.vendedorId AND julianday('now') - julianday(c.dataCriacao) <= ?
             GROUP BY v.id
@@ -677,7 +633,7 @@ app.get('/api/relatorios/geral', verificarToken, verificarMaster, (req, res) => 
                 res.status(500).json({ erro: err.message });
             } else {
                 res.json({
-                    geral: geral[0] || { total: 0, convertidos: 0 },
+                    geral: geral[0] || { total: 0, convertidos: 0, valorTotal: 0 },
                     porVendedor: porVendedor || []
                 });
             }
@@ -689,4 +645,5 @@ app.get('/api/relatorios/geral', verificarToken, verificarMaster, (req, res) => 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
     console.log(`📡 API disponível em http://localhost:${PORT}/api`);
+    console.log(`📧 Serviço de email não configurado (adicione depois se necessário)`);
 });

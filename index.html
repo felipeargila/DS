@@ -160,6 +160,8 @@
         input[readonly] {
             background: #f5f5f5;
             cursor: not-allowed;
+            border-color: #ddd;
+            color: #666;
         }
         
         textarea {
@@ -301,6 +303,28 @@
             margin-top: 5px;
         }
         
+        .cnpj-step {
+            margin-bottom: 30px;
+        }
+        
+        .btn-continuar {
+            background: #28a745;
+            margin-top: 10px;
+        }
+        
+        .btn-continuar:hover {
+            background: #218838;
+        }
+        
+        .btn-voltar {
+            background: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .btn-voltar:hover {
+            background: #5a6268;
+        }
+        
         /* Botão flutuante do WhatsApp */
         .whatsapp-float {
             position: fixed;
@@ -386,83 +410,95 @@
                 <p id="welcomeText">Estamos ansiosos para nos tornarmos seu parceiro industrial.</p>
             </div>
             
-            <!-- Formulário de orçamento -->
+            <!-- Formulário de orçamento (dividido em etapas) -->
             <div class="form-section" id="formSection">
                 <h2 style="margin-bottom: 20px; color: #283944;">SOLICITAR ORÇAMENTO</h2>
                 
-                <form id="quotationForm">
-                    <div class="form-group">
-                        <label>EMPRESA *</label>
-                        <input type="text" id="empresa" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>CNPJ *</label>
-                        <input type="text" id="cnpj" class="cnpj-mask" placeholder="00.000.000/0000-00" required maxlength="18">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>CONTATO *</label>
-                        <input type="text" id="contato" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>E-MAIL *</label>
-                        <input type="email" id="email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>TELEFONE *</label>
-                        <input type="tel" id="telefone" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>DESCRIÇÃO *</label>
-                        <textarea id="descricao" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>MATERIAL</label>
-                        <select id="material">
-                            <option value="">Selecione...</option>
-                            <option value="Aço Carbono">Aço Carbono</option>
-                            <option value="Aço Inoxidável">Aço Inoxidável</option>
-                            <option value="Alumínio">Alumínio</option>
-                            <option value="Bronze">Bronze</option>
-                            <option value="Ferro Fundido">Ferro Fundido</option>
-                            <option value="Plástico">Plástico</option>
-                            <option value="Outro">Outro</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>QUANTIDADE</label>
-                        <input type="number" id="quantidade" min="1">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>PRAZO DESEJADO</label>
-                        <input type="text" id="prazo" placeholder="Ex: 15 dias">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>ANEXAR ARQUIVOS</label>
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <span class="upload-icon">📎</span>
-                            <p>Arraste arquivos ou clique para selecionar</p>
-                            <p class="info-text">PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)</p>
-                            <input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png">
+                <!-- ETAPA 1: Apenas CNPJ -->
+                <div id="stepCnpj">
+                    <div class="cnpj-step">
+                        <div class="form-group">
+                            <label>CNPJ *</label>
+                            <input type="text" id="cnpj" class="cnpj-mask" placeholder="00.000.000/0000-00" maxlength="18">
+                            <div class="loading" id="loadingCnpj" style="display: none; margin-top: 10px;">Buscando dados...</div>
                         </div>
-                        <div class="file-list" id="fileList"></div>
+                        <button type="button" class="btn-continuar" id="btnVerificarCnpj" onclick="verificarCnpj()">CONTINUAR</button>
                     </div>
+                </div>
+                
+                <!-- ETAPA 2: Demais campos (aparece após CNPJ validado) -->
+                <div id="stepDados" style="display: none;">
+                    <button type="button" class="btn-voltar" onclick="voltarParaCnpj()">← VOLTAR</button>
                     
-                    <div class="form-group">
-                        <label>INFORMAÇÕES ADICIONAIS</label>
-                        <textarea id="infoAdicional"></textarea>
-                    </div>
-                    
-                    <button type="submit" id="submitBtn">ENVIAR SOLICITAÇÃO</button>
-                </form>
+                    <form id="quotationForm">
+                        <div class="form-group">
+                            <label>EMPRESA *</label>
+                            <input type="text" id="empresa" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>CONTATO *</label>
+                            <input type="text" id="contato" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>E-MAIL *</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>TELEFONE *</label>
+                            <input type="tel" id="telefone" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>DESCRIÇÃO *</label>
+                            <textarea id="descricao" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>MATERIAL</label>
+                            <select id="material">
+                                <option value="">Selecione...</option>
+                                <option value="Aço Carbono">Aço Carbono</option>
+                                <option value="Aço Inoxidável">Aço Inoxidável</option>
+                                <option value="Alumínio">Alumínio</option>
+                                <option value="Bronze">Bronze</option>
+                                <option value="Ferro Fundido">Ferro Fundido</option>
+                                <option value="Plástico">Plástico</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>QUANTIDADE</label>
+                            <input type="number" id="quantidade" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>PRAZO DESEJADO</label>
+                            <input type="text" id="prazo" placeholder="Ex: 15 dias">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ANEXAR ARQUIVOS</label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <span class="upload-icon">📎</span>
+                                <p>Arraste arquivos ou clique para selecionar</p>
+                                <p class="info-text">PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)</p>
+                                <input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png">
+                            </div>
+                            <div class="file-list" id="fileList"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>INFORMAÇÕES ADICIONAIS</label>
+                            <textarea id="infoAdicional"></textarea>
+                        </div>
+                        
+                        <button type="submit" id="submitBtn">ENVIAR SOLICITAÇÃO</button>
+                    </form>
+                </div>
             </div>
             
             <!-- Tela de agradecimento -->
@@ -491,23 +527,26 @@
         const welcomeTitle = document.getElementById('welcomeTitle');
         const welcomeText = document.getElementById('welcomeText');
         const formSection = document.getElementById('formSection');
+        const stepCnpj = document.getElementById('stepCnpj');
+        const stepDados = document.getElementById('stepDados');
         const thankYouSection = document.getElementById('thankYouSection');
         const thankYouName = document.getElementById('thankYouName');
         const quotationForm = document.getElementById('quotationForm');
         const loadingSubmit = document.getElementById('loadingSubmit');
         const submitBtn = document.getElementById('submitBtn');
         
+        // Campos do formulário
+        const cnpjInput = document.getElementById('cnpj');
+        const empresaInput = document.getElementById('empresa');
+        const contatoInput = document.getElementById('contato');
+        const emailInput = document.getElementById('email');
+        const telefoneInput = document.getElementById('telefone');
+        const loadingCnpj = document.getElementById('loadingCnpj');
+        
         // Elementos de upload
         const fileUploadArea = document.getElementById('fileUploadArea');
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
-        
-        // Campos do formulário
-        const empresaInput = document.getElementById('empresa');
-        const cnpjInput = document.getElementById('cnpj');
-        const contatoInput = document.getElementById('contato');
-        const emailInput = document.getElementById('email');
-        const telefoneInput = document.getElementById('telefone');
         
         let vendedorAtual = null;
         let arquivosSelecionados = [];
@@ -522,47 +561,6 @@
                 value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
                 value = value.replace(/(\d{4})(\d)/, '$1-$2');
                 e.target.value = value;
-            }
-        });
-        
-        // Buscar dados do cliente pelo CNPJ
-        cnpjInput.addEventListener('blur', async function() {
-            const cnpj = cnpjInput.value.replace(/\D/g, '');
-            if (cnpj.length === 14 && vendedorAtual) {
-                try {
-                    const resposta = await fetch(`/api/clientes/${cnpj}`);
-                    const dados = await resposta.json();
-                    
-                    if (dados.encontrado) {
-                        // Cliente já existe - preencher dados
-                        empresaInput.value = dados.cliente.empresa;
-                        contatoInput.value = dados.cliente.contato;
-                        emailInput.value = dados.cliente.email;
-                        telefoneInput.value = dados.cliente.telefone;
-                        
-                        // Mostrar mensagem de retorno
-                        welcomeMessage.style.display = 'block';
-                        welcomeTitle.textContent = `Bem-vindo de volta, ${dados.cliente.empresa}!`;
-                        welcomeText.textContent = 'Que bom vê-lo novamente. Seus dados foram preenchidos automaticamente.';
-                        
-                        clienteAtual = dados.cliente;
-                    } else {
-                        // Primeiro acesso - mensagem especial
-                        welcomeMessage.style.display = 'block';
-                        welcomeTitle.textContent = 'Seja bem-vindo!';
-                        welcomeText.textContent = 'Estamos ansiosos para nos tornarmos seu parceiro industrial.';
-                        
-                        // Limpar campos (já estão vazios)
-                        empresaInput.value = '';
-                        contatoInput.value = '';
-                        emailInput.value = '';
-                        telefoneInput.value = '';
-                        
-                        clienteAtual = null;
-                    }
-                } catch (erro) {
-                    console.error('Erro ao buscar cliente:', erro);
-                }
             }
         });
         
@@ -686,6 +684,16 @@
                         accessGranted.style.display = 'block';
                         formSection.classList.add('active');
                         accessCode.style.borderColor = '#b7ab97';
+                        
+                        // Resetar para etapa de CNPJ
+                        stepCnpj.style.display = 'block';
+                        stepDados.style.display = 'none';
+                        cnpjInput.value = '';
+                        empresaInput.value = '';
+                        contatoInput.value = '';
+                        emailInput.value = '';
+                        telefoneInput.value = '';
+                        
                     } else {
                         codeError.style.display = 'block';
                         codeError.textContent = '❌ Código inválido';
@@ -707,15 +715,91 @@
             }
         });
         
+        // Verificar CNPJ
+        window.verificarCnpj = async function() {
+            const cnpj = cnpjInput.value.replace(/\D/g, '');
+            
+            if (cnpj.length !== 14) {
+                alert('CNPJ inválido');
+                return;
+            }
+            
+            loadingCnpj.style.display = 'block';
+            
+            try {
+                const resposta = await fetch(`/api/clientes/${cnpj}`);
+                const dados = await resposta.json();
+                
+                if (dados.encontrado) {
+                    // Cliente já existe - preencher dados e bloquear
+                    empresaInput.value = dados.cliente.empresa;
+                    contatoInput.value = dados.cliente.contato;
+                    emailInput.value = dados.cliente.email;
+                    telefoneInput.value = dados.cliente.telefone;
+                    
+                    // Bloquear campos para edição
+                    empresaInput.readOnly = true;
+                    contatoInput.readOnly = true;
+                    emailInput.readOnly = true;
+                    telefoneInput.readOnly = true;
+                    
+                    // Mostrar mensagem de retorno
+                    welcomeMessage.style.display = 'block';
+                    welcomeTitle.textContent = `Bem-vindo de volta, ${dados.cliente.empresa}!`;
+                    welcomeText.textContent = 'Seus dados foram carregados automaticamente.';
+                    
+                    clienteAtual = dados.cliente;
+                } else {
+                    // Primeiro acesso - liberar campos
+                    empresaInput.value = '';
+                    contatoInput.value = '';
+                    emailInput.value = '';
+                    telefoneInput.value = '';
+                    
+                    empresaInput.readOnly = false;
+                    contatoInput.readOnly = false;
+                    emailInput.readOnly = false;
+                    telefoneInput.readOnly = false;
+                    
+                    // Mostrar mensagem de boas-vindas
+                    welcomeMessage.style.display = 'block';
+                    welcomeTitle.textContent = 'Seja bem-vindo!';
+                    welcomeText.textContent = 'Estamos ansiosos para nos tornarmos seu parceiro industrial.';
+                    
+                    clienteAtual = null;
+                }
+                
+                // Avançar para etapa de dados
+                stepCnpj.style.display = 'none';
+                stepDados.style.display = 'block';
+                
+            } catch (erro) {
+                console.error('Erro ao buscar cliente:', erro);
+                alert('Erro ao verificar CNPJ. Tente novamente.');
+            } finally {
+                loadingCnpj.style.display = 'none';
+            }
+        };
+        
+        // Voltar para etapa de CNPJ
+        window.voltarParaCnpj = function() {
+            stepCnpj.style.display = 'block';
+            stepDados.style.display = 'none';
+            welcomeMessage.style.display = 'none';
+        };
+        
         // Função para voltar para a tela de código
         window.voltarParaCodigo = function() {
             thankYouSection.style.display = 'none';
             codeArea.style.display = 'block';
             welcomeMessage.style.display = 'none';
+            formSection.classList.remove('active');
             accessCode.value = '';
             accessCode.disabled = false;
             vendedorAtual = null;
             clienteAtual = null;
+            stepCnpj.style.display = 'block';
+            stepDados.style.display = 'none';
         };
         
         // Enviar formulário
