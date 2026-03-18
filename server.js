@@ -76,7 +76,7 @@ function criarTabelas() {
         )
     `);
 
-    // Tabela de cotações (com campos para aprovação)
+    // Tabela de cotações
     db.run(`
         CREATE TABLE IF NOT EXISTS cotacoes (
             id TEXT PRIMARY KEY,
@@ -122,7 +122,7 @@ function criarTabelas() {
         )
     `);
 
-    // Tabela de arquivados (com subtipo)
+    // Tabela de arquivados
     db.run(`
         CREATE TABLE IF NOT EXISTS arquivados (
             id TEXT PRIMARY KEY,
@@ -136,9 +136,24 @@ function criarTabelas() {
         )
     `);
 
+    // Tabela de histórico de contatos (NOVA)
+    db.run(`
+        CREATE TABLE IF NOT EXISTS contatos_historico (
+            id TEXT PRIMARY KEY,
+            cnpj TEXT,
+            contato TEXT,
+            email TEXT,
+            telefone TEXT,
+            dataInicio TEXT,
+            dataFim TEXT,
+            ativo INTEGER DEFAULT 1,
+            FOREIGN KEY(cnpj) REFERENCES cotacoes(cnpj)
+        )
+    `);
+
     console.log('✅ Tabelas criadas/verificadas!');
 
-    // Criar vendedor master padrão (se não existir)
+    // Criar vendedor master padrão
     db.get("SELECT * FROM vendedores WHERE tipo = 'master'", [], (err, row) => {
         if (!row) {
             const salt = bcrypt.genSaltSync(10);
@@ -645,5 +660,4 @@ app.get('/api/relatorios/geral', verificarToken, verificarMaster, (req, res) => 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
     console.log(`📡 API disponível em http://localhost:${PORT}/api`);
-    console.log(`📧 Serviço de email não configurado (adicione depois se necessário)`);
 });

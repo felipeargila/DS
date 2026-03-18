@@ -570,6 +570,15 @@
             background: #218838;
         }
         
+        .btn-small.success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-small.success:hover {
+            background: #218838;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -859,9 +868,12 @@
         /* Estatísticas */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
             margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .stat-card {
@@ -1062,6 +1074,53 @@
             border-color: #b7ab97;
             outline: none;
         }
+        
+        /* Tabela de vendedores corrigida */
+        .vendedores-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .vendedores-table th {
+            background: #283944;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .vendedores-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .vendedores-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .vendedores-table .code-6digits {
+            font-family: monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .acoes-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* Formatação de valores */
+        .valor-formatado {
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -1199,26 +1258,22 @@
             
             <!-- Seção Relatórios (só master vê) -->
             <div id="sectionRelatorios" class="kanban-section">
-                <div class="stats-grid" id="statsContainer">
+                <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value" id="vendasSemana">0</div>
+                        <div class="stat-value" id="vendasSemana">R$ 0,00</div>
                         <div class="stat-label">VENDAS DA SEMANA</div>
                         <div class="stat-periodo" id="periodoSemana">Segunda a Sábado</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="vendasMes">0</div>
+                        <div class="stat-value" id="vendasMes">R$ 0,00</div>
                         <div class="stat-label">VENDAS DO MÊS</div>
                         <div class="stat-periodo" id="periodoMes">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalGeral">0</div>
-                        <div class="stat-label">TOTAL ACUMULADO</div>
                     </div>
                 </div>
                 
                 <div style="background: white; border-radius: 4px; padding: 20px; margin-bottom: 20px;">
                     <h3 style="color: #283944; margin-bottom: 20px;">DESEMPENHO POR VENDEDOR</h3>
-                    <table class="data-table" id="tabelaDesempenho">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Vendedor</th>
@@ -1235,18 +1290,18 @@
                 </div>
             </div>
             
-            <!-- Seção Gerenciar Vendedores (só master vê) -->
+            <!-- Seção Gerenciar Vendedores (só master vê) - CORRIGIDA -->
             <div id="sectionVendedores" class="kanban-section">
                 <div style="background: white; border-radius: 4px; padding: 20px;">
                     <h3 style="color: #283944; margin-bottom: 20px;">GERENCIAR VENDEDORES</h3>
                     <button class="btn-novo" onclick="abrirModalNovoVendedor()" style="margin-bottom: 20px;">+ NOVO VENDEDOR</button>
                     
-                    <table class="data-table" id="vendedoresTable">
+                    <table class="vendedores-table">
                         <thead>
                             <tr>
                                 <th>Nome</th>
                                 <th>Login</th>
-                                <th>Código (6 dígitos)</th>
+                                <th>Código</th>
                                 <th>Tipo</th>
                                 <th>Status</th>
                                 <th>Ações</th>
@@ -1370,6 +1425,21 @@
         let cardEmAprovacao = null;
         let todosAprovadosArquivados = [];
         
+        // ========== FUNÇÕES DE FORMATAÇÃO ==========
+        function formatarValor(valor) {
+            if (valor === null || valor === undefined || valor === '') return 'R$ 0,00';
+            const num = parseFloat(valor);
+            if (isNaN(num)) return 'R$ 0,00';
+            return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+        
+        function formatarNumero(valor) {
+            if (valor === null || valor === undefined || valor === '') return '0,00';
+            const num = parseFloat(valor);
+            if (isNaN(num)) return '0,00';
+            return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
         // ========== VERIFICAR LOGIN AO INICIAR ==========
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
@@ -1475,19 +1545,21 @@
                     select.innerHTML += `<option value="${v.id}">${v.nome} (${v.codigoAcesso})</option>`;
                 });
                 
-                // Renderizar lista de vendedores
+                // Renderizar lista de vendedores com layout correto
                 let html = '';
                 vendedores.forEach(v => {
                     html += `<tr>
                         <td>${v.nome}</td>
                         <td>${v.login}</td>
                         <td class="code-6digits">${v.codigoAcesso}</td>
-                        <td>${v.tipo}</td>
-                        <td>${v.ativo ? 'Ativo' : 'Inativo'}</td>
+                        <td>${v.tipo === 'master' ? 'MASTER' : 'VENDEDOR'}</td>
+                        <td>${v.ativo == 1 ? '✅ Ativo' : '❌ Inativo'}</td>
                         <td>
-                            <button class="btn-small" onclick="editarVendedor('${v.id}')">EDITAR</button>
-                            <button class="btn-small" onclick="abrirModalAlterarSenha('${v.id}')">SENHA</button>
-                            ${v.tipo !== 'master' ? '<button class="btn-small delete" onclick="excluirVendedor(\'' + v.id + '\')">EXCLUIR</button>' : ''}
+                            <div class="acoes-container">
+                                <button class="btn-small edit" onclick="editarVendedor('${v.id}')">EDITAR</button>
+                                <button class="btn-small" onclick="abrirModalAlterarSenha('${v.id}')">SENHA</button>
+                                ${v.tipo !== 'master' ? '<button class="btn-small delete" onclick="excluirVendedor(\'' + v.id + '\')">EXCLUIR</button>' : ''}
+                            </div>
                         </td>
                     </tr>`;
                 });
@@ -1582,7 +1654,7 @@
             cotacoes = cotacoes.filter(cot => {
                 if (cot.status === 'Sem Retorno') {
                     const dias = calcularDias(cot.dataCriacao);
-                    if (dias >= 14) { // 7 + 7 dias
+                    if (dias >= 14) {
                         arquivadosHoje.push({
                             ...cot,
                             tipo: 'cotacao',
@@ -1669,9 +1741,9 @@
                 // Calcular vendas da semana (segunda a sábado)
                 const hoje = new Date();
                 const inicioSemana = new Date(hoje);
-                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1); // Segunda-feira
+                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
                 const fimSemana = new Date(hoje);
-                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6); // Sábado
+                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
                 
                 // Vendas do mês
                 const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
@@ -1679,28 +1751,26 @@
                 
                 let vendasSemana = 0;
                 let vendasMes = 0;
-                let totalGeral = 0;
                 
                 // Calcular a partir das cotações aprovadas
                 cotacoes.forEach(cot => {
                     if (cot.status === 'Pedido Aprovado' && cot.valor) {
-                        totalGeral += parseFloat(cot.valor);
+                        const valor = parseFloat(cot.valor) || 0;
                         
                         const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
                         
                         if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
-                            vendasSemana += parseFloat(cot.valor);
+                            vendasSemana += valor;
                         }
                         
                         if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
-                            vendasMes += parseFloat(cot.valor);
+                            vendasMes += valor;
                         }
                     }
                 });
                 
-                document.getElementById('vendasSemana').textContent = `R$ ${vendasSemana.toFixed(2)}`;
-                document.getElementById('vendasMes').textContent = `R$ ${vendasMes.toFixed(2)}`;
-                document.getElementById('totalGeral').textContent = `R$ ${totalGeral.toFixed(2)}`;
+                document.getElementById('vendasSemana').textContent = formatarValor(vendasSemana);
+                document.getElementById('vendasMes').textContent = formatarValor(vendasMes);
                 
                 document.getElementById('periodoSemana').textContent = 
                     `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
@@ -1726,7 +1796,7 @@
                         <td>${total}</td>
                         <td>${convertidos}</td>
                         <td>${taxa}%</td>
-                        <td>R$ ${valorVendido.toFixed(2)}</td>
+                        <td class="valor-formatado">${formatarValor(valorVendido)}</td>
                     </tr>`;
                 });
                 document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
@@ -1947,7 +2017,7 @@
                 aprovadoInfo = `
                     <div class="aprovado-info">
                         <div class="aprovado-link">🔗 <a href="${card.linkOrcamento}" target="_blank">Ver Orçamento</a></div>
-                        <div class="aprovado-valor">💰 R$ ${parseFloat(card.valor).toFixed(2)}</div>
+                        <div class="aprovado-valor">💰 ${formatarValor(card.valor)}</div>
                     </div>
                 `;
             }
@@ -2012,15 +2082,13 @@
         }
         
         function criarCardArquivadoCotacao(item, isAprovado = false) {
-            const valor = item.valor ? parseFloat(item.valor).toFixed(2) : '0,00';
-            
             return `
                 <div class="card arquivado">
                     <div class="card-header">
                         <span class="card-id">${item.id}</span>
                         <div class="card-actions-top">
                             <span class="badge">${item.motivo || 'Arquivado'}</span>
-                            ${isAprovado ? `<span class="badge" style="background:#28a745;">R$ ${valor}</span>` : ''}
+                            ${isAprovado ? `<span class="badge" style="background:#28a745;">${formatarValor(item.valor)}</span>` : ''}
                             <button class="icon-btn" onclick="visualizarArquivado('${item.id}', 'cotacao')">👁️</button>
                             <button class="icon-btn restore" onclick="restaurarArquivado('${item.id}', 'cotacao')">↩️</button>
                             <button class="icon-btn delete" onclick="confirmarExclusaoArquivado('${item.id}', 'cotacao')">🗑️</button>
@@ -2284,11 +2352,11 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">VALOR APROVADO</div>
-                            <div class="info-value">R$ ${parseFloat(card.valor).toFixed(2)}</div>
+                            <div class="info-value valor-formatado">${formatarValor(card.valor)}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">DATA APROVAÇÃO</div>
-                            <div class="info-value">${card.dataAprovacao || '---'}</div>
+                            <div class="info-value">${card.dataAprovacao ? new Date(card.dataAprovacao).toLocaleDateString('pt-BR') : '---'}</div>
                         </div>
                         ` : ''}
                         <div class="info-item full-width">
@@ -2358,7 +2426,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">DATA VISITA</div>
-                            <div class="info-value">${card.dataVisita || '---'}</div>
+                            <div class="info-value">${card.dataVisita ? new Date(card.dataVisita).toLocaleDateString('pt-BR') : '---'}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">TÉCNICO</div>
@@ -2414,7 +2482,7 @@
                     </div>
                     <div class="info-item">
                         <div class="info-label">ARQUIVADO EM</div>
-                        <div class="info-value">${item.dataArquivamento || '---'}</div>
+                        <div class="info-value">${item.dataArquivamento ? new Date(item.dataArquivamento).toLocaleDateString('pt-BR') : '---'}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">MOTIVO</div>
@@ -2612,7 +2680,6 @@
                     observacoes: document.getElementById('editObs').value
                 };
                 
-                // Se for aprovado, incluir link e valor
                 const card = cotacoes.find(c => c.id === id);
                 if (card.status === 'Pedido Aprovado') {
                     dadosAtualizados.linkOrcamento = document.getElementById('editLink').value;
@@ -3211,7 +3278,7 @@
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Compras</div>
-                                <div class="stat-value">R$ ${cliente.totalCompras.toFixed(2)}</div>
+                                <div class="stat-value valor-formatado">${formatarValor(cliente.totalCompras)}</div>
                             </div>
                         </div>
                         
@@ -3229,9 +3296,9 @@
                             <tbody>
                                 ${cliente.cotacoes.map(cot => `
                                     <tr>
-                                        <td>${formatarData(cot.data)}</td>
-                                        <td>${cot.dataAprovacao ? formatarData(cot.dataAprovacao) : '-'}</td>
-                                        <td>${cot.valor ? `R$ ${cot.valor.toFixed(2)}` : '-'}</td>
+                                        <td>${cot.data ? new Date(cot.data).toLocaleDateString('pt-BR') : '-'}</td>
+                                        <td>${cot.dataAprovacao ? new Date(cot.dataAprovacao).toLocaleDateString('pt-BR') : '-'}</td>
+                                        <td class="valor-formatado">${formatarValor(cot.valor)}</td>
                                         <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
                                         <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
                                     </tr>
@@ -3256,12 +3323,6 @@
         function formatarCNPJ(cnpj) {
             if (!cnpj) return '';
             return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
-        }
-        
-        function formatarData(dataString) {
-            if (!dataString) return '-';
-            const data = new Date(dataString);
-            return data.toLocaleDateString('pt-BR');
         }
         
         function filtrarClientes() {
@@ -3310,7 +3371,7 @@
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Compras</div>
-                                <div class="stat-value">R$ ${cliente.totalCompras.toFixed(2)}</div>
+                                <div class="stat-value valor-formatado">${formatarValor(cliente.totalCompras)}</div>
                             </div>
                         </div>
                         
@@ -3328,9 +3389,9 @@
                             <tbody>
                                 ${cliente.cotacoes.map(cot => `
                                     <tr>
-                                        <td>${formatarData(cot.data)}</td>
-                                        <td>${cot.dataAprovacao ? formatarData(cot.dataAprovacao) : '-'}</td>
-                                        <td>${cot.valor ? `R$ ${cot.valor.toFixed(2)}` : '-'}</td>
+                                        <td>${cot.data ? new Date(cot.data).toLocaleDateString('pt-BR') : '-'}</td>
+                                        <td>${cot.dataAprovacao ? new Date(cot.dataAprovacao).toLocaleDateString('pt-BR') : '-'}</td>
+                                        <td class="valor-formatado">${formatarValor(cot.valor)}</td>
                                         <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
                                         <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
                                     </tr>
