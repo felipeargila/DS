@@ -865,7 +865,7 @@
             text-align: center;
         }
         
-        /* Estatísticas */
+        /* Estatísticas - CORRIGIDO */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -900,6 +900,40 @@
             font-size: 12px;
             color: #999;
             margin-top: 5px;
+        }
+        
+        /* Tabela de desempenho - CORRIGIDA */
+        .desempenho-container {
+            background: white;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .desempenho-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .desempenho-table th {
+            background: #283944;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .desempenho-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .desempenho-table tr:hover {
+            background: #f5f5f5;
         }
         
         /* Clientes */
@@ -1121,6 +1155,24 @@
             font-family: 'Chakra Petch', sans-serif;
             font-weight: 600;
         }
+        
+        /* Botão excluir cliente */
+        .btn-excluir-cliente {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+        
+        .btn-excluir-cliente:hover {
+            background: #c82333;
+        }
     </style>
 </head>
 <body>
@@ -1202,10 +1254,9 @@
                 <div class="kanban-container" id="kanbanVisitas"></div>
             </div>
             
-            <!-- Seção Arquivados (agora com duas colunas) -->
+            <!-- Seção Arquivados -->
             <div id="sectionArquivados" class="kanban-section">
                 <div class="kanban-container">
-                    <!-- Coluna Sem Retorno -->
                     <div class="kanban-column">
                         <div class="column-header">
                             <span>📦 SEM RETORNO (ARQUIVADOS)</span>
@@ -1214,7 +1265,6 @@
                         <div class="cards-container" id="semRetornoContainer"></div>
                     </div>
                     
-                    <!-- Coluna Aprovados Arquivados -->
                     <div class="kanban-column">
                         <div class="column-header">
                             <span>✅ APROVADOS (ARQUIVADOS)</span>
@@ -1222,7 +1272,6 @@
                         </div>
                         <div class="cards-container" id="aprovadosArquivadosContainer"></div>
                         
-                        <!-- Filtros para Aprovados -->
                         <div style="padding: 15px; background: #f0f0f0; border-top: 2px solid #b7ab97;">
                             <label>FILTRAR POR:</label>
                             <select id="filtroAprovados" onchange="filtrarAprovadosArquivados()">
@@ -1256,7 +1305,7 @@
                 </div>
             </div>
             
-            <!-- Seção Relatórios (só master vê) -->
+            <!-- Seção Relatórios (só master vê) - CORRIGIDA -->
             <div id="sectionRelatorios" class="kanban-section">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1271,9 +1320,9 @@
                     </div>
                 </div>
                 
-                <div style="background: white; border-radius: 4px; padding: 20px; margin-bottom: 20px;">
+                <div class="desempenho-container">
                     <h3 style="color: #283944; margin-bottom: 20px;">DESEMPENHO POR VENDEDOR</h3>
-                    <table class="data-table">
+                    <table class="desempenho-table">
                         <thead>
                             <tr>
                                 <th>Vendedor</th>
@@ -1290,7 +1339,7 @@
                 </div>
             </div>
             
-            <!-- Seção Gerenciar Vendedores (só master vê) - CORRIGIDA -->
+            <!-- Seção Gerenciar Vendedores -->
             <div id="sectionVendedores" class="kanban-section">
                 <div style="background: white; border-radius: 4px; padding: 20px;">
                     <h3 style="color: #283944; margin-bottom: 20px;">GERENCIAR VENDEDORES</h3>
@@ -1316,7 +1365,7 @@
         </div>
     </div>
     
-    <!-- Modal de Seleção (Novo) -->
+    <!-- Modais -->
     <div class="modal" id="modalSelecaoNovo">
         <div class="modal-content small">
             <div class="modal-header">
@@ -1333,7 +1382,6 @@
         </div>
     </div>
     
-    <!-- Modal de Visualização -->
     <div class="modal" id="viewModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1345,7 +1393,6 @@
         </div>
     </div>
     
-    <!-- Modal de Edição -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1357,7 +1404,6 @@
         </div>
     </div>
     
-    <!-- Modal de Aprovação -->
     <div class="modal" id="aprovacaoModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1370,7 +1416,7 @@
                     <input type="url" id="aprovadoLink" placeholder="https://drive.google.com/...">
                     
                     <label>VALOR APROVADO (R$) *</label>
-                    <input type="number" id="aprovadoValor" step="0.01" min="0" placeholder="0,00">
+                    <input type="text" id="aprovadoValor" placeholder="0.000,00" oninput="mascaraMoeda(this)">
                 </div>
             </div>
             <div class="modal-footer">
@@ -1380,7 +1426,6 @@
         </div>
     </div>
     
-    <!-- Modal de Confirmação -->
     <div class="modal" id="confirmModal">
         <div class="modal-content small">
             <h3 id="confirmTitle" style="margin-bottom: 15px;">Confirmar</h3>
@@ -1433,11 +1478,17 @@
             return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
         
-        function formatarNumero(valor) {
-            if (valor === null || valor === undefined || valor === '') return '0,00';
-            const num = parseFloat(valor);
-            if (isNaN(num)) return '0,00';
-            return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        function mascaraMoeda(input) {
+            let v = input.value.replace(/\D/g, '');
+            v = (v / 100).toFixed(2) + '';
+            v = v.replace('.', ',');
+            v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+            input.value = v;
+        }
+        
+        function valorParaFloat(valorFormatado) {
+            if (!valorFormatado) return 0;
+            return parseFloat(valorFormatado.replace(/\./g, '').replace(',', '.'));
         }
         
         // ========== VERIFICAR LOGIN AO INICIAR ==========
@@ -1538,14 +1589,12 @@
                 });
                 vendedores = await resposta.json();
                 
-                // Atualizar filtro
                 const select = document.getElementById('filtroVendedor');
                 select.innerHTML = '<option value="todos">TODOS OS VENDEDORES</option>';
                 vendedores.forEach(v => {
                     select.innerHTML += `<option value="${v.id}">${v.nome} (${v.codigoAcesso})</option>`;
                 });
                 
-                // Renderizar lista de vendedores com layout correto
                 let html = '';
                 vendedores.forEach(v => {
                     html += `<tr>
@@ -1575,7 +1624,7 @@
             renderizarKanbans();
         }
         
-        // ========== AUTO-RELOAD SILENCIOSO ==========
+        // ========== AUTO-RELOAD ==========
         function toggleAutoReload() {
             const toggle = document.getElementById('autoReloadToggle');
             const status = document.getElementById('autoReloadStatus');
@@ -1601,7 +1650,6 @@
             }
         }
         
-        // Versão silenciosa do carregarDados (sem mostrar loading)
         async function carregarDadosSilencioso() {
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
@@ -1636,10 +1684,8 @@
         
         // ========== PROCESSAR ARQUIVAMENTO AUTOMÁTICO ==========
         function processarArquivamentoAutomatico() {
-            const hoje = new Date();
             let arquivadosHoje = [];
             
-            // Processar "Orçamento Enviado" com mais de 7 dias -> "Sem Retorno"
             cotacoes = cotacoes.map(cot => {
                 if (cot.status === 'Orçamento Enviado') {
                     const dias = calcularDias(cot.dataCriacao);
@@ -1650,7 +1696,6 @@
                 return cot;
             });
             
-            // Processar "Sem Retorno" com mais de 7 dias -> Arquivar
             cotacoes = cotacoes.filter(cot => {
                 if (cot.status === 'Sem Retorno') {
                     const dias = calcularDias(cot.dataCriacao);
@@ -1668,7 +1713,6 @@
                 return true;
             });
             
-            // Processar "Pedido Aprovado" com mais de 7 dias -> Arquivar (em Aprovados)
             cotacoes = cotacoes.filter(cot => {
                 if (cot.status === 'Pedido Aprovado') {
                     const dias = calcularDias(cot.dataAprovacao || cot.dataCriacao);
@@ -1721,6 +1765,7 @@
                 initDragAndDrop();
                 if (usuarioAtual.tipo === 'master') {
                     carregarRelatorios();
+                    carregarClientes();
                 }
                 
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
@@ -1738,21 +1783,18 @@
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
                 
-                // Calcular vendas da semana (segunda a sábado)
                 const hoje = new Date();
                 const inicioSemana = new Date(hoje);
                 inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
                 const fimSemana = new Date(hoje);
                 fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
                 
-                // Vendas do mês
                 const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
                 const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
                 
                 let vendasSemana = 0;
                 let vendasMes = 0;
                 
-                // Calcular a partir das cotações aprovadas
                 cotacoes.forEach(cot => {
                     if (cot.status === 'Pedido Aprovado' && cot.valor) {
                         const valor = parseFloat(cot.valor) || 0;
@@ -1777,7 +1819,6 @@
                 document.getElementById('periodoMes').textContent = 
                     inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
                 
-                // Desempenho por vendedor
                 const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=30`, { headers });
                 const dados = await resposta.json();
                 
@@ -1895,7 +1936,6 @@
         }
         
         function renderizarArquivados() {
-            // Separar arquivados por tipo
             const semRetorno = arquivados.filter(a => a.subtipo === 'semRetorno' || a.motivo?.includes('Sem retorno'));
             const aprovados = arquivados.filter(a => a.subtipo === 'aprovado' || (a.status === 'Pedido Aprovado'));
             
@@ -1904,7 +1944,6 @@
             document.getElementById('semRetornoCount').textContent = semRetorno.length;
             document.getElementById('aprovadosArquivadosCount').textContent = aprovados.length;
             
-            // Renderizar Sem Retorno
             const semRetornoContainer = document.getElementById('semRetornoContainer');
             if (semRetorno.length === 0) {
                 semRetornoContainer.innerHTML = '<div class="empty-state">Nenhum item arquivado</div>';
@@ -1918,7 +1957,6 @@
                 }).join('');
             }
             
-            // Renderizar Aprovados (com filtro)
             filtrarAprovadosArquivados();
         }
         
@@ -2098,7 +2136,7 @@
                     <div class="card-info">
                         <strong>Contato:</strong> ${item.contato || '---'}<br>
                         ${isAprovado && item.linkOrcamento ? `<strong>Link:</strong> <a href="${item.linkOrcamento}" target="_blank">Ver</a><br>` : ''}
-                        <strong>Arquivado em:</strong> ${item.dataArquivamento || '---'}<br>
+                        <strong>Arquivado em:</strong> ${item.dataArquivamento ? new Date(item.dataArquivamento).toLocaleDateString('pt-BR') : '---'}<br>
                         <strong>Motivo:</strong> ${item.motivo || 'Manual'}
                     </div>
                 </div>
@@ -2119,8 +2157,8 @@
                     </div>
                     <div class="card-company">${item.empresa || 'Sem empresa'}</div>
                     <div class="card-info">
-                        <strong>Data Visita:</strong> ${item.dataVisita || '---'}<br>
-                        <strong>Arquivado em:</strong> ${item.dataArquivamento || '---'}<br>
+                        <strong>Data Visita:</strong> ${item.dataVisita ? new Date(item.dataVisita).toLocaleDateString('pt-BR') : '---'}<br>
+                        <strong>Arquivado em:</strong> ${item.dataArquivamento ? new Date(item.dataArquivamento).toLocaleDateString('pt-BR') : '---'}<br>
                         <strong>Motivo:</strong> ${item.motivo || 'Manual'}
                     </div>
                 </div>
@@ -2177,14 +2215,13 @@
                 return;
             }
             
-            // Se for mover para "Pedido Aprovado", abrir modal para preencher link e valor
             if (novaColuna === 'Pedido Aprovado') {
                 const card = cotacoes.find(c => c.id === cardId);
                 if (!card) return;
                 
                 cardEmAprovacao = { id: cardId, card: card };
                 document.getElementById('aprovadoLink').value = card.linkOrcamento || '';
-                document.getElementById('aprovadoValor').value = card.valor || '';
+                document.getElementById('aprovadoValor').value = card.valor ? formatarValor(card.valor).replace('R$ ', '') : '';
                 document.getElementById('aprovacaoModal').classList.add('active');
                 return;
             }
@@ -2246,9 +2283,9 @@
         
         async function confirmarAprovacao() {
             const link = document.getElementById('aprovadoLink').value;
-            const valor = document.getElementById('aprovadoValor').value;
+            const valorFormatado = document.getElementById('aprovadoValor').value;
             
-            if (!link || !valor) {
+            if (!link || !valorFormatado) {
                 alert('Preencha o link e o valor do orçamento aprovado');
                 return;
             }
@@ -2257,6 +2294,8 @@
                 alert('Por favor, use um link do Google Drive');
                 return;
             }
+            
+            const valor = valorParaFloat(valorFormatado);
             
             try {
                 const headers = { 
@@ -2268,7 +2307,7 @@
                 if (card) {
                     card.status = 'Pedido Aprovado';
                     card.linkOrcamento = link;
-                    card.valor = parseFloat(valor);
+                    card.valor = valor;
                     card.dataAprovacao = new Date().toISOString().split('T')[0];
                     
                     await fetch(`${API_URL}/api/cotacoes/${cardEmAprovacao.id}`, {
@@ -2343,7 +2382,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">DATA</div>
-                            <div class="info-value">${card.dataCriacao || '---'}</div>
+                            <div class="info-value">${card.dataCriacao ? new Date(card.dataCriacao).toLocaleDateString('pt-BR') : '---'}</div>
                         </div>
                         ${card.status === 'Pedido Aprovado' ? `
                         <div class="info-item full-width">
@@ -2601,7 +2640,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">VALOR APROVADO</div>
-                            <input type="number" id="editValor" class="info-value" step="0.01" value="${card.valor || ''}">
+                            <input type="text" id="editValor" class="info-value" value="${card.valor ? formatarValor(card.valor).replace('R$ ', '') : ''}" oninput="mascaraMoeda(this)">
                         </div>
                         ` : ''}
                         <div class="info-item full-width">
@@ -2683,7 +2722,8 @@
                 const card = cotacoes.find(c => c.id === id);
                 if (card.status === 'Pedido Aprovado') {
                     dadosAtualizados.linkOrcamento = document.getElementById('editLink').value;
-                    dadosAtualizados.valor = parseFloat(document.getElementById('editValor').value) || 0;
+                    const valorFormatado = document.getElementById('editValor').value;
+                    dadosAtualizados.valor = valorParaFloat(valorFormatado);
                 }
                 
                 Object.assign(card, dadosAtualizados);
@@ -3177,7 +3217,7 @@
             }
         }
         
-        // ========== FUNÇÕES DE CLIENTES ==========
+        // ========== FUNÇÕES DE CLIENTES (CORRIGIDA) ==========
         async function carregarClientes() {
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
@@ -3185,18 +3225,29 @@
                 const respCotacoes = await fetch(`${API_URL}/api/cotacoes`, { headers });
                 const todasCotacoes = await respCotacoes.json();
                 
+                const respArquivados = await fetch(`${API_URL}/api/arquivados`, { headers });
+                const arquivadosRaw = await respArquivados.json();
+                
+                const arquivadosCotacoes = arquivadosRaw
+                    .filter(a => a.tipo === 'cotacao')
+                    .map(a => ({
+                        ...JSON.parse(a.dados || '{}'),
+                        arquivado: true,
+                        dataArquivamento: a.dataArquivamento
+                    }));
+                
+                const todas = [...todasCotacoes, ...arquivadosCotacoes];
+                
                 const clientesMap = new Map();
                 
-                todasCotacoes.forEach(cot => {
+                todas.forEach(cot => {
                     if (!cot.cnpj) return;
                     
                     if (!clientesMap.has(cot.cnpj)) {
                         clientesMap.set(cot.cnpj, {
                             cnpj: cot.cnpj,
                             empresa: cot.empresa,
-                            contato: cot.contato,
-                            email: cot.email,
-                            telefone: cot.telefone,
+                            contatos: new Map(),
                             cotacoes: [],
                             totalCompras: 0,
                             ultimaCotacao: cot.dataCriacao,
@@ -3207,6 +3258,23 @@
                     }
                     
                     const cliente = clientesMap.get(cot.cnpj);
+                    
+                    const chaveContato = `${cot.contato}|${cot.email}|${cot.telefone}`;
+                    if (!cliente.contatos.has(chaveContato)) {
+                        cliente.contatos.set(chaveContato, {
+                            contato: cot.contato,
+                            email: cot.email,
+                            telefone: cot.telefone,
+                            primeiroUso: cot.dataCriacao,
+                            ultimoUso: cot.dataCriacao
+                        });
+                    } else {
+                        const contato = cliente.contatos.get(chaveContato);
+                        if (cot.dataCriacao > contato.ultimoUso) {
+                            contato.ultimoUso = cot.dataCriacao;
+                        }
+                    }
+                    
                     cliente.cotacoes.push({
                         id: cot.id,
                         data: cot.dataCriacao,
@@ -3214,7 +3282,11 @@
                         descricao: cot.descricao,
                         status: cot.status,
                         valor: cot.valor || 0,
-                        link: cot.linkOrcamento
+                        link: cot.linkOrcamento,
+                        contato: cot.contato,
+                        email: cot.email,
+                        telefone: cot.telefone,
+                        arquivado: cot.arquivado || false
                     });
                     
                     if (cot.status === 'Pedido Aprovado') {
@@ -3226,14 +3298,16 @@
                     
                     if (cot.dataCriacao > cliente.ultimaCotacao) {
                         cliente.ultimaCotacao = cot.dataCriacao;
-                        cliente.empresa = cot.empresa;
-                        cliente.contato = cot.contato;
-                        cliente.email = cot.email;
-                        cliente.telefone = cot.telefone;
                     }
                 });
                 
-                clientes = Array.from(clientesMap.values());
+                clientes = Array.from(clientesMap.values()).map(cliente => {
+                    const contatosArray = Array.from(cliente.contatos.values());
+                    contatosArray.sort((a, b) => new Date(b.ultimoUso) - new Date(a.ultimoUso));
+                    cliente.contatosList = contatosArray;
+                    cliente.contatoPrincipal = contatosArray[0] || { contato: '-', email: '-', telefone: '-' };
+                    return cliente;
+                });
                 
                 clientes.sort((a, b) => new Date(b.ultimaCotacao) - new Date(a.ultimaCotacao));
                 
@@ -3263,18 +3337,28 @@
                     </div>
                     
                     <div class="cliente-detalhes" id="detalhes-${cliente.cnpj}">
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: #283944; font-weight: 500; margin-right: 10px;">CONTATO:</label>
+                            <select id="contatoSelector-${cliente.cnpj}" onchange="filtrarHistoricoPorContato('${cliente.cnpj}')" style="padding: 5px; border: 2px solid #ddd; border-radius: 4px;">
+                                <option value="todos">TODOS OS CONTATOS</option>
+                                ${cliente.contatosList.map((c, index) => `
+                                    <option value="${index}">${c.contato} (${c.email})</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        
                         <div class="cliente-stats">
                             <div class="stat-item">
-                                <div class="stat-label">Contato</div>
-                                <div class="stat-value">${cliente.contato || '-'}</div>
+                                <div class="stat-label">Contato Principal</div>
+                                <div class="stat-value">${cliente.contatoPrincipal.contato}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Telefone</div>
-                                <div class="stat-value">${cliente.telefone || '-'}</div>
+                                <div class="stat-value">${cliente.contatoPrincipal.telefone}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">E-mail</div>
-                                <div class="stat-value">${cliente.email || '-'}</div>
+                                <div class="stat-value">${cliente.contatoPrincipal.email}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Compras</div>
@@ -3283,11 +3367,12 @@
                         </div>
                         
                         <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
-                        <table class="historico-table">
+                        <table class="historico-table" id="historico-${cliente.cnpj}">
                             <thead>
                                 <tr>
                                     <th>Data Pedido</th>
                                     <th>Data Aprovação</th>
+                                    <th>Contato</th>
                                     <th>Valor</th>
                                     <th>Link</th>
                                     <th>Status</th>
@@ -3295,9 +3380,10 @@
                             </thead>
                             <tbody>
                                 ${cliente.cotacoes.map(cot => `
-                                    <tr>
+                                    <tr data-contato="${cot.contato}|${cot.email}|${cot.telefone}">
                                         <td>${cot.data ? new Date(cot.data).toLocaleDateString('pt-BR') : '-'}</td>
                                         <td>${cot.dataAprovacao ? new Date(cot.dataAprovacao).toLocaleDateString('pt-BR') : '-'}</td>
+                                        <td>${cot.contato || '-'}</td>
                                         <td class="valor-formatado">${formatarValor(cot.valor)}</td>
                                         <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
                                         <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
@@ -3310,6 +3396,8 @@
                             <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
                             <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
                         </div>
+                        
+                        <button class="btn-excluir-cliente" onclick="confirmarExclusaoCliente('${cliente.cnpj}')">EXCLUIR CLIENTE</button>
                     </div>
                 </div>
             `).join('');
@@ -3323,6 +3411,27 @@
         function formatarCNPJ(cnpj) {
             if (!cnpj) return '';
             return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        }
+        
+        function filtrarHistoricoPorContato(cnpj) {
+            const select = document.getElementById(`contatoSelector-${cnpj}`);
+            const index = select.value;
+            const linhas = document.querySelectorAll(`#historico-${cnpj} tbody tr`);
+            
+            if (index === 'todos') {
+                linhas.forEach(linha => linha.style.display = '');
+            } else {
+                const contatoSelecionado = clientes.find(c => c.cnpj === cnpj).contatosList[index];
+                const chave = `${contatoSelecionado.contato}|${contatoSelecionado.email}|${contatoSelecionado.telefone}`;
+                
+                linhas.forEach(linha => {
+                    if (linha.dataset.contato === chave) {
+                        linha.style.display = '';
+                    } else {
+                        linha.style.display = 'none';
+                    }
+                });
+            }
         }
         
         function filtrarClientes() {
@@ -3356,18 +3465,28 @@
                     </div>
                     
                     <div class="cliente-detalhes visible" id="detalhes-${cliente.cnpj}">
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: #283944; font-weight: 500; margin-right: 10px;">CONTATO:</label>
+                            <select id="contatoSelector-${cliente.cnpj}" onchange="filtrarHistoricoPorContato('${cliente.cnpj}')" style="padding: 5px; border: 2px solid #ddd; border-radius: 4px;">
+                                <option value="todos">TODOS OS CONTATOS</option>
+                                ${cliente.contatosList.map((c, index) => `
+                                    <option value="${index}">${c.contato} (${c.email})</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        
                         <div class="cliente-stats">
                             <div class="stat-item">
-                                <div class="stat-label">Contato</div>
-                                <div class="stat-value">${cliente.contato || '-'}</div>
+                                <div class="stat-label">Contato Principal</div>
+                                <div class="stat-value">${cliente.contatoPrincipal.contato}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Telefone</div>
-                                <div class="stat-value">${cliente.telefone || '-'}</div>
+                                <div class="stat-value">${cliente.contatoPrincipal.telefone}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">E-mail</div>
-                                <div class="stat-value">${cliente.email || '-'}</div>
+                                <div class="stat-value">${cliente.contatoPrincipal.email}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Compras</div>
@@ -3376,11 +3495,12 @@
                         </div>
                         
                         <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
-                        <table class="historico-table">
+                        <table class="historico-table" id="historico-${cliente.cnpj}">
                             <thead>
                                 <tr>
                                     <th>Data Pedido</th>
                                     <th>Data Aprovação</th>
+                                    <th>Contato</th>
                                     <th>Valor</th>
                                     <th>Link</th>
                                     <th>Status</th>
@@ -3388,9 +3508,10 @@
                             </thead>
                             <tbody>
                                 ${cliente.cotacoes.map(cot => `
-                                    <tr>
+                                    <tr data-contato="${cot.contato}|${cot.email}|${cot.telefone}">
                                         <td>${cot.data ? new Date(cot.data).toLocaleDateString('pt-BR') : '-'}</td>
                                         <td>${cot.dataAprovacao ? new Date(cot.dataAprovacao).toLocaleDateString('pt-BR') : '-'}</td>
+                                        <td>${cot.contato || '-'}</td>
                                         <td class="valor-formatado">${formatarValor(cot.valor)}</td>
                                         <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
                                         <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
@@ -3403,6 +3524,8 @@
                             <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
                             <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
                         </div>
+                        
+                        <button class="btn-excluir-cliente" onclick="confirmarExclusaoCliente('${cliente.cnpj}')">EXCLUIR CLIENTE</button>
                     </div>
                 </div>
             `).join('');
@@ -3427,6 +3550,60 @@
                 } catch (erro) {
                     console.error('Erro ao salvar observações:', erro);
                 }
+            }
+        }
+        
+        // ========== FUNÇÃO DE EXCLUIR CLIENTE ==========
+        function confirmarExclusaoCliente(cnpj) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = 'Confirmar exclusão';
+            document.getElementById('confirmMessage').textContent = 'Tem certeza que deseja excluir este cliente e todo seu histórico? Esta ação não pode ser desfeita.';
+            document.getElementById('confirmBtn').onclick = () => excluirCliente(cnpj);
+            modal.classList.add('active');
+        }
+        
+        async function excluirCliente(cnpj) {
+            mostrarLoading(true);
+            
+            try {
+                // Primeiro, encontrar todas as cotações deste cliente
+                const cotacoesCliente = cotacoes.filter(c => c.cnpj === cnpj);
+                const visitasCliente = visitas.filter(v => v.cnpj === cnpj);
+                
+                // Excluir todas as cotações
+                for (const cot of cotacoesCliente) {
+                    await fetch(`${API_URL}/api/cotacoes/${cot.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                }
+                
+                // Excluir todas as visitas
+                for (const vis of visitasCliente) {
+                    await fetch(`${API_URL}/api/visitas/${vis.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                }
+                
+                // Excluir arquivados relacionados
+                const arquivadosCliente = arquivados.filter(a => a.cnpj === cnpj);
+                for (const arq of arquivadosCliente) {
+                    await fetch(`${API_URL}/api/arquivados/${arq.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                }
+                
+                fecharConfirmModal();
+                await carregarDados();
+                alert('Cliente excluído com sucesso!');
+                
+            } catch (erro) {
+                console.error('Erro ao excluir cliente:', erro);
+                alert('Erro ao excluir cliente');
+            } finally {
+                mostrarLoading(false);
             }
         }
         
