@@ -1777,75 +1777,100 @@
             }
         }
         
-        async function carregarRelatorios() {
-            if (usuarioAtual.tipo !== 'master') return;
-            
-            try {
-                const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+        // ========== FUNÇÃO CORRIGIDA DE RELATÓRIOS ==========
+async function carregarRelatorios() {
+    if (usuarioAtual.tipo !== 'master') return;
+    
+    try {
+        const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
+        
+        const hoje = new Date();
+        const inicioSemana = new Date(hoje);
+        inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
+        const fimSemana = new Date(hoje);
+        fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
+        
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+        
+        let vendasSemana = 0;
+        let vendasMes = 0;
+        
+        // SOMAR COTAÇÕES ATIVAS APROVADAS
+        cotacoes.forEach(cot => {
+            if (cot.status === 'Pedido Aprovado' && cot.valor) {
+                const valor = parseFloat(cot.valor) || 0;
+                const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
                 
-                const hoje = new Date();
-                const inicioSemana = new Date(hoje);
-                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
-                const fimSemana = new Date(hoje);
-                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
-                
-                const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-                const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-                
-                let vendasSemana = 0;
-                let vendasMes = 0;
-                
-                cotacoes.forEach(cot => {
-                    if (cot.status === 'Pedido Aprovado' && cot.valor) {
-                        const valor = parseFloat(cot.valor) || 0;
-                        
-                        const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
-                        
-                        if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
-                            vendasSemana += valor;
-                        }
-                        
-                        if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
-                            vendasMes += valor;
-                        }
-                    }
-                });
-                
-                document.getElementById('vendasSemana').textContent = formatarValor(vendasSemana);
-                document.getElementById('vendasMes').textContent = formatarValor(vendasMes);
-                
-                document.getElementById('periodoSemana').textContent = 
-                    `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
-                document.getElementById('periodoMes').textContent = 
-                    inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-                
-                const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=30`, { headers });
-                const dados = await resposta.json();
-                
-                let html = '';
-                vendedores.forEach(v => {
-                    const cotacoesVendedor = cotacoes.filter(c => c.vendedorId === v.id);
-                    const total = cotacoesVendedor.length;
-                    const convertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
-                    const taxa = total ? ((convertidos / total * 100) || 0).toFixed(1) : 0;
-                    const valorVendido = cotacoesVendedor
-                        .filter(c => c.status === 'Pedido Aprovado')
-                        .reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-                    
-                    html += `<tr>
-                        <td>${v.nome}</td>
-                        <td>${total}</td>
-                        <td>${convertidos}</td>
-                        <td>${taxa}%</td>
-                        <td class="valor-formatado">${formatarValor(valorVendido)}</td>
-                    </tr>`;
-                });
-                document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
-                
-            } catch (erro) {
-                console.error('Erro ao carregar relatórios:', erro);
+                if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
+                    vendasSemana += valor;
+                }
+                if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
+                    vendasMes += valor;
+                }
             }
-        }
+        });
+        
+        // SOMAR ARQUIVADOS APROVADOS (que não estão mais em cotacoes)
+        arquivados.forEach(arq => {
+            if (arq.subtipo === 'aprovado' && arq.valor) {
+                const valor = parseFloat(arq.valor) || 0;
+                const dataAprovacao = new Date(arq.dataAprovacao || arq.dataCriacao || arq.dataArquivamento);
+                
+                if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
+                    vendasSemana += valor;
+                }
+                if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
+                    vendasMes += valor;
+                }
+            }
+        });
+        
+        document.getElementById('vendasSemana').textContent = formatarValor(vendasSemana);
+        document.getElementById('vendasMes').textContent = formatarValor(vendasMes);
+        
+        document.getElementById('periodoSemana').textContent = 
+            `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
+        document.getElementById('periodoMes').textContent = 
+            inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        
+        // Desempenho por vendedor (incluindo arquivados)
+        const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=30`, { headers });
+        const dados = await resposta.json();
+        
+        let html = '';
+        vendedores.forEach(v => {
+            // Cotações ativas
+            const cotacoesVendedor = cotacoes.filter(c => c.vendedorId === v.id);
+            const ativasTotal = cotacoesVendedor.length;
+            const ativasConvertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
+            const ativasValor = cotacoesVendedor
+                .filter(c => c.status === 'Pedido Aprovado')
+                .reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+            
+            // Arquivados do vendedor
+            const arquivadosVendedor = arquivados.filter(a => a.vendedorId === v.id && a.subtipo === 'aprovado');
+            const arquivadosValor = arquivadosVendedor.reduce((acc, a) => acc + (parseFloat(a.valor) || 0), 0);
+            
+            const total = ativasTotal + arquivadosVendedor.length;
+            const convertidos = ativasConvertidos + arquivadosVendedor.length;
+            const taxa = total ? ((convertidos / total * 100) || 0).toFixed(1) : 0;
+            const valorVendido = ativasValor + arquivadosValor;
+            
+            html += `<tr>
+                <td>${v.nome}</td>
+                <td>${total}</td>
+                <td>${convertidos}</td>
+                <td>${taxa}%</td>
+                <td class="valor-formatado">${formatarValor(valorVendido)}</td>
+            </tr>`;
+        });
+        document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
+        
+    } catch (erro) {
+        console.error('Erro ao carregar relatórios:', erro);
+    }
+}
         
         // ========== FUNÇÕES AUXILIARES ==========
         function mostrarLoading(mostrar) {
