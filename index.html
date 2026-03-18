@@ -90,7 +90,7 @@
         }
         
         .welcome-message {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #283944;
             color: white;
             padding: 20px;
             border-radius: 4px;
@@ -98,16 +98,19 @@
             text-align: center;
             animation: fadeIn 0.5s ease;
             display: none;
+            border-left: 4px solid #b7ab97;
         }
         
         .welcome-message h3 {
             font-size: 20px;
             margin-bottom: 10px;
+            color: white;
         }
         
         .welcome-message p {
             font-size: 16px;
             opacity: 0.9;
+            color: #f0f0f0;
         }
         
         .form-section {
@@ -162,6 +165,41 @@
             cursor: not-allowed;
             border-color: #ddd;
             color: #666;
+        }
+        
+        .contact-info {
+            background: #f8f6f2;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #b7ab97;
+        }
+        
+        .contact-info p {
+            margin-bottom: 10px;
+            color: #283944;
+        }
+        
+        .contact-info strong {
+            color: #283944;
+        }
+        
+        .btn-contact {
+            background: #b7ab97;
+            color: #283944;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-contact:hover {
+            background: #a59984;
         }
         
         textarea {
@@ -430,6 +468,14 @@
                 <div id="stepDados" style="display: none;">
                     <button type="button" class="btn-voltar" onclick="voltarParaCnpj()">← VOLTAR</button>
                     
+                    <!-- Informações do contato atual (se cliente existente) -->
+                    <div id="contactInfo" class="contact-info" style="display: none;">
+                        <p><strong>Contato atual:</strong> <span id="currentContact"></span></p>
+                        <p><strong>E-mail:</strong> <span id="currentEmail"></span></p>
+                        <p><strong>Telefone:</strong> <span id="currentPhone"></span></p>
+                        <button type="button" class="btn-contact" onclick="novoContato()">Não sou <span id="contactName"></span></button>
+                    </div>
+                    
                     <form id="quotationForm">
                         <div class="form-group">
                             <label>EMPRESA *</label>
@@ -543,6 +589,13 @@
         const telefoneInput = document.getElementById('telefone');
         const loadingCnpj = document.getElementById('loadingCnpj');
         
+        // Elementos de contato
+        const contactInfo = document.getElementById('contactInfo');
+        const currentContact = document.getElementById('currentContact');
+        const currentEmail = document.getElementById('currentEmail');
+        const currentPhone = document.getElementById('currentPhone');
+        const contactName = document.getElementById('contactName');
+        
         // Elementos de upload
         const fileUploadArea = document.getElementById('fileUploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -551,6 +604,7 @@
         let vendedorAtual = null;
         let arquivosSelecionados = [];
         let clienteAtual = null;
+        let dadosOriginais = null;
         
         // Máscara de CNPJ
         cnpjInput.addEventListener('input', function(e) {
@@ -693,6 +747,7 @@
                         contatoInput.value = '';
                         emailInput.value = '';
                         telefoneInput.value = '';
+                        contactInfo.style.display = 'none';
                         
                     } else {
                         codeError.style.display = 'block';
@@ -731,22 +786,32 @@
                 const dados = await resposta.json();
                 
                 if (dados.encontrado) {
-                    // Cliente já existe - preencher dados e bloquear
+                    // Cliente já existe - salvar dados originais
+                    dadosOriginais = dados.cliente;
+                    
+                    // Preencher campos
                     empresaInput.value = dados.cliente.empresa;
                     contatoInput.value = dados.cliente.contato;
                     emailInput.value = dados.cliente.email;
                     telefoneInput.value = dados.cliente.telefone;
                     
-                    // Bloquear campos para edição
-                    empresaInput.readOnly = true;
-                    contatoInput.readOnly = true;
-                    emailInput.readOnly = true;
-                    telefoneInput.readOnly = true;
+                    // Mostrar informações do contato atual
+                    currentContact.textContent = dados.cliente.contato;
+                    currentEmail.textContent = dados.cliente.email;
+                    currentPhone.textContent = dados.cliente.telefone;
+                    contactName.textContent = dados.cliente.contato.split(' ')[0];
+                    contactInfo.style.display = 'block';
+                    
+                    // Campos editáveis (não bloqueados)
+                    contatoInput.readOnly = false;
+                    emailInput.readOnly = false;
+                    telefoneInput.readOnly = false;
+                    empresaInput.readOnly = false;
                     
                     // Mostrar mensagem de retorno
                     welcomeMessage.style.display = 'block';
                     welcomeTitle.textContent = `Bem-vindo de volta, ${dados.cliente.empresa}!`;
-                    welcomeText.textContent = 'Seus dados foram carregados automaticamente.';
+                    welcomeText.textContent = 'Seus dados foram carregados. Se o contato mudou, basta editar abaixo.';
                     
                     clienteAtual = dados.cliente;
                 } else {
@@ -756,10 +821,12 @@
                     emailInput.value = '';
                     telefoneInput.value = '';
                     
-                    empresaInput.readOnly = false;
                     contatoInput.readOnly = false;
                     emailInput.readOnly = false;
                     telefoneInput.readOnly = false;
+                    empresaInput.readOnly = false;
+                    
+                    contactInfo.style.display = 'none';
                     
                     // Mostrar mensagem de boas-vindas
                     welcomeMessage.style.display = 'block';
@@ -767,6 +834,7 @@
                     welcomeText.textContent = 'Estamos ansiosos para nos tornarmos seu parceiro industrial.';
                     
                     clienteAtual = null;
+                    dadosOriginais = null;
                 }
                 
                 // Avançar para etapa de dados
@@ -781,11 +849,33 @@
             }
         };
         
+        // Função para novo contato
+        window.novoContato = function() {
+            // Limpa apenas os campos de contato
+            contatoInput.value = '';
+            emailInput.value = '';
+            telefoneInput.value = '';
+            
+            // Mantém a empresa
+            empresaInput.value = dadosOriginais?.empresa || '';
+            
+            // Foca no campo de contato
+            contatoInput.focus();
+            
+            // Esconde a caixa de informações
+            contactInfo.style.display = 'none';
+            
+            // Atualiza mensagem
+            welcomeTitle.textContent = 'Atualizando cadastro';
+            welcomeText.textContent = 'Por favor, informe os novos dados de contato.';
+        };
+        
         // Voltar para etapa de CNPJ
         window.voltarParaCnpj = function() {
             stepCnpj.style.display = 'block';
             stepDados.style.display = 'none';
             welcomeMessage.style.display = 'none';
+            contactInfo.style.display = 'none';
         };
         
         // Função para voltar para a tela de código
@@ -798,8 +888,10 @@
             accessCode.disabled = false;
             vendedorAtual = null;
             clienteAtual = null;
+            dadosOriginais = null;
             stepCnpj.style.display = 'block';
             stepDados.style.display = 'none';
+            contactInfo.style.display = 'none';
         };
         
         // Enviar formulário
@@ -850,7 +942,12 @@
                 status: 'Novo Orçamento',
                 dataCriacao: new Date().toISOString().split('T')[0],
                 observacoes: '',
-                primeiroAcesso: !clienteAtual
+                primeiroAcesso: !clienteAtual,
+                contatoAtualizado: dadosOriginais ? (
+                    dadosOriginais.contato !== contatoInput.value ||
+                    dadosOriginais.email !== emailInput.value ||
+                    dadosOriginais.telefone !== telefoneInput.value
+                ) : false
             };
             
             try {
