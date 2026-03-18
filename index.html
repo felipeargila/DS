@@ -351,6 +351,15 @@
             background: #a59984;
         }
         
+        .btn-nova-cotacao {
+            background: #28a745;
+            margin-top: 20px;
+        }
+        
+        .btn-nova-cotacao:hover {
+            background: #218838;
+        }
+        
         .error-message {
             color: #dc3545;
             font-size: 14px;
@@ -480,7 +489,7 @@
             <h1>PORTAL DE COTAÇÕES</h1>
             <p class="subtitle">Soluções em Usinagem de Precisão</p>
             
-            <!-- Área de código de acesso (só aparece no início) -->
+            <!-- Área de código de acesso -->
             <div id="codeArea" class="code-input-area">
                 <input type="text" class="code-input" id="accessCode" maxlength="6" placeholder="••••••">
                 <p class="code-hint">Digite seu código de acesso (6 dígitos)</p>
@@ -495,7 +504,7 @@
                 <p id="welcomeText">Estamos ansiosos para nos tornarmos seu parceiro industrial.</p>
             </div>
             
-            <!-- Formulário principal (sempre visível após código válido) -->
+            <!-- Formulário principal -->
             <div id="formularioContainer" style="display: none;">
                 <!-- ETAPA 1: Apenas CNPJ -->
                 <div id="stepCnpj">
@@ -509,7 +518,7 @@
                     </div>
                 </div>
                 
-                <!-- ETAPA 2: Dados da empresa (aparece após CNPJ validado) -->
+                <!-- ETAPA 2: Dados da empresa e orçamento -->
                 <div id="stepDados" style="display: none;">
                     <form id="quotationForm">
                         <!-- Informações da empresa (imutáveis) -->
@@ -554,7 +563,12 @@
                             </div>
                         </div>
                         
-                        <!-- Demais campos do orçamento -->
+                        <!-- Campos do orçamento -->
+                        <div class="form-group">
+                            <label>EMPRESA *</label>
+                            <input type="text" id="empresa" required>
+                        </div>
+                        
                         <div class="form-group">
                             <label>DESCRIÇÃO *</label>
                             <textarea id="descricao" required></textarea>
@@ -605,7 +619,7 @@
                 </div>
             </div>
             
-            <!-- Tela de agradecimento (substitui o formulário) -->
+            <!-- Tela de agradecimento -->
             <div id="thankYouSection" style="display: none;">
                 <div style="font-size: 60px; color: #28a745; margin-bottom: 20px; text-align: center;">✓</div>
                 <div class="thank-you-title" id="thankYouName" style="color: #283944; font-size: 24px; font-weight: 600; margin-bottom: 15px; text-align: center;"></div>
@@ -613,7 +627,7 @@
                     Sua solicitação de orçamento foi enviada com sucesso!<br>
                     Em breve retornaremos com as informações.
                 </div>
-                <button class="btn-voltar" onclick="novaCotacao()" style="background: #b7ab97; color: #283944; border: none; padding: 12px 30px; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; text-transform: uppercase; width: 100%;">NOVA COTAÇÃO</button>
+                <button class="btn-nova-cotacao" onclick="novaCotacao()">NOVA COTAÇÃO</button>
             </div>
             
             <div class="loading" id="loadingSubmit">Enviando...</div>
@@ -657,9 +671,6 @@
         // Campos do formulário
         const cnpjInput = document.getElementById('cnpj');
         const empresaInput = document.getElementById('empresa');
-        const contatoInput = document.getElementById('contato');
-        const emailInput = document.getElementById('email');
-        const telefoneInput = document.getElementById('telefone');
         const loadingCnpj = document.getElementById('loadingCnpj');
         
         // Elementos de upload
@@ -671,6 +682,8 @@
         let arquivosSelecionados = [];
         let clienteAtual = null;
         let dadosOriginais = null;
+        let cnpjAtual = null;
+        let empresaAtual = null;
         
         // Máscara de CNPJ
         cnpjInput.addEventListener('input', function(e) {
@@ -802,7 +815,6 @@
                         vendedorAtual = dados.vendedor;
                         accessGranted.style.display = 'block';
                         
-                        // Esconde área de código e mostra formulário
                         setTimeout(() => {
                             codeArea.style.display = 'none';
                             formularioContainer.style.display = 'block';
@@ -812,6 +824,8 @@
                         }, 500);
                         
                         accessCode.style.borderColor = '#b7ab97';
+                        loadingCode.style.display = 'none';
+                        accessCode.disabled = false;
                     } else {
                         codeError.style.display = 'block';
                         codeError.textContent = '❌ Código inválido';
@@ -845,43 +859,41 @@
             }
             
             loadingCnpj.style.display = 'block';
+            cnpjAtual = cnpjInput.value;
             
             try {
                 const resposta = await fetch(`/api/clientes/${cnpj}`);
                 const dados = await resposta.json();
                 
-                // Atualizar display do CNPJ e empresa
                 displayCnpj.textContent = cnpjInput.value;
                 
                 if (dados.encontrado) {
-                    // Cliente já existe
                     dadosOriginais = dados.cliente;
+                    empresaAtual = dados.cliente.empresa;
                     
-                    // Preencher displays
                     displayEmpresa.textContent = dados.cliente.empresa;
                     displayContato.textContent = dados.cliente.contato;
                     displayEmail.textContent = dados.cliente.email;
                     displayTelefone.textContent = dados.cliente.telefone;
                     contactName.textContent = dados.cliente.contato.split(' ')[0];
                     
-                    // Preparar campos de edição
                     editContato.value = dados.cliente.contato;
                     editEmail.value = dados.cliente.email;
                     editTelefone.value = dados.cliente.telefone;
                     
-                    // Mostrar modo visualização
                     contactDisplay.style.display = 'block';
                     contactEdit.style.display = 'none';
                     
-                    // Mostrar mensagem de retorno
+                    empresaInput.value = dados.cliente.empresa;
+                    
                     welcomeMessage.style.display = 'block';
                     welcomeTitle.textContent = `Bem-vindo de volta, ${dados.cliente.empresa}!`;
                     welcomeText.textContent = 'Seus dados foram carregados.';
                     
                     clienteAtual = dados.cliente;
                 } else {
-                    // Primeiro acesso
                     dadosOriginais = null;
+                    empresaAtual = '';
                     
                     displayEmpresa.textContent = '';
                     displayContato.textContent = '';
@@ -892,11 +904,11 @@
                     editEmail.value = '';
                     editTelefone.value = '';
                     
-                    // Já entra em modo edição
                     contactDisplay.style.display = 'none';
                     contactEdit.style.display = 'block';
                     
-                    // Mostrar mensagem de boas-vindas
+                    empresaInput.value = '';
+                    
                     welcomeMessage.style.display = 'block';
                     welcomeTitle.textContent = 'Seja bem-vindo!';
                     welcomeText.textContent = 'Estamos ansiosos para nos tornarmos seu parceiro industrial.';
@@ -904,7 +916,6 @@
                     clienteAtual = null;
                 }
                 
-                // Avançar para etapa de dados
                 stepCnpj.style.display = 'none';
                 stepDados.style.display = 'block';
                 
@@ -936,7 +947,6 @@
                 return;
             }
             
-            // Atualizar displays
             displayContato.textContent = editContato.value;
             displayEmail.textContent = editEmail.value;
             displayTelefone.textContent = editTelefone.value;
@@ -961,17 +971,50 @@
             contactEdit.style.display = 'none';
         };
         
-        // Função para nova cotação (após agradecimento)
+        // Função para nova cotação (após agradecimento) - CORRIGIDA
         window.novaCotacao = function() {
             thankYouSection.style.display = 'none';
             formularioContainer.style.display = 'block';
-            stepCnpj.style.display = 'block';
-            stepDados.style.display = 'none';
+            
+            // Se tem CNPJ, vai direto para o formulário sem pedir de novo
+            if (cnpjAtual) {
+                stepCnpj.style.display = 'none';
+                stepDados.style.display = 'block';
+                
+                // Manter dados da empresa
+                displayCnpj.textContent = cnpjAtual;
+                if (empresaAtual) {
+                    displayEmpresa.textContent = empresaAtual;
+                    empresaInput.value = empresaAtual;
+                }
+                
+                // Recarregar dados do cliente silenciosamente
+                if (clienteAtual) {
+                    displayContato.textContent = clienteAtual.contato;
+                    displayEmail.textContent = clienteAtual.email;
+                    displayTelefone.textContent = clienteAtual.telefone;
+                    contactName.textContent = clienteAtual.contato.split(' ')[0];
+                    
+                    editContato.value = clienteAtual.contato;
+                    editEmail.value = clienteAtual.email;
+                    editTelefone.value = clienteAtual.telefone;
+                    
+                    contactDisplay.style.display = 'block';
+                    contactEdit.style.display = 'none';
+                }
+            } else {
+                stepCnpj.style.display = 'block';
+                stepDados.style.display = 'none';
+            }
+            
             welcomeMessage.style.display = 'none';
             
-            // Limpar formulário
-            cnpjInput.value = '';
-            quotationForm.reset();
+            // Limpar campos do orçamento
+            document.getElementById('descricao').value = '';
+            document.getElementById('material').value = '';
+            document.getElementById('quantidade').value = '';
+            document.getElementById('prazo').value = '';
+            document.getElementById('infoAdicional').value = '';
             arquivosSelecionados = [];
             atualizarListaArquivos();
         };
@@ -990,14 +1033,17 @@
                 return;
             }
             
-            // Validar CNPJ
             const cnpj = cnpjInput.value.replace(/\D/g, '');
             if (cnpj.length !== 14) {
                 alert('CNPJ inválido');
                 return;
             }
             
-            // Validar contato (se está em modo edição, usar valores dos campos de edição)
+            if (!empresaInput.value) {
+                alert('Preencha o campo Empresa');
+                return;
+            }
+            
             let contato, email, telefone;
             
             if (contactEdit.style.display === 'block') {
@@ -1024,7 +1070,7 @@
                 id: 'COT' + Date.now(),
                 vendedorId: vendedorAtual.id,
                 cnpj: cnpj,
-                empresa: displayEmpresa.textContent || '',
+                empresa: empresaInput.value,
                 contato: contato,
                 email: email,
                 telefone: telefone,
@@ -1060,12 +1106,14 @@
                 const dados = await resposta.json();
                 
                 if (dados.sucesso) {
-                    // Esconde formulário e mostra agradecimento
                     formularioContainer.style.display = 'none';
                     thankYouName.textContent = `Obrigado, ${contatoNome}!`;
                     thankYouSection.style.display = 'block';
                     
-                    // Limpa uploads
+                    // Salvar CNPJ e empresa para próxima cotação
+                    cnpjAtual = cnpjInput.value;
+                    empresaAtual = empresaInput.value;
+                    
                     arquivosSelecionados = [];
                     atualizarListaArquivos();
                 } else {
