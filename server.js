@@ -16,6 +16,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
+app.get('/forcar-reset-admin', (req, res) => {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync('admin123', salt);
+
+    db.run(`
+        UPDATE vendedores 
+        SET senha = ?, login = 'admin', codigoAcesso = 'ADMIN', tipo = 'master', ativo = 1
+        WHERE tipo = 'master'
+    `, [hash], function(err) {
+        if (err) {
+            res.send('Erro: ' + err.message);
+        } else {
+            res.send('Admin resetado: admin / admin123');
+        }
+    });
+});
 
 // ================= UPLOAD =================
 const storage = multer.diskStorage({
