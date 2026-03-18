@@ -684,6 +684,14 @@
         let dadosOriginais = null;
         let cnpjAtual = null;
         let empresaAtual = null;
+
+        function sincronizarEmpresaVisual() {
+            const valorEmpresa = (empresaInput.value || '').trim();
+            displayEmpresa.textContent = valorEmpresa || 'Preencha o campo abaixo';
+            if (valorEmpresa) {
+                empresaAtual = valorEmpresa;
+            }
+        }
         
         // Máscara de CNPJ
         cnpjInput.addEventListener('input', function(e) {
@@ -866,6 +874,7 @@
                 const dados = await resposta.json();
                 
                 displayCnpj.textContent = cnpjInput.value;
+                cnpjInput.value = cnpjAtual;
                 
                 if (dados.encontrado) {
                     dadosOriginais = dados.cliente;
@@ -884,7 +893,8 @@
                     contactDisplay.style.display = 'block';
                     contactEdit.style.display = 'none';
                     
-                    empresaInput.value = dados.cliente.empresa;
+                    empresaInput.value = dados.cliente.empresa || '';
+                    sincronizarEmpresaVisual();
                     
                     welcomeMessage.style.display = 'block';
                     welcomeTitle.textContent = `Bem-vindo de volta, ${dados.cliente.empresa}!`;
@@ -908,6 +918,7 @@
                     contactEdit.style.display = 'block';
                     
                     empresaInput.value = '';
+                    sincronizarEmpresaVisual();
                     
                     welcomeMessage.style.display = 'block';
                     welcomeTitle.textContent = 'Seja bem-vindo!';
@@ -937,6 +948,10 @@
             editContato.value = '';
             editEmail.value = '';
             editTelefone.value = '';
+            displayContato.textContent = '';
+            displayEmail.textContent = '';
+            displayTelefone.textContent = '';
+            contactName.textContent = '';
             contactDisplay.style.display = 'none';
             contactEdit.style.display = 'block';
         };
@@ -947,10 +962,11 @@
                 return;
             }
             
-            displayContato.textContent = editContato.value;
-            displayEmail.textContent = editEmail.value;
-            displayTelefone.textContent = editTelefone.value;
-            contactName.textContent = editContato.value.split(' ')[0];
+            displayContato.textContent = editContato.value.trim();
+            displayEmail.textContent = editEmail.value.trim();
+            displayTelefone.textContent = editTelefone.value.trim();
+            contactName.textContent = editContato.value.trim().split(' ')[0];
+            sincronizarEmpresaVisual();
             
             contactDisplay.style.display = 'block';
             contactEdit.style.display = 'none';
@@ -958,17 +974,27 @@
         
         window.cancelarEdicao = function() {
             if (dadosOriginais) {
-                editContato.value = dadosOriginais.contato;
-                editEmail.value = dadosOriginais.email;
-                editTelefone.value = dadosOriginais.telefone;
+                editContato.value = dadosOriginais.contato || '';
+                editEmail.value = dadosOriginais.email || '';
+                editTelefone.value = dadosOriginais.telefone || '';
+                displayContato.textContent = dadosOriginais.contato || '';
+                displayEmail.textContent = dadosOriginais.email || '';
+                displayTelefone.textContent = dadosOriginais.telefone || '';
+                contactName.textContent = (dadosOriginais.contato || '').split(' ')[0] || '';
+                contactDisplay.style.display = 'block';
+                contactEdit.style.display = 'none';
             } else {
                 editContato.value = '';
                 editEmail.value = '';
                 editTelefone.value = '';
+                displayContato.textContent = '';
+                displayEmail.textContent = '';
+                displayTelefone.textContent = '';
+                contactName.textContent = '';
+                contactDisplay.style.display = 'none';
+                contactEdit.style.display = 'block';
             }
-            
-            contactDisplay.style.display = 'block';
-            contactEdit.style.display = 'none';
+            sincronizarEmpresaVisual();
         };
         
         // Função para nova cotação (após agradecimento) - CORRIGIDA
@@ -982,11 +1008,10 @@
                 stepDados.style.display = 'block';
                 
                 // Manter dados da empresa
+                cnpjInput.value = cnpjAtual;
                 displayCnpj.textContent = cnpjAtual;
-                if (empresaAtual) {
-                    displayEmpresa.textContent = empresaAtual;
-                    empresaInput.value = empresaAtual;
-                }
+                empresaInput.value = empresaAtual || empresaInput.value || '';
+                sincronizarEmpresaVisual();
                 
                 // Recarregar dados do cliente silenciosamente
                 if (clienteAtual) {
@@ -1001,6 +1026,9 @@
                     
                     contactDisplay.style.display = 'block';
                     contactEdit.style.display = 'none';
+                } else {
+                    contactDisplay.style.display = 'none';
+                    contactEdit.style.display = 'block';
                 }
             } else {
                 stepCnpj.style.display = 'block';
@@ -1112,7 +1140,8 @@
                     
                     // Salvar CNPJ e empresa para próxima cotação
                     cnpjAtual = cnpjInput.value;
-                    empresaAtual = empresaInput.value;
+                    empresaAtual = empresaInput.value.trim();
+                    sincronizarEmpresaVisual();
                     
                     arquivosSelecionados = [];
                     atualizarListaArquivos();
@@ -1128,6 +1157,10 @@
             }
         });
         
+
+        empresaInput.addEventListener('input', sincronizarEmpresaVisual);
+        empresaInput.addEventListener('blur', sincronizarEmpresaVisual);
+
         // Converter para maiúsculas e limitar a 6 dígitos
         accessCode.addEventListener('keyup', function() {
             this.value = this.value.toUpperCase().slice(0, 6);

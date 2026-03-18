@@ -916,22 +916,25 @@
         .desempenho-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 900px;
+            min-width: 1600px;
+            table-layout: fixed;
         }
         
         .desempenho-table th {
             background: #283944;
             color: white;
-            padding: 15px 20px;
+            padding: 18px 28px;
             text-align: left;
             font-weight: 500;
             font-size: 15px;
+            white-space: nowrap;
         }
         
         .desempenho-table td {
-            padding: 15px 20px;
+            padding: 18px 28px;
             border-bottom: 1px solid #eee;
             font-size: 15px;
+            white-space: nowrap;
         }
         
         .desempenho-table tr:hover {
@@ -1467,7 +1470,14 @@
         
         function valorParaFloat(valorFormatado) {
             if (!valorFormatado) return 0;
-            return parseFloat(valorFormatado.replace(/\./g, '').replace(',', '.'));
+            return parseFloat(String(valorFormatado).replace(/\./g, '').replace(',', '.'));
+        }
+
+        function obterValorNumerico(item) {
+            if (!item) return 0;
+            if (typeof item.valor === 'number') return item.valor;
+            if (typeof item.valor === 'string' && item.valor.trim()) return valorParaFloat(item.valor);
+            return 0;
         }
         
         // ========== VERIFICAR LOGIN AO INICIAR ==========
@@ -1777,8 +1787,8 @@
                 
                 // SOMAR COTAÇÕES ATIVAS APROVADAS
                 cotacoes.forEach(cot => {
-                    if (cot.status === 'Pedido Aprovado' && cot.valor) {
-                        const valor = parseFloat(cot.valor) || 0;
+                    if (cot.status === 'Pedido Aprovado' && obterValorNumerico(cot)) {
+                        const valor = obterValorNumerico(cot);
                         const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
                         
                         if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
@@ -1792,8 +1802,8 @@
                 
                 // SOMAR ARQUIVADOS APROVADOS
                 arquivados.forEach(arq => {
-                    if (arq.subtipo === 'aprovado' && arq.valor) {
-                        const valor = parseFloat(arq.valor) || 0;
+                    if (arq.subtipo === 'aprovado' && obterValorNumerico(arq)) {
+                        const valor = obterValorNumerico(arq);
                         const dataAprovacao = new Date(arq.dataAprovacao || arq.dataCriacao || arq.dataArquivamento);
                         
                         if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
@@ -1821,10 +1831,10 @@
                     const ativasConvertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
                     const ativasValor = cotacoesVendedor
                         .filter(c => c.status === 'Pedido Aprovado')
-                        .reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                        .reduce((acc, c) => acc + obterValorNumerico(c), 0);
                     
                     const arquivadosVendedor = arquivados.filter(a => a.vendedorId === v.id && a.subtipo === 'aprovado');
-                    const arquivadosValor = arquivadosVendedor.reduce((acc, a) => acc + (parseFloat(a.valor) || 0), 0);
+                    const arquivadosValor = arquivadosVendedor.reduce((acc, a) => acc + obterValorNumerico(a), 0);
                     
                     const total = ativasTotal + arquivadosVendedor.length;
                     const convertidos = ativasConvertidos + arquivadosVendedor.length;
@@ -2134,6 +2144,7 @@
                     <div class="card-company">${item.empresa || 'Sem empresa'}</div>
                     <div class="card-info">
                         <strong>Contato:</strong> ${item.contato || '---'}<br>
+                        ${isAprovado ? `<strong>Valor:</strong> ${formatarValor(obterValorNumerico(item))}<br>` : ''}
                         ${isAprovado && item.linkOrcamento ? `<strong>Link:</strong> <a href="${item.linkOrcamento}" target="_blank">Ver</a><br>` : ''}
                         <strong>Arquivado em:</strong> ${item.dataArquivamento ? new Date(item.dataArquivamento).toLocaleDateString('pt-BR') : '---'}<br>
                         <strong>Motivo:</strong> ${item.motivo || 'Manual'}
@@ -2816,11 +2827,45 @@
         
         async function restaurarArquivado(id, tipo) {
             try {
-                await fetch(`${API_URL}/api/arquivados/${id}`, {
+                const item = arquivados.find(i => i.id === id);
+                if (!item) {
+                    alert('Item arquivado não encontrado');
+                    return;
+                }
+
+                const endpoint = tipo === 'cotacao' ? 'cotacoes' : 'visitas';
+                const dadosRestaurados = { ...item };
+                delete dadosRestaurados.dataArquivamento;
+                delete dadosRestaurados.motivo;
+                delete dadosRestaurados.tipo;
+                delete dadosRestaurados.subtipo;
+                delete dadosRestaurados.dados;
+                delete dadosRestaurados.createdAt;
+                delete dadosRestaurados.updatedAt;
+
+                const salvar = await fetch(`${API_URL}/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(dadosRestaurados)
+                });
+
+                if (!salvar.ok) {
+                    throw new Error('Falha ao recriar item no kanban principal');
+                }
+
+                const excluirArquivo = await fetch(`${API_URL}/api/arquivados/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
+
+                if (!excluirArquivo.ok) {
+                    throw new Error('Falha ao remover item da área de arquivados');
+                }
                 
+                fecharConfirmModal();
                 fecharModal();
                 await carregarDados();
             } catch (erro) {
@@ -3289,7 +3334,7 @@
                     });
                     
                     if (cot.status === 'Pedido Aprovado') {
-                        cliente.totalCompras += (parseFloat(cot.valor) || 0);
+                        cliente.totalCompras += obterValorNumerico(cot);
                         if (!cliente.ultimoPedido || cot.dataAprovacao > cliente.ultimoPedido) {
                             cliente.ultimoPedido = cot.dataAprovacao || cot.dataCriacao;
                         }
