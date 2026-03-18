@@ -19,16 +19,23 @@ app.use(express.static(path.join(__dirname)));
 app.get('/forcar-reset-admin', (req, res) => {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync('admin123', salt);
+    const dataAtual = new Date().toISOString().split('T')[0];
 
     db.run(`
-        UPDATE vendedores 
-        SET senha = ?, login = 'admin', codigoAcesso = 'ADMIN', tipo = 'master', ativo = 1
-        WHERE tipo = 'master'
-    `, [hash], function(err) {
+        INSERT INTO vendedores (id, nome, login, senha, codigoAcesso, tipo, ativo, dataCriacao)
+        VALUES ('MASTER', 'Administrador', 'admin', ?, 'ADMIN', 'master', 1, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            nome='Administrador',
+            login='admin',
+            senha=excluded.senha,
+            codigoAcesso='ADMIN',
+            tipo='master',
+            ativo=1
+    `, [hash, dataAtual], function(err) {
         if (err) {
             res.send('Erro: ' + err.message);
         } else {
-            res.send('Admin resetado: admin / admin123');
+            res.send('✅ Admin FORÇADO: admin / admin123');
         }
     });
 });
