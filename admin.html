@@ -318,6 +318,17 @@
             flex: 1;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+
+        #sectionArquivados .kanban-container {
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        #sectionArquivados .kanban-column {
+            min-width: 440px;
+            max-width: 520px;
+            flex: 1 1 460px;
+        }
         
         .column-header {
             padding: 15px;
@@ -916,25 +927,22 @@
         .desempenho-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1600px;
-            table-layout: fixed;
+            min-width: 1200px;
         }
         
         .desempenho-table th {
             background: #283944;
             color: white;
-            padding: 18px 28px;
+            padding: 15px 20px;
             text-align: left;
             font-weight: 500;
             font-size: 15px;
-            white-space: nowrap;
         }
         
         .desempenho-table td {
-            padding: 18px 28px;
+            padding: 15px 20px;
             border-bottom: 1px solid #eee;
             font-size: 15px;
-            white-space: nowrap;
         }
         
         .desempenho-table tr:hover {
@@ -1449,7 +1457,7 @@
         let filtroAtivo = 'todos';
         let draggedItem = null;
         let autoReloadInterval = null;
-        let cardEmAprovacao = null;
+        let cardEmMudancaStatus = null;
         let todosAprovadosArquivados = [];
         
         // ========== FUNÇÕES DE FORMATAÇÃO ==========
@@ -1470,14 +1478,7 @@
         
         function valorParaFloat(valorFormatado) {
             if (!valorFormatado) return 0;
-            return parseFloat(String(valorFormatado).replace(/\./g, '').replace(',', '.'));
-        }
-
-        function obterValorNumerico(item) {
-            if (!item) return 0;
-            if (typeof item.valor === 'number') return item.valor;
-            if (typeof item.valor === 'string' && item.valor.trim()) return valorParaFloat(item.valor);
-            return 0;
+            return parseFloat(valorFormatado.replace(/\./g, '').replace(',', '.'));
         }
         
         // ========== VERIFICAR LOGIN AO INICIAR ==========
@@ -1769,94 +1770,50 @@
         // ========== FUNÇÃO CORRIGIDA DE RELATÓRIOS ==========
         async function carregarRelatorios() {
             if (usuarioAtual.tipo !== 'master') return;
-            
+
             try {
-                const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
-                
-                const hoje = new Date();
-                const inicioSemana = new Date(hoje);
-                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
-                const fimSemana = new Date(hoje);
-                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
-                
-                const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-                const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-                
-                let vendasSemana = 0;
-                let vendasMes = 0;
-                
-                // SOMAR COTAÇÕES ATIVAS APROVADAS
-                cotacoes.forEach(cot => {
-                    if (cot.status === 'Pedido Aprovado' && obterValorNumerico(cot)) {
-                        const valor = obterValorNumerico(cot);
-                        const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
-                        
-                        if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
-                            vendasSemana += valor;
-                        }
-                        if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
-                            vendasMes += valor;
-                        }
-                    }
+                const resposta = await fetch(`${API_URL}/api/relatorios/geral`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-                
-                // SOMAR ARQUIVADOS APROVADOS
-                arquivados.forEach(arq => {
-                    if (arq.subtipo === 'aprovado' && obterValorNumerico(arq)) {
-                        const valor = obterValorNumerico(arq);
-                        const dataAprovacao = new Date(arq.dataAprovacao || arq.dataCriacao || arq.dataArquivamento);
-                        
-                        if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
-                            vendasSemana += valor;
-                        }
-                        if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
-                            vendasMes += valor;
-                        }
-                    }
-                });
-                
-                document.getElementById('vendasSemana').textContent = formatarValor(vendasSemana);
-                document.getElementById('vendasMes').textContent = formatarValor(vendasMes);
-                
-                document.getElementById('periodoSemana').textContent = 
-                    `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
-                document.getElementById('periodoMes').textContent = 
-                    inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-                
-                // Desempenho por vendedor (incluindo arquivados)
-                let html = '';
-                vendedores.forEach(v => {
-                    const cotacoesVendedor = cotacoes.filter(c => c.vendedorId === v.id);
-                    const ativasTotal = cotacoesVendedor.length;
-                    const ativasConvertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
-                    const ativasValor = cotacoesVendedor
-                        .filter(c => c.status === 'Pedido Aprovado')
-                        .reduce((acc, c) => acc + obterValorNumerico(c), 0);
-                    
-                    const arquivadosVendedor = arquivados.filter(a => a.vendedorId === v.id && a.subtipo === 'aprovado');
-                    const arquivadosValor = arquivadosVendedor.reduce((acc, a) => acc + obterValorNumerico(a), 0);
-                    
-                    const total = ativasTotal + arquivadosVendedor.length;
-                    const convertidos = ativasConvertidos + arquivadosVendedor.length;
-                    const taxa = total ? ((convertidos / total * 100) || 0).toFixed(1) : 0;
-                    const valorVendido = ativasValor + arquivadosValor;
-                    
-                    html += `<tr>
-                        <td>${v.nome}</td>
-                        <td>${total}</td>
-                        <td>${convertidos}</td>
-                        <td>${taxa}%</td>
-                        <td class="valor-formatado">${formatarValor(valorVendido)}</td>
-                    </tr>`;
-                });
-                document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
-                
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || 'Falha ao carregar relatórios');
+                }
+
+                document.getElementById('vendasSemana').textContent = formatarValor(dados.geral?.vendasSemana || 0);
+                document.getElementById('vendasMes').textContent = formatarValor(dados.geral?.vendasMes || 0);
+
+                const periodoSemana = (dados.geral?.periodoSemana || '').split(' a ');
+                if (periodoSemana.length === 2) {
+                    document.getElementById('periodoSemana').textContent =
+                        `${new Date(periodoSemana[0] + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(periodoSemana[1] + 'T12:00:00').toLocaleDateString('pt-BR')}`;
+                } else {
+                    document.getElementById('periodoSemana').textContent = dados.geral?.periodoSemana || '-';
+                }
+
+                const periodoMes = (dados.geral?.periodoMes || '').split(' a ')[0];
+                document.getElementById('periodoMes').textContent = periodoMes
+                    ? new Date(periodoMes + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+                    : '-';
+
+                const html = (dados.porVendedor || []).map(v => `
+                    <tr>
+                        <td>${v.vendedor}</td>
+                        <td>${v.total}</td>
+                        <td>${v.convertidos}</td>
+                        <td>${v.taxa}%</td>
+                        <td class="valor-formatado">${formatarValor(v.valorVendido)}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('desempenhoBody').innerHTML =
+                    html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
+
             } catch (erro) {
                 console.error('Erro ao carregar relatórios:', erro);
             }
         }
-        
-        // ========== FUNÇÕES AUXILIARES ==========
+
         function mostrarLoading(mostrar) {
             document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
         }
@@ -2144,7 +2101,6 @@
                     <div class="card-company">${item.empresa || 'Sem empresa'}</div>
                     <div class="card-info">
                         <strong>Contato:</strong> ${item.contato || '---'}<br>
-                        ${isAprovado ? `<strong>Valor:</strong> ${formatarValor(obterValorNumerico(item))}<br>` : ''}
                         ${isAprovado && item.linkOrcamento ? `<strong>Link:</strong> <a href="${item.linkOrcamento}" target="_blank">Ver</a><br>` : ''}
                         <strong>Arquivado em:</strong> ${item.dataArquivamento ? new Date(item.dataArquivamento).toLocaleDateString('pt-BR') : '---'}<br>
                         <strong>Motivo:</strong> ${item.motivo || 'Manual'}
@@ -2207,136 +2163,195 @@
             e.dataTransfer.dropEffect = 'move';
         }
         
+        function abrirModalMudancaStatus(cardId, novoStatus) {
+            const card = cotacoes.find(c => c.id === cardId);
+            if (!card) return false;
+
+            cardEmMudancaStatus = { id: cardId, novoStatus };
+            document.getElementById('aprovadoLink').value = card.linkOrcamento || '';
+            document.getElementById('aprovadoValor').value = card.valor ? formatarValor(card.valor).replace('R$ ', '') : '';
+
+            const titulo = document.getElementById('statusModalTitle');
+            const campoLink = document.getElementById('statusLinkField');
+            const campoValor = document.getElementById('statusValorField');
+            const dica = document.getElementById('statusModalHint');
+            const botao = document.getElementById('statusModalConfirmBtn');
+
+            if (novoStatus === 'Orçamento Enviado') {
+                titulo.textContent = 'ANEXAR LINK DO ORÇAMENTO';
+                campoLink.style.display = 'block';
+                campoValor.style.display = 'none';
+                dica.textContent = 'Salve o link do orçamento para consulta futura.';
+                botao.textContent = 'CONFIRMAR ENVIO';
+            } else if (novoStatus === 'Pedido Aprovado') {
+                titulo.textContent = 'INFORMAR VALOR APROVADO';
+                campoLink.style.display = 'none';
+                campoValor.style.display = 'block';
+                dica.textContent = card.linkOrcamento ? `Link já registrado: ${card.linkOrcamento}` : 'Nenhum link registrado neste card.';
+                botao.textContent = 'CONFIRMAR APROVAÇÃO';
+            } else {
+                return false;
+            }
+
+            document.getElementById('aprovacaoModal').classList.add('active');
+            return true;
+        }
+
+        async function salvarMudancaStatusCotacao(cardId, novoStatus, extras = {}) {
+            const card = cotacoes.find(c => c.id === cardId);
+            if (!card) return;
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            };
+
+            const payload = {
+                ...card,
+                status: novoStatus,
+                dataStatus: new Date().toISOString().split('T')[0]
+            };
+
+            if (Object.prototype.hasOwnProperty.call(extras, 'linkOrcamento')) {
+                payload.linkOrcamento = extras.linkOrcamento;
+            }
+            if (Object.prototype.hasOwnProperty.call(extras, 'valor')) {
+                payload.valor = extras.valor;
+            }
+            if (novoStatus === 'Pedido Aprovado') {
+                payload.dataAprovacao = new Date().toISOString().split('T')[0];
+            }
+
+            const resposta = await fetch(`${API_URL}/api/cotacoes/${cardId}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(payload)
+            });
+            const dados = await resposta.json().catch(() => ({}));
+            if (!resposta.ok) {
+                throw new Error(dados.erro || 'Erro ao atualizar cotação');
+            }
+
+            Object.assign(card, payload);
+        }
+
         async function handleDrop(e) {
             e.preventDefault();
-            
-            if (!draggedItem) return;
-            
-            const container = e.target.closest('.cards-container');
-            if (!container) return;
-            
+            const container = e.currentTarget;
+            container.classList.remove('drag-over');
+
+            const cardId = e.dataTransfer.getData('text/plain');
+            const tipo = draggedItem?.dataset?.tipo;
             const novaColuna = container.dataset.coluna;
-            const tipo = container.dataset.tipo;
-            const cardId = draggedItem.dataset.id;
-            const cardTipo = draggedItem.dataset.tipo;
-            
-            if (cardTipo !== tipo) {
-                alert('Não é possível mover entre seções diferentes');
-                return;
-            }
-            
-            if (novaColuna === 'Pedido Aprovado') {
-                const card = cotacoes.find(c => c.id === cardId);
-                if (!card) return;
-                
-                cardEmAprovacao = { id: cardId, card: card };
-                document.getElementById('aprovadoLink').value = card.linkOrcamento || '';
-                document.getElementById('aprovadoValor').value = card.valor ? formatarValor(card.valor).replace('R$ ', '') : '';
-                document.getElementById('aprovacaoModal').classList.add('active');
-                return;
-            }
-            
+
+            if (!cardId || !tipo || !novaColuna) return;
+
             try {
+                if (tipo === 'cotacao' && (novaColuna === 'Orçamento Enviado' || novaColuna === 'Pedido Aprovado')) {
+                    const abriuModal = abrirModalMudancaStatus(cardId, novaColuna);
+                    if (abriuModal) return;
+                }
+
                 const headers = { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 };
-                
+
                 if (tipo === 'cotacao') {
                     const card = cotacoes.find(c => c.id === cardId);
-                    if (card) {
-                        card.status = novaColuna;
-                        await fetch(`${API_URL}/api/cotacoes/${cardId}`, {
-                            method: 'PUT',
-                            headers,
-                            body: JSON.stringify(card)
-                        });
+                    if (!card) return;
+
+                    const payload = {
+                        ...card,
+                        status: novaColuna,
+                        dataStatus: new Date().toISOString().split('T')[0]
+                    };
+
+                    if (novaColuna !== 'Pedido Aprovado') {
+                        payload.dataAprovacao = card.dataAprovacao || null;
                     }
+
+                    await fetch(`${API_URL}/api/cotacoes/${cardId}`, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(payload)
+                    });
+
+                    const index = cotacoes.findIndex(c => c.id === cardId);
+                    if (index !== -1) cotacoes[index] = { ...cotacoes[index], ...payload };
                 } else {
                     const card = visitas.find(v => v.id === cardId);
-                    if (card) {
-                        card.status = novaColuna;
-                        await fetch(`${API_URL}/api/visitas/${cardId}`, {
-                            method: 'PUT',
-                            headers,
-                            body: JSON.stringify(card)
-                        });
-                    }
-                }
-                
-                if (tipo === 'cotacao') {
-                    const index = cotacoes.findIndex(c => c.id === cardId);
-                    if (index !== -1) cotacoes[index].status = novaColuna;
-                } else {
+                    if (!card) return;
+
+                    const payload = { ...card, status: novaColuna };
+                    await fetch(`${API_URL}/api/visitas/${cardId}`, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(payload)
+                    });
+
                     const index = visitas.findIndex(v => v.id === cardId);
                     if (index !== -1) visitas[index].status = novaColuna;
                 }
-                
-                if (tipo === 'cotacao') {
-                    renderizarKanbanCotacoes();
-                } else {
-                    renderizarKanbanVisitas();
-                }
+
+                renderizarKanbans();
                 initDragAndDrop();
-                
             } catch (erro) {
                 console.error('Erro ao mover card:', erro);
-                alert('Erro ao mover card. Tente novamente.');
+                alert('Erro ao mover card');
                 await carregarDados();
             }
         }
-        
+
         function fecharAprovacaoModal() {
             document.getElementById('aprovacaoModal').classList.remove('active');
-            cardEmAprovacao = null;
+            cardEmMudancaStatus = null;
         }
-        
+
         async function confirmarAprovacao() {
-            const link = document.getElementById('aprovadoLink').value;
-            const valorFormatado = document.getElementById('aprovadoValor').value;
-            
-            if (!link || !valorFormatado) {
-                alert('Preencha o link e o valor do orçamento aprovado');
-                return;
-            }
-            
-            if (!link.includes('drive.google.com') && !link.includes('docs.google.com')) {
-                alert('Por favor, use um link do Google Drive');
-                return;
-            }
-            
-            const valor = valorParaFloat(valorFormatado);
-            
+            if (!cardEmMudancaStatus) return;
+
+            const novoStatus = cardEmMudancaStatus.novoStatus;
+            const link = document.getElementById('aprovadoLink').value.trim();
+            const valorFormatado = document.getElementById('aprovadoValor').value.trim();
+
             try {
-                const headers = { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                };
-                
-                const card = cotacoes.find(c => c.id === cardEmAprovacao.id);
-                if (card) {
-                    card.status = 'Pedido Aprovado';
-                    card.linkOrcamento = link;
-                    card.valor = valor;
-                    card.dataAprovacao = new Date().toISOString().split('T')[0];
-                    
-                    await fetch(`${API_URL}/api/cotacoes/${cardEmAprovacao.id}`, {
-                        method: 'PUT',
-                        headers,
-                        body: JSON.stringify(card)
+                if (novoStatus === 'Orçamento Enviado') {
+                    if (!link) {
+                        alert('Preencha o link do orçamento');
+                        return;
+                    }
+                    if (!link.includes('drive.google.com') && !link.includes('docs.google.com')) {
+                        alert('Por favor, use um link do Google Drive');
+                        return;
+                    }
+
+                    await salvarMudancaStatusCotacao(cardEmMudancaStatus.id, novoStatus, {
+                        linkOrcamento: link
+                    });
+                } else if (novoStatus === 'Pedido Aprovado') {
+                    if (!valorFormatado) {
+                        alert('Preencha o valor aprovado');
+                        return;
+                    }
+
+                    await salvarMudancaStatusCotacao(cardEmMudancaStatus.id, novoStatus, {
+                        valor: valorParaFloat(valorFormatado)
                     });
                 }
-                
+
                 fecharAprovacaoModal();
-                await carregarDados();
-                
+                renderizarKanbans();
+                initDragAndDrop();
+                await carregarRelatorios();
+
             } catch (erro) {
-                console.error('Erro ao aprovar:', erro);
-                alert('Erro ao aprovar orçamento');
+                console.error('Erro ao atualizar status:', erro);
+                alert('Erro ao atualizar status');
+                await carregarDados();
             }
         }
-        
-        // ========== FUNÇÕES DE VISUALIZAÇÃO ==========
+
         function visualizarCard(id, tipo) {
             const modal = document.getElementById('viewModal');
             const modalTitle = document.getElementById('modalTitle');
@@ -2551,22 +2566,31 @@
         
         async function mudarStatus(id, tipo, novoStatus) {
             try {
+                if (tipo === 'cotacao' && (novoStatus === 'Orçamento Enviado' || novoStatus === 'Pedido Aprovado')) {
+                    const abriuModal = abrirModalMudancaStatus(id, novoStatus);
+                    if (abriuModal) return;
+                }
+
                 const headers = { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 };
-                
+
                 if (tipo === 'cotacao') {
                     const card = cotacoes.find(c => c.id === id);
                     if (card) {
-                        card.status = novoStatus;
+                        const payload = {
+                            ...card,
+                            status: novoStatus,
+                            dataStatus: new Date().toISOString().split('T')[0]
+                        };
                         await fetch(`${API_URL}/api/cotacoes/${id}`, {
                             method: 'PUT',
                             headers,
-                            body: JSON.stringify(card)
+                            body: JSON.stringify(payload)
                         });
                         const index = cotacoes.findIndex(c => c.id === id);
-                        if (index !== -1) cotacoes[index].status = novoStatus;
+                        if (index !== -1) cotacoes[index] = { ...cotacoes[index], ...payload };
                     }
                 } else {
                     const card = visitas.find(v => v.id === id);
@@ -2581,7 +2605,7 @@
                         if (index !== -1) visitas[index].status = novoStatus;
                     }
                 }
-                
+
                 fecharModal();
                 if (tipo === 'cotacao') {
                     renderizarKanbanCotacoes();
@@ -2595,7 +2619,8 @@
                 await carregarDados();
             }
         }
-        
+
+        // ========== FUNÇÕES DE EDIÇÃO ==========
         // ========== FUNÇÕES DE EDIÇÃO ==========
         function editarCard(id, tipo) {
             const modal = document.getElementById('editModal');
@@ -2827,50 +2852,21 @@
         
         async function restaurarArquivado(id, tipo) {
             try {
-                const item = arquivados.find(i => i.id === id);
-                if (!item) {
-                    alert('Item arquivado não encontrado');
-                    return;
-                }
-
-                const endpoint = tipo === 'cotacao' ? 'cotacoes' : 'visitas';
-                const dadosRestaurados = { ...item };
-                delete dadosRestaurados.dataArquivamento;
-                delete dadosRestaurados.motivo;
-                delete dadosRestaurados.tipo;
-                delete dadosRestaurados.subtipo;
-                delete dadosRestaurados.dados;
-                delete dadosRestaurados.createdAt;
-                delete dadosRestaurados.updatedAt;
-
-                const salvar = await fetch(`${API_URL}/api/${endpoint}`, {
+                const resposta = await fetch(`${API_URL}/api/arquivados/${id}/restaurar`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(dadosRestaurados)
-                });
-
-                if (!salvar.ok) {
-                    throw new Error('Falha ao recriar item no kanban principal');
-                }
-
-                const excluirArquivo = await fetch(`${API_URL}/api/arquivados/${id}`, {
-                    method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
 
-                if (!excluirArquivo.ok) {
-                    throw new Error('Falha ao remover item da área de arquivados');
+                const dados = await resposta.json();
+                if (!resposta.ok || !dados.sucesso) {
+                    throw new Error(dados.erro || 'Falha ao restaurar item');
                 }
                 
-                fecharConfirmModal();
                 fecharModal();
                 await carregarDados();
             } catch (erro) {
                 console.error('Erro ao restaurar:', erro);
-                alert('Erro ao restaurar');
+                alert('Erro ao restaurar: ' + (erro.message || 'tente novamente'));
             }
         }
         
@@ -3334,7 +3330,7 @@
                     });
                     
                     if (cot.status === 'Pedido Aprovado') {
-                        cliente.totalCompras += obterValorNumerico(cot);
+                        cliente.totalCompras += (parseFloat(cot.valor) || 0);
                         if (!cliente.ultimoPedido || cot.dataAprovacao > cliente.ultimoPedido) {
                             cliente.ultimoPedido = cot.dataAprovacao || cot.dataCriacao;
                         }
@@ -3362,54 +3358,72 @@
             }
         }
         
-        function renderizarClientes() {
-            const container = document.getElementById('clientesList');
-            
-            if (clientes.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhum cliente encontrado</div>';
-                return;
+        function obterResumoContatoCliente(cliente, contatoSelecionado = null) {
+            if (contatoSelecionado) {
+                return {
+                    label: 'Contato Selecionado',
+                    contato: contatoSelecionado.contato || '-',
+                    telefone: contatoSelecionado.telefone || '-',
+                    email: contatoSelecionado.email || '-'
+                };
             }
-            
-            container.innerHTML = clientes.map(cliente => `
-                <div class="cliente-card" data-cnpj="${cliente.cnpj}">
-                    <div class="cliente-resumo" onclick="toggleClienteDetalhes('${cliente.cnpj}')">
-                        <div>
-                            <span class="cliente-nome">${cliente.empresa}</span>
+
+            const ultimaCotacao = [...cliente.cotacoes]
+                .sort((a, b) => new Date((b.dataAprovacao || b.data || '1900-01-01')) - new Date((a.dataAprovacao || a.data || '1900-01-01')))[0];
+
+            return {
+                label: 'Última cotação por',
+                contato: ultimaCotacao?.contato || cliente.contatoPrincipal.contato || '-',
+                telefone: ultimaCotacao?.telefone || cliente.contatoPrincipal.telefone || '-',
+                email: ultimaCotacao?.email || cliente.contatoPrincipal.email || '-'
+            };
+        }
+
+        function montarCardCliente(cliente) {
+            const opcoesContato = cliente.contatosList.map((c, index) => `
+                <option value="${index}">${c.contato} (${c.email})</option>
+            `).join('');
+
+            const resumo = obterResumoContatoCliente(cliente);
+
+            return `
+                <div class="cliente-card">
+                    <div class="cliente-header" onclick="toggleClienteDetalhes('${cliente.cnpj}')">
+                        <div class="cliente-nome">
+                            ${cliente.empresa}
                             <span class="cliente-cnpj"> - ${formatarCNPJ(cliente.cnpj)}</span>
                         </div>
                         <button class="btn-ver-mais">VER +</button>
                     </div>
-                    
+
                     <div class="cliente-detalhes" id="detalhes-${cliente.cnpj}">
                         <div style="margin-bottom: 15px;">
                             <label style="color: #283944; font-weight: 500; margin-right: 10px;">CONTATO:</label>
                             <select id="contatoSelector-${cliente.cnpj}" onchange="filtrarHistoricoPorContato('${cliente.cnpj}')" style="padding: 5px; border: 2px solid #ddd; border-radius: 4px;">
                                 <option value="todos">TODOS OS CONTATOS</option>
-                                ${cliente.contatosList.map((c, index) => `
-                                    <option value="${index}">${c.contato} (${c.email})</option>
-                                `).join('')}
+                                ${opcoesContato}
                             </select>
                         </div>
-                        
+
                         <div class="cliente-stats">
                             <div class="stat-item">
-                                <div class="stat-label">Contato Principal</div>
-                                <div class="stat-value">${cliente.contatoPrincipal.contato}</div>
+                                <div class="stat-label" id="clienteResumoLabel-${cliente.cnpj}">${resumo.label}</div>
+                                <div class="stat-value" id="clienteResumoContato-${cliente.cnpj}">${resumo.contato}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Telefone</div>
-                                <div class="stat-value">${cliente.contatoPrincipal.telefone}</div>
+                                <div class="stat-value" id="clienteResumoTelefone-${cliente.cnpj}">${resumo.telefone}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">E-mail</div>
-                                <div class="stat-value">${cliente.contatoPrincipal.email}</div>
+                                <div class="stat-value" id="clienteResumoEmail-${cliente.cnpj}">${resumo.email}</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-label">Total Compras</div>
                                 <div class="stat-value valor-formatado">${formatarValor(cliente.totalCompras)}</div>
                             </div>
                         </div>
-                        
+
                         <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
                         <table class="historico-table" id="historico-${cliente.cnpj}">
                             <thead>
@@ -3435,18 +3449,30 @@
                                 `).join('')}
                             </tbody>
                         </table>
-                        
+
                         <div class="observacoes-area">
                             <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
                             <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
                         </div>
-                        
+
                         <button class="btn-excluir-cliente" onclick="confirmarExclusaoCliente('${cliente.cnpj}')">EXCLUIR CLIENTE</button>
                     </div>
                 </div>
-            `).join('');
+            `;
         }
-        
+
+        function renderizarClientes(listaOverride = null) {
+            const lista = listaOverride || clientes;
+            const container = document.getElementById('clientesList');
+
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum cliente encontrado</div>';
+                return;
+            }
+
+            container.innerHTML = lista.map(cliente => montarCardCliente(cliente)).join('');
+        }
+
         function toggleClienteDetalhes(cnpj) {
             const detalhes = document.getElementById(`detalhes-${cnpj}`);
             detalhes.classList.toggle('visible');
@@ -3480,101 +3506,21 @@
         
         function filtrarClientes() {
             const busca = document.getElementById('buscaCliente').value.toLowerCase();
-            
+
             if (!busca) {
                 renderizarClientes();
                 return;
             }
-            
+
             const filtrados = clientes.filter(cliente => 
                 cliente.empresa.toLowerCase().includes(busca) || 
-                cliente.cnpj.includes(busca)
+                cliente.cnpj.includes(busca.replace(/\D/g, '')) ||
+                cliente.contatoPrincipal.contato.toLowerCase().includes(busca)
             );
-            
-            const container = document.getElementById('clientesList');
-            
-            if (filtrados.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhum cliente encontrado</div>';
-                return;
-            }
-            
-            container.innerHTML = filtrados.map(cliente => `
-                <div class="cliente-card" data-cnpj="${cliente.cnpj}">
-                    <div class="cliente-resumo" onclick="toggleClienteDetalhes('${cliente.cnpj}')">
-                        <div>
-                            <span class="cliente-nome">${cliente.empresa}</span>
-                            <span class="cliente-cnpj"> - ${formatarCNPJ(cliente.cnpj)}</span>
-                        </div>
-                        <button class="btn-ver-mais">VER +</button>
-                    </div>
-                    
-                    <div class="cliente-detalhes visible" id="detalhes-${cliente.cnpj}">
-                        <div style="margin-bottom: 15px;">
-                            <label style="color: #283944; font-weight: 500; margin-right: 10px;">CONTATO:</label>
-                            <select id="contatoSelector-${cliente.cnpj}" onchange="filtrarHistoricoPorContato('${cliente.cnpj}')" style="padding: 5px; border: 2px solid #ddd; border-radius: 4px;">
-                                <option value="todos">TODOS OS CONTATOS</option>
-                                ${cliente.contatosList.map((c, index) => `
-                                    <option value="${index}">${c.contato} (${c.email})</option>
-                                `).join('')}
-                            </select>
-                        </div>
-                        
-                        <div class="cliente-stats">
-                            <div class="stat-item">
-                                <div class="stat-label">Contato Principal</div>
-                                <div class="stat-value">${cliente.contatoPrincipal.contato}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Telefone</div>
-                                <div class="stat-value">${cliente.contatoPrincipal.telefone}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">E-mail</div>
-                                <div class="stat-value">${cliente.contatoPrincipal.email}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Total Compras</div>
-                                <div class="stat-value valor-formatado">${formatarValor(cliente.totalCompras)}</div>
-                            </div>
-                        </div>
-                        
-                        <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
-                        <table class="historico-table" id="historico-${cliente.cnpj}">
-                            <thead>
-                                <tr>
-                                    <th>Data Pedido</th>
-                                    <th>Data Aprovação</th>
-                                    <th>Contato</th>
-                                    <th>Valor</th>
-                                    <th>Link</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${cliente.cotacoes.map(cot => `
-                                    <tr data-contato="${cot.contato}|${cot.email}|${cot.telefone}">
-                                        <td>${cot.data ? new Date(cot.data).toLocaleDateString('pt-BR') : '-'}</td>
-                                        <td>${cot.dataAprovacao ? new Date(cot.dataAprovacao).toLocaleDateString('pt-BR') : '-'}</td>
-                                        <td>${cot.contato || '-'}</td>
-                                        <td class="valor-formatado">${formatarValor(cot.valor)}</td>
-                                        <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
-                                        <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                        
-                        <div class="observacoes-area">
-                            <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
-                            <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
-                        </div>
-                        
-                        <button class="btn-excluir-cliente" onclick="confirmarExclusaoCliente('${cliente.cnpj}')">EXCLUIR CLIENTE</button>
-                    </div>
-                </div>
-            `).join('');
+
+            renderizarClientes(filtrados);
         }
-        
+
         async function salvarObservacoes(cnpj) {
             const observacoes = document.getElementById(`obs-${cnpj}`).value;
             const cliente = clientes.find(c => c.cnpj === cnpj);
