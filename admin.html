@@ -865,7 +865,7 @@
             text-align: center;
         }
         
-        /* Estatísticas - CORRIGIDO */
+        /* ESTATÍSTICAS - CORRIGIDO */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -879,30 +879,32 @@
         .stat-card {
             background: white;
             border-radius: 4px;
-            padding: 20px;
+            padding: 25px 20px;
             text-align: center;
             border-left: 4px solid #b7ab97;
+            min-width: 300px;
         }
         
         .stat-value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
             color: #283944;
         }
         
         .stat-label {
-            font-size: 14px;
+            font-size: 16px;
             color: #666;
             text-transform: uppercase;
-        }
-        
-        .stat-periodo {
-            font-size: 12px;
-            color: #999;
             margin-top: 5px;
         }
         
-        /* Tabela de desempenho - CORRIGIDA */
+        .stat-periodo {
+            font-size: 13px;
+            color: #999;
+            margin-top: 8px;
+        }
+        
+        /* TABELA DE DESEMPENHO - CORRIGIDA */
         .desempenho-container {
             background: white;
             border-radius: 4px;
@@ -914,10 +916,38 @@
         .desempenho-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px;
+            min-width: 900px;
         }
         
         .desempenho-table th {
+            background: #283944;
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        
+        .desempenho-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        
+        .desempenho-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        /* TABELA DE VENDEDORES */
+        .vendedores-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .vendedores-table th {
             background: #283944;
             color: white;
             padding: 12px 15px;
@@ -926,17 +956,30 @@
             font-size: 14px;
         }
         
-        .desempenho-table td {
+        .vendedores-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
         }
         
-        .desempenho-table tr:hover {
+        .vendedores-table tr:hover {
             background: #f5f5f5;
         }
         
-        /* Clientes */
+        .vendedores-table .code-6digits {
+            font-family: monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .acoes-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* CLIENTES */
         .clientes-container {
             background: white;
             border-radius: 4px;
@@ -1086,77 +1129,13 @@
             outline: none;
         }
         
-        /* Filtros de data */
-        .filter-row {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-row input,
-        .filter-row select {
-            padding: 8px 12px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            font-family: 'Chakra Petch', sans-serif;
-        }
-        
-        .filter-row input:focus,
-        .filter-row select:focus {
-            border-color: #b7ab97;
-            outline: none;
-        }
-        
-        /* Tabela de vendedores corrigida */
-        .vendedores-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .vendedores-table th {
-            background: #283944;
-            color: white;
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .vendedores-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-        
-        .vendedores-table tr:hover {
-            background: #f5f5f5;
-        }
-        
-        .vendedores-table .code-6digits {
-            font-family: monospace;
-            font-size: 14px;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
-        
-        .acoes-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        /* Formatação de valores */
+        /* FORMATAÇÃO DE VALORES */
         .valor-formatado {
             font-family: 'Chakra Petch', sans-serif;
             font-weight: 600;
         }
         
-        /* Botão excluir cliente */
+        /* BOTÃO EXCLUIR CLIENTE */
         .btn-excluir-cliente {
             background: #dc3545;
             color: white;
@@ -1305,7 +1284,7 @@
                 </div>
             </div>
             
-            <!-- Seção Relatórios (só master vê) - CORRIGIDA -->
+            <!-- Seção Relatórios -->
             <div id="sectionRelatorios" class="kanban-section">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1339,7 +1318,7 @@
                 </div>
             </div>
             
-            <!-- Seção Gerenciar Vendedores -->
+            <!-- Seção Vendedores -->
             <div id="sectionVendedores" class="kanban-section">
                 <div style="background: white; border-radius: 4px; padding: 20px;">
                     <h3 style="color: #283944; margin-bottom: 20px;">GERENCIAR VENDEDORES</h3>
@@ -1778,99 +1757,94 @@
         }
         
         // ========== FUNÇÃO CORRIGIDA DE RELATÓRIOS ==========
-async function carregarRelatorios() {
-    if (usuarioAtual.tipo !== 'master') return;
-    
-    try {
-        const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
-        
-        const hoje = new Date();
-        const inicioSemana = new Date(hoje);
-        inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
-        const fimSemana = new Date(hoje);
-        fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
-        
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-        
-        let vendasSemana = 0;
-        let vendasMes = 0;
-        
-        // SOMAR COTAÇÕES ATIVAS APROVADAS
-        cotacoes.forEach(cot => {
-            if (cot.status === 'Pedido Aprovado' && cot.valor) {
-                const valor = parseFloat(cot.valor) || 0;
-                const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
+        async function carregarRelatorios() {
+            if (usuarioAtual.tipo !== 'master') return;
+            
+            try {
+                const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
                 
-                if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
-                    vendasSemana += valor;
-                }
-                if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
-                    vendasMes += valor;
-                }
-            }
-        });
-        
-        // SOMAR ARQUIVADOS APROVADOS (que não estão mais em cotacoes)
-        arquivados.forEach(arq => {
-            if (arq.subtipo === 'aprovado' && arq.valor) {
-                const valor = parseFloat(arq.valor) || 0;
-                const dataAprovacao = new Date(arq.dataAprovacao || arq.dataCriacao || arq.dataArquivamento);
+                const hoje = new Date();
+                const inicioSemana = new Date(hoje);
+                inicioSemana.setDate(hoje.getDate() - hoje.getDay() + 1);
+                const fimSemana = new Date(hoje);
+                fimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
                 
-                if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
-                    vendasSemana += valor;
-                }
-                if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
-                    vendasMes += valor;
-                }
+                const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+                
+                let vendasSemana = 0;
+                let vendasMes = 0;
+                
+                // SOMAR COTAÇÕES ATIVAS APROVADAS
+                cotacoes.forEach(cot => {
+                    if (cot.status === 'Pedido Aprovado' && cot.valor) {
+                        const valor = parseFloat(cot.valor) || 0;
+                        const dataAprovacao = new Date(cot.dataAprovacao || cot.dataCriacao);
+                        
+                        if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
+                            vendasSemana += valor;
+                        }
+                        if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
+                            vendasMes += valor;
+                        }
+                    }
+                });
+                
+                // SOMAR ARQUIVADOS APROVADOS
+                arquivados.forEach(arq => {
+                    if (arq.subtipo === 'aprovado' && arq.valor) {
+                        const valor = parseFloat(arq.valor) || 0;
+                        const dataAprovacao = new Date(arq.dataAprovacao || arq.dataCriacao || arq.dataArquivamento);
+                        
+                        if (dataAprovacao >= inicioSemana && dataAprovacao <= fimSemana) {
+                            vendasSemana += valor;
+                        }
+                        if (dataAprovacao >= inicioMes && dataAprovacao <= fimMes) {
+                            vendasMes += valor;
+                        }
+                    }
+                });
+                
+                document.getElementById('vendasSemana').textContent = formatarValor(vendasSemana);
+                document.getElementById('vendasMes').textContent = formatarValor(vendasMes);
+                
+                document.getElementById('periodoSemana').textContent = 
+                    `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
+                document.getElementById('periodoMes').textContent = 
+                    inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                
+                // Desempenho por vendedor (incluindo arquivados)
+                let html = '';
+                vendedores.forEach(v => {
+                    const cotacoesVendedor = cotacoes.filter(c => c.vendedorId === v.id);
+                    const ativasTotal = cotacoesVendedor.length;
+                    const ativasConvertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
+                    const ativasValor = cotacoesVendedor
+                        .filter(c => c.status === 'Pedido Aprovado')
+                        .reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                    
+                    const arquivadosVendedor = arquivados.filter(a => a.vendedorId === v.id && a.subtipo === 'aprovado');
+                    const arquivadosValor = arquivadosVendedor.reduce((acc, a) => acc + (parseFloat(a.valor) || 0), 0);
+                    
+                    const total = ativasTotal + arquivadosVendedor.length;
+                    const convertidos = ativasConvertidos + arquivadosVendedor.length;
+                    const taxa = total ? ((convertidos / total * 100) || 0).toFixed(1) : 0;
+                    const valorVendido = ativasValor + arquivadosValor;
+                    
+                    html += `<tr>
+                        <td>${v.nome}</td>
+                        <td>${total}</td>
+                        <td>${convertidos}</td>
+                        <td>${taxa}%</td>
+                        <td class="valor-formatado">${formatarValor(valorVendido)}</td>
+                    </tr>`;
+                });
+                document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
+                
+            } catch (erro) {
+                console.error('Erro ao carregar relatórios:', erro);
             }
-        });
-        
-        document.getElementById('vendasSemana').textContent = formatarValor(vendasSemana);
-        document.getElementById('vendasMes').textContent = formatarValor(vendasMes);
-        
-        document.getElementById('periodoSemana').textContent = 
-            `${inicioSemana.toLocaleDateString('pt-BR')} a ${fimSemana.toLocaleDateString('pt-BR')}`;
-        document.getElementById('periodoMes').textContent = 
-            inicioMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-        
-        // Desempenho por vendedor (incluindo arquivados)
-        const resposta = await fetch(`${API_URL}/api/relatorios/geral?periodo=30`, { headers });
-        const dados = await resposta.json();
-        
-        let html = '';
-        vendedores.forEach(v => {
-            // Cotações ativas
-            const cotacoesVendedor = cotacoes.filter(c => c.vendedorId === v.id);
-            const ativasTotal = cotacoesVendedor.length;
-            const ativasConvertidos = cotacoesVendedor.filter(c => c.status === 'Pedido Aprovado').length;
-            const ativasValor = cotacoesVendedor
-                .filter(c => c.status === 'Pedido Aprovado')
-                .reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-            
-            // Arquivados do vendedor
-            const arquivadosVendedor = arquivados.filter(a => a.vendedorId === v.id && a.subtipo === 'aprovado');
-            const arquivadosValor = arquivadosVendedor.reduce((acc, a) => acc + (parseFloat(a.valor) || 0), 0);
-            
-            const total = ativasTotal + arquivadosVendedor.length;
-            const convertidos = ativasConvertidos + arquivadosVendedor.length;
-            const taxa = total ? ((convertidos / total * 100) || 0).toFixed(1) : 0;
-            const valorVendido = ativasValor + arquivadosValor;
-            
-            html += `<tr>
-                <td>${v.nome}</td>
-                <td>${total}</td>
-                <td>${convertidos}</td>
-                <td>${taxa}%</td>
-                <td class="valor-formatado">${formatarValor(valorVendido)}</td>
-            </tr>`;
-        });
-        document.getElementById('desempenhoBody').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum dado no período</td></tr>';
-        
-    } catch (erro) {
-        console.error('Erro ao carregar relatórios:', erro);
-    }
-}
+        }
         
         // ========== FUNÇÕES AUXILIARES ==========
         function mostrarLoading(mostrar) {
@@ -2101,7 +2075,7 @@ async function carregarRelatorios() {
                     <div class="card-info">
                         <strong>Contato:</strong> ${card.contato || '---'}<br>
                         <strong>Material:</strong> ${card.material || '---'}<br>
-                        <strong>Data:</strong> ${card.dataCriacao || '---'}
+                        <strong>Data:</strong> ${card.dataCriacao ? new Date(card.dataCriacao).toLocaleDateString('pt-BR') : '---'}
                     </div>
                     ${totalArquivos > 0 ? `<div class="card-files" onclick="visualizarCard('${card.id}', 'cotacao')">📎 ${totalArquivos} arquivo(s)</div>` : ''}
                     ${aprovadoInfo}
@@ -2132,7 +2106,7 @@ async function carregarRelatorios() {
                     </div>
                     <div class="card-company">${card.empresa || 'Sem empresa'}</div>
                     <div class="card-info">
-                        <strong>Data:</strong> ${card.dataVisita || '---'}<br>
+                        <strong>Data:</strong> ${card.dataVisita ? new Date(card.dataVisita).toLocaleDateString('pt-BR') : '---'}<br>
                         <strong>Técnico:</strong> ${card.tecnico || '---'}<br>
                         <strong>Contato:</strong> ${card.contato || '---'}
                     </div>
@@ -3242,7 +3216,7 @@ async function carregarRelatorios() {
             }
         }
         
-        // ========== FUNÇÕES DE CLIENTES (CORRIGIDA) ==========
+        // ========== FUNÇÕES DE CLIENTES ==========
         async function carregarClientes() {
             try {
                 const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
@@ -3591,11 +3565,9 @@ async function carregarRelatorios() {
             mostrarLoading(true);
             
             try {
-                // Primeiro, encontrar todas as cotações deste cliente
                 const cotacoesCliente = cotacoes.filter(c => c.cnpj === cnpj);
-                const visitasCliente = visitas.filter(v => v.cnpj === cnpj);
+                const visitasCliente = visitas.filter(v => v.empresa === clientes.find(c => c.cnpj === cnpj)?.empresa);
                 
-                // Excluir todas as cotações
                 for (const cot of cotacoesCliente) {
                     await fetch(`${API_URL}/api/cotacoes/${cot.id}`, {
                         method: 'DELETE',
@@ -3603,7 +3575,6 @@ async function carregarRelatorios() {
                     });
                 }
                 
-                // Excluir todas as visitas
                 for (const vis of visitasCliente) {
                     await fetch(`${API_URL}/api/visitas/${vis.id}`, {
                         method: 'DELETE',
@@ -3611,7 +3582,6 @@ async function carregarRelatorios() {
                     });
                 }
                 
-                // Excluir arquivados relacionados
                 const arquivadosCliente = arquivados.filter(a => a.cnpj === cnpj);
                 for (const arq of arquivadosCliente) {
                     await fetch(`${API_URL}/api/arquivados/${arq.id}`, {
