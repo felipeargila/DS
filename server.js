@@ -11,699 +11,893 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'chave-secreta-desenvolvimento';
 
-// ================= MIDDLEWARES =================
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
 
-// ================= UPLOAD =================
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const dir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
+  destination: (_, __, cb) => cb(null, uploadDir),
+  filename: (_, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${file.fieldname}-${unique}${ext}`);
+  }
 });
 
-const upload = multer({ storage });
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_, file, cb) => {
+    const allowed = ['.pdf', '.dwg', '.dxf', '.step', '.stp', '.jpg', '.jpeg', '.png'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) cb(null, true);
+    else cb(new Error('Tipo de arquivo não permitido'));
+  }
+});
 
-// ================= DATABASE =================
+app.use('/uploads', express.static(uploadDir));
+
 const db = new sqlite3.Database('./database.db', (err) => {
-    if (err) {
-        console.error('❌ Erro ao conectar ao banco:', err);
-        process.exit(1);
-    }
-
-    console.log('✅ Banco conectado');
-    criarTabelas();
+  if (err) {
+    console.error('❌ Erro ao conectar ao banco:', err);
+    process.exit(1);
+  }
+  console.log('✅ Banco conectado');
+  criarEstrutura();
 });
 
-// ================= HELPERS =================
-function runAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) reject(err);
-            else resolve(this);
-        });
+function run(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) reject(err);
+      else resolve(this);
     });
+  });
 }
 
-function getAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
+function get(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
     });
+  });
 }
 
-function allAsync(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
+function all(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
     });
+  });
 }
 
-// ================= TABELAS =================
-function criarTabelas() {
-    db.serialize(async () => {
-        try {
-            await runAsync(`
-                CREATE TABLE IF NOT EXISTS vendedores (
-                    id TEXT PRIMARY KEY,
-                    nome TEXT,
-                    login TEXT UNIQUE,
-                    senha TEXT,
-                    codigoAcesso TEXT UNIQUE,
-                    tipo TEXT DEFAULT 'vendedor',
-                    ativo INTEGER DEFAULT 1,
-                    dataCriacao TEXT
-                )
-            `);
-
-            await runAsync(`
-                CREATE TABLE IF NOT EXISTS cotacoes (
-                    id TEXT PRIMARY KEY,
-                    vendedorId TEXT,
-                    cnpj TEXT,
-                    empresa TEXT,
-                    contato TEXT,
-                    email TEXT,
-                    telefone TEXT,
-                    descricao TEXT,
-                    material TEXT,
-                    quantidade TEXT,
-                    prazo TEXT,
-                    infoAdicional TEXT,
-                    status TEXT,
-                    dataCriacao TEXT,
-                    dataAprovacao TEXT,
-                    observacoes TEXT,
-                    arquivos TEXT,
-                    linkOrcamento TEXT,
-                    valor REAL DEFAULT 0,
-                    FOREIGN KEY(vendedorId) REFERENCES vendedores(id)
-                )
-            `);
-
-            await runAsync(`
-                CREATE TABLE IF NOT EXISTS visitas (
-                    id TEXT PRIMARY KEY,
-                    cotacaoId TEXT,
-                    vendedorId TEXT,
-                    empresa TEXT,
-                    endereco TEXT,
-                    contato TEXT,
-                    telefone TEXT,
-                    status TEXT,
-                    dataVisita TEXT,
-                    tecnico TEXT,
-                    observacoes TEXT,
-                    dataCriacao TEXT,
-                    FOREIGN KEY(cotacaoId) REFERENCES cotacoes(id),
-                    FOREIGN KEY(vendedorId) REFERENCES vendedores(id)
-                )
-            `);
-
-            await runAsync(`
-                CREATE TABLE IF NOT EXISTS arquivados (
-                    id TEXT PRIMARY KEY,
-                    tipo TEXT,
-                    subtipo TEXT,
-                    dados TEXT,
-                    dataArquivamento TEXT,
-                    motivo TEXT,
-                    vendedorId TEXT,
-                    FOREIGN KEY(vendedorId) REFERENCES vendedores(id)
-                )
-            `);
-
-            await runAsync(`
-                CREATE TABLE IF NOT EXISTS contatos_historico (
-                    id TEXT PRIMARY KEY,
-                    cnpj TEXT,
-                    contato TEXT,
-                    email TEXT,
-                    telefone TEXT,
-                    dataInicio TEXT,
-                    dataFim TEXT,
-                    ativo INTEGER DEFAULT 1
-                )
-            `);
-
-            console.log('✅ Tabelas OK');
-
-            const hash = bcrypt.hashSync('admin123', 10);
-            const dataAtual = new Date().toISOString().split('T')[0];
-
-            const master = await getAsync(
-                `SELECT * FROM vendedores WHERE id = 'MASTER' OR tipo = 'master' LIMIT 1`
-            );
-
-            if (!master) {
-                await runAsync(`
-                    INSERT INTO vendedores
-                    (id, nome, login, senha, codigoAcesso, tipo, ativo, dataCriacao)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    'MASTER',
-                    'Administrador',
-                    'admin',
-                    hash,
-                    'ADMIN',
-                    'master',
-                    1,
-                    dataAtual
-                ]);
-
-                console.log('✅ Admin criado: admin / admin123');
-            } else {
-                await runAsync(`
-                    UPDATE vendedores
-                    SET nome = ?, login = ?, senha = ?, codigoAcesso = ?, tipo = ?, ativo = 1
-                    WHERE id = ?
-                `, [
-                    'Administrador',
-                    'admin',
-                    hash,
-                    'ADMIN',
-                    'master',
-                    'MASTER'
-                ]);
-
-                console.log('✅ Admin resetado: admin / admin123');
-            }
-
-            iniciarAutomacao();
-        } catch (error) {
-            console.error('❌ Erro ao criar estrutura do banco:', error);
-            process.exit(1);
-        }
-    });
+function hojeISO() {
+  return new Date().toISOString();
 }
 
-// ================= AUTOMAÇÃO =================
-let automacaoIniciada = false;
-
-function arquivarAutomaticamente(cotacao, subtipo) {
-    const dataArquivamento = new Date().toISOString().split('T')[0];
-
-    db.serialize(() => {
-        db.run(
-            `INSERT OR REPLACE INTO arquivados
-             (id, tipo, subtipo, dados, dataArquivamento, motivo, vendedorId)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-                cotacao.id,
-                'cotacao',
-                subtipo,
-                JSON.stringify(cotacao),
-                dataArquivamento,
-                `Automático: ${subtipo}`,
-                cotacao.vendedorId || null
-            ],
-            function (err) {
-                if (err) {
-                    console.error('❌ Erro ao arquivar automaticamente:', err.message);
-                    return;
-                }
-
-                db.run(`DELETE FROM cotacoes WHERE id = ?`, [cotacao.id], (deleteErr) => {
-                    if (deleteErr) {
-                        console.error('❌ Erro ao remover cotação após arquivamento:', deleteErr.message);
-                    }
-                });
-            }
-        );
-    });
-}
-
-function iniciarAutomacao() {
-    if (automacaoIniciada) return;
-    automacaoIniciada = true;
-
-    setInterval(async () => {
-        try {
-            const hoje = new Date();
-            const cotacoes = await allAsync(`SELECT * FROM cotacoes`);
-
-            for (const c of cotacoes) {
-                if (!c.dataCriacao) continue;
-
-                const dias = Math.floor(
-                    (hoje - new Date(c.dataCriacao)) / (1000 * 60 * 60 * 24)
-                );
-
-                if (c.status === 'Orçamento Enviado' && dias >= 7) {
-                    await runAsync(
-                        `UPDATE cotacoes SET status = ? WHERE id = ?`,
-                        ['Sem Retorno', c.id]
-                    );
-                    continue;
-                }
-
-                if (c.status === 'Sem Retorno' && dias >= 14) {
-                    arquivarAutomaticamente(c, 'sem_retorno');
-                    continue;
-                }
-
-                if (c.status === 'Pedido Aprovado' && dias >= 7) {
-                    arquivarAutomaticamente(c, 'aprovado');
-                }
-            }
-        } catch (error) {
-            console.error('❌ Erro na automação:', error.message);
-        }
-    }, 60 * 60 * 1000);
-}
-
-// ================= AUTH =================
-function verificarToken(req, res, next) {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ erro: 'Token não fornecido' });
-    }
-
+async function criarEstrutura() {
+  db.serialize(async () => {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.usuario = decoded;
-        next();
-    } catch (erro) {
-        return res.status(401).json({ erro: 'Token inválido' });
+      await run(`
+        CREATE TABLE IF NOT EXISTS vendedores (
+          id TEXT PRIMARY KEY,
+          nome TEXT NOT NULL,
+          login TEXT NOT NULL UNIQUE,
+          senha TEXT NOT NULL,
+          codigoAcesso TEXT NOT NULL UNIQUE,
+          tipo TEXT NOT NULL DEFAULT 'vendedor',
+          ativo INTEGER NOT NULL DEFAULT 1,
+          dataCriacao TEXT NOT NULL
+        )
+      `);
+
+      await run(`
+        CREATE TABLE IF NOT EXISTS cotacoes (
+          id TEXT PRIMARY KEY,
+          vendedorId TEXT,
+          cnpj TEXT,
+          empresa TEXT,
+          contato TEXT,
+          email TEXT,
+          telefone TEXT,
+          descricao TEXT,
+          material TEXT,
+          quantidade TEXT,
+          prazo TEXT,
+          infoAdicional TEXT,
+          status TEXT,
+          dataCriacao TEXT,
+          statusAtualizadoEm TEXT,
+          dataAprovacao TEXT,
+          observacoes TEXT,
+          arquivos TEXT,
+          linkOrcamento TEXT,
+          valor REAL DEFAULT 0,
+          FOREIGN KEY(vendedorId) REFERENCES vendedores(id)
+        )
+      `);
+
+      await run(`
+        CREATE TABLE IF NOT EXISTS visitas (
+          id TEXT PRIMARY KEY,
+          cotacaoId TEXT,
+          vendedorId TEXT,
+          empresa TEXT,
+          endereco TEXT,
+          contato TEXT,
+          telefone TEXT,
+          status TEXT,
+          dataVisita TEXT,
+          tecnico TEXT,
+          observacoes TEXT,
+          dataCriacao TEXT,
+          statusAtualizadoEm TEXT,
+          FOREIGN KEY(cotacaoId) REFERENCES cotacoes(id),
+          FOREIGN KEY(vendedorId) REFERENCES vendedores(id)
+        )
+      `);
+
+      await run(`
+        CREATE TABLE IF NOT EXISTS arquivados (
+          id TEXT PRIMARY KEY,
+          tipo TEXT,
+          subtipo TEXT,
+          dados TEXT,
+          dataArquivamento TEXT,
+          motivo TEXT,
+          vendedorId TEXT
+        )
+      `);
+
+      await run(`
+        CREATE TABLE IF NOT EXISTS contatos_historico (
+          id TEXT PRIMARY KEY,
+          cnpj TEXT,
+          contato TEXT,
+          email TEXT,
+          telefone TEXT,
+          dataInicio TEXT,
+          dataFim TEXT,
+          ativo INTEGER DEFAULT 1
+        )
+      `);
+
+      const colunasCotacoes = await all(`PRAGMA table_info(cotacoes)`);
+      const nomesCot = colunasCotacoes.map(c => c.name);
+      if (!nomesCot.includes('statusAtualizadoEm')) {
+        await run(`ALTER TABLE cotacoes ADD COLUMN statusAtualizadoEm TEXT`);
+      }
+      if (!nomesCot.includes('dataAprovacao')) {
+        await run(`ALTER TABLE cotacoes ADD COLUMN dataAprovacao TEXT`);
+      }
+      if (!nomesCot.includes('linkOrcamento')) {
+        await run(`ALTER TABLE cotacoes ADD COLUMN linkOrcamento TEXT`);
+      }
+      if (!nomesCot.includes('valor')) {
+        await run(`ALTER TABLE cotacoes ADD COLUMN valor REAL DEFAULT 0`);
+      }
+
+      const colunasVisitas = await all(`PRAGMA table_info(visitas)`);
+      const nomesVis = colunasVisitas.map(c => c.name);
+      if (!nomesVis.includes('statusAtualizadoEm')) {
+        await run(`ALTER TABLE visitas ADD COLUMN statusAtualizadoEm TEXT`);
+      }
+
+      const hash = bcrypt.hashSync('admin123', 10);
+      const existeMaster = await get(`SELECT * FROM vendedores WHERE id = 'MASTER'`);
+      if (!existeMaster) {
+        await run(`
+          INSERT INTO vendedores (id, nome, login, senha, codigoAcesso, tipo, ativo, dataCriacao)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, ['MASTER', 'Administrador', 'admin', hash, 'ADMIN', 'master', 1, hojeISO()]);
+        console.log('✅ Admin criado: admin / admin123');
+      } else {
+        await run(`
+          UPDATE vendedores
+          SET nome = ?, login = ?, senha = ?, codigoAcesso = ?, tipo = ?, ativo = 1
+          WHERE id = 'MASTER'
+        `, ['Administrador', 'admin', hash, 'ADMIN', 'master']);
+        console.log('✅ Admin resetado: admin / admin123');
+      }
+
+      await run(`UPDATE cotacoes SET statusAtualizadoEm = COALESCE(statusAtualizadoEm, dataCriacao)`);
+      await run(`UPDATE visitas SET statusAtualizadoEm = COALESCE(statusAtualizadoEm, dataCriacao)`);
+      console.log('✅ Estrutura pronta');
+      iniciarAutomacao();
+    } catch (error) {
+      console.error('❌ Erro ao criar estrutura:', error);
+      process.exit(1);
     }
+  });
 }
 
-function verificarMaster(req, res, next) {
-    if (req.usuario.tipo !== 'master') {
-        return res.status(403).json({ erro: 'Acesso negado' });
-    }
+function normalizeCnpj(value = '') {
+  return String(value).replace(/\D/g, '');
+}
+
+function validarDrive(link = '') {
+  return typeof link === 'string' && link.includes('drive.google.com');
+}
+
+function mascararPeriodoBR(date) {
+  return new Date(date).toLocaleDateString('pt-BR');
+}
+
+async function registrarContatoHistorico({ cnpj, contato, email, telefone }) {
+  const cnpjLimpo = normalizeCnpj(cnpj);
+  if (!cnpjLimpo || !contato || !email || !telefone) return;
+
+  const atual = await get(`
+    SELECT * FROM contatos_historico
+    WHERE cnpj = ? AND ativo = 1 AND contato = ? AND email = ? AND telefone = ?
+    LIMIT 1
+  `, [cnpjLimpo, contato, email, telefone]);
+
+  if (atual) return;
+
+  await run(`UPDATE contatos_historico SET ativo = 0, dataFim = ? WHERE cnpj = ? AND ativo = 1`, [hojeISO(), cnpjLimpo]);
+  await run(`
+    INSERT INTO contatos_historico (id, cnpj, contato, email, telefone, dataInicio, ativo)
+    VALUES (?, ?, ?, ?, ?, ?, 1)
+  `, [`CH-${Date.now()}-${Math.round(Math.random() * 1e6)}`, cnpjLimpo, contato, email, telefone, hojeISO()]);
+}
+
+function signUser(user) {
+  return jwt.sign({ id: user.id, nome: user.nome, tipo: user.tipo }, JWT_SECRET, { expiresIn: '8h' });
+}
+
+function auth(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ sucesso: false, erro: 'Token não fornecido' });
+  try {
+    req.usuario = jwt.verify(token, JWT_SECRET);
     next();
+  } catch {
+    res.status(401).json({ sucesso: false, erro: 'Token inválido' });
+  }
 }
 
-// ================= ROTAS PÚBLICAS =================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+function masterOnly(req, res, next) {
+  if (req.usuario.tipo !== 'master') {
+    return res.status(403).json({ sucesso: false, erro: 'Acesso negado' });
+  }
+  next();
+}
 
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
+async function arquivarRegistro(tipo, id, subtipo, motivo = '', vendedorId = null) {
+  const tabela = tipo === 'visita' ? 'visitas' : 'cotacoes';
+  const row = await get(`SELECT * FROM ${tabela} WHERE id = ?`, [id]);
+  if (!row) return false;
 
-// ================= LOGIN =================
+  const payload = {
+    ...row,
+    arquivos: row.arquivos ? JSON.parse(row.arquivos) : []
+  };
+
+  await run(`
+    INSERT OR REPLACE INTO arquivados (id, tipo, subtipo, dados, dataArquivamento, motivo, vendedorId)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `, [id, tipo, subtipo, JSON.stringify(payload), hojeISO(), motivo, vendedorId || row.vendedorId || null]);
+
+  await run(`DELETE FROM ${tabela} WHERE id = ?`, [id]);
+  return true;
+}
+
+let automacaoLigada = false;
+function iniciarAutomacao() {
+  if (automacaoLigada) return;
+  automacaoLigada = true;
+
+  setInterval(async () => {
+    try {
+      const cotacoes = await all(`SELECT * FROM cotacoes`);
+      const agora = Date.now();
+      for (const c of cotacoes) {
+        const base = new Date(c.statusAtualizadoEm || c.dataCriacao || hojeISO()).getTime();
+        const dias = Math.floor((agora - base) / 86400000);
+
+        if (c.status === 'Orçamento Enviado' && dias >= 7) {
+          await run(`UPDATE cotacoes SET status = ?, statusAtualizadoEm = ? WHERE id = ?`, ['Sem Retorno', hojeISO(), c.id]);
+        } else if (c.status === 'Sem Retorno' && dias >= 7) {
+          await arquivarRegistro('cotacao', c.id, 'sem_retorno', 'Arquivado automaticamente por falta de retorno', c.vendedorId);
+        } else if (c.status === 'Pedido Aprovado' && dias >= 7) {
+          await arquivarRegistro('cotacao', c.id, 'aprovado', 'Arquivado automaticamente após aprovação', c.vendedorId);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro na automação:', error.message);
+    }
+  }, 60 * 60 * 1000);
+}
+
+app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+
 app.post('/api/login', async (req, res) => {
+  try {
     const { usuario, senha } = req.body;
-
-    try {
-        const row = await getAsync(
-            `SELECT * FROM vendedores WHERE login = ? AND ativo = 1`,
-            [usuario]
-        );
-
-        if (!row) {
-            return res.json({ sucesso: false, erro: 'Usuário não encontrado' });
-        }
-
-        if (!bcrypt.compareSync(senha, row.senha)) {
-            return res.json({ sucesso: false, erro: 'Senha incorreta' });
-        }
-
-        const token = jwt.sign(
-            { id: row.id, nome: row.nome, tipo: row.tipo },
-            JWT_SECRET,
-            { expiresIn: '8h' }
-        );
-
-        res.json({
-            sucesso: true,
-            token,
-            usuario: {
-                id: row.id,
-                nome: row.nome,
-                tipo: row.tipo,
-                codigoAcesso: row.codigoAcesso
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ sucesso: false, erro: error.message });
+    const row = await get(`SELECT * FROM vendedores WHERE login = ? AND ativo = 1`, [usuario]);
+    if (!row) return res.json({ sucesso: false, erro: 'Usuário não encontrado' });
+    if (!bcrypt.compareSync(senha, row.senha)) {
+      return res.json({ sucesso: false, erro: 'Senha incorreta' });
     }
+    return res.json({
+      sucesso: true,
+      token: signUser(row),
+      usuario: { id: row.id, nome: row.nome, tipo: row.tipo, codigoAcesso: row.codigoAcesso }
+    });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-app.get('/api/verificar-token', verificarToken, (req, res) => {
-    res.json({ sucesso: true, usuario: req.usuario });
+app.get('/api/verificar-token', auth, (req, res) => {
+  res.json({ sucesso: true, usuario: req.usuario });
 });
 
-// ================= VENDEDORES =================
 app.get('/api/vendedores/codigo/:codigo', async (req, res) => {
-    try {
-        const row = await getAsync(
-            `SELECT id, nome, codigoAcesso
-             FROM vendedores
-             WHERE codigoAcesso = ? AND ativo = 1`,
-            [req.params.codigo]
-        );
-
-        if (row) {
-            res.json({ sucesso: true, vendedor: row });
-        } else {
-            res.json({ sucesso: false, vendedor: null });
-        }
-    } catch (error) {
-        res.status(500).json({ sucesso: false, erro: error.message });
-    }
+  try {
+    const codigo = String(req.params.codigo || '').toUpperCase();
+    const vendedor = await get(`SELECT id, nome, codigoAcesso FROM vendedores WHERE codigoAcesso = ? AND ativo = 1`, [codigo]);
+    if (!vendedor) return res.json({ sucesso: false, vendedor: null });
+    res.json({ sucesso: true, vendedor });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-app.get('/api/vendedores', verificarToken, verificarMaster, async (req, res) => {
-    try {
-        const rows = await allAsync(
-            `SELECT id, nome, login, codigoAcesso, tipo, ativo, dataCriacao
-             FROM vendedores
-             ORDER BY nome`
-        );
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
-    }
+app.get('/api/vendedores', auth, masterOnly, async (_, res) => {
+  try {
+    res.json(await all(`SELECT id, nome, login, codigoAcesso, tipo, ativo, dataCriacao FROM vendedores ORDER BY nome`));
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-// ================= CLIENTES =================
+app.post('/api/vendedores', auth, masterOnly, async (req, res) => {
+  try {
+    const { nome, login, senha, codigoAcesso, tipo } = req.body;
+    const codigo = String(codigoAcesso || '').toUpperCase();
+    if (codigo.length !== 6) return res.status(400).json({ sucesso: false, erro: 'Código deve ter 6 caracteres' });
+    const id = `VND-${Date.now()}`;
+    await run(`
+      INSERT INTO vendedores (id, nome, login, senha, codigoAcesso, tipo, ativo, dataCriacao)
+      VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+    `, [id, nome, login, bcrypt.hashSync(senha, 10), codigo, tipo || 'vendedor', hojeISO()]);
+    res.json({ sucesso: true, id });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.put('/api/vendedores/:id', auth, masterOnly, async (req, res) => {
+  try {
+    const { nome, login, codigoAcesso, tipo, ativo } = req.body;
+    const codigo = codigoAcesso ? String(codigoAcesso).toUpperCase() : null;
+    if (codigo && codigo.length !== 6) return res.status(400).json({ sucesso: false, erro: 'Código deve ter 6 caracteres' });
+    await run(`
+      UPDATE vendedores
+      SET nome = ?, login = ?, codigoAcesso = COALESCE(?, codigoAcesso), tipo = ?, ativo = ?
+      WHERE id = ?
+    `, [nome, login, codigo, tipo, ativo ? 1 : 0, req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.put('/api/vendedores/:id/senha', auth, async (req, res) => {
+  try {
+    if (req.usuario.tipo !== 'master' && req.usuario.id !== req.params.id) {
+      return res.status(403).json({ sucesso: false, erro: 'Acesso negado' });
+    }
+    await run(`UPDATE vendedores SET senha = ? WHERE id = ?`, [bcrypt.hashSync(req.body.senha, 10), req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.delete('/api/vendedores/:id', auth, masterOnly, async (req, res) => {
+  try {
+    if (req.params.id === 'MASTER') return res.status(400).json({ sucesso: false, erro: 'Não é possível excluir o admin principal' });
+    await run(`DELETE FROM vendedores WHERE id = ?`, [req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
 app.get('/api/clientes/:cnpj', async (req, res) => {
-    try {
-        const cnpj = req.params.cnpj.replace(/\D/g, '');
+  try {
+    const cnpj = normalizeCnpj(req.params.cnpj);
+    const row = await get(`
+      SELECT cnpj, empresa, contato, email, telefone
+      FROM cotacoes
+      WHERE cnpj = ?
+      ORDER BY dataCriacao DESC
+      LIMIT 1
+    `, [cnpj]);
 
-        const row = await getAsync(`
-            SELECT cnpj, empresa, contato, email, telefone
-            FROM cotacoes
-            WHERE cnpj = ?
-            ORDER BY dataCriacao DESC
-            LIMIT 1
-        `, [cnpj]);
+    if (row) return res.json({ encontrado: true, cliente: row });
 
-        if (row) {
-            res.json({ encontrado: true, cliente: row });
-        } else {
-            res.json({ encontrado: false });
+    const arquivado = await get(`SELECT dados FROM arquivados WHERE tipo = 'cotacao' ORDER BY dataArquivamento DESC`);
+    if (arquivado) {
+      try {
+        const dados = JSON.parse(arquivado.dados);
+        if (normalizeCnpj(dados.cnpj) === cnpj) {
+          return res.json({
+            encontrado: true,
+            cliente: { cnpj, empresa: dados.empresa, contato: dados.contato, email: dados.email, telefone: dados.telefone }
+          });
         }
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
+      } catch {}
     }
+
+    res.json({ encontrado: false });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-// ================= COTAÇÕES =================
-app.get('/api/cotacoes', verificarToken, async (req, res) => {
-    try {
-        let query = 'SELECT * FROM cotacoes';
-        const params = [];
+app.get('/api/clientes', auth, async (req, res) => {
+  try {
+    const ativos = await all(`SELECT * FROM cotacoes`);
+    const arquivados = await all(`SELECT * FROM arquivados WHERE tipo = 'cotacao'`);
+    const todos = [
+      ...ativos.map(c => ({ ...c, arquivos: c.arquivos ? JSON.parse(c.arquivos) : [] })),
+      ...arquivados.map(a => JSON.parse(a.dados))
+    ];
 
-        if (req.usuario.tipo !== 'master') {
-            query += ' WHERE vendedorId = ?';
-            params.push(req.usuario.id);
-        }
-
-        query += ' ORDER BY dataCriacao DESC';
-
-        const rows = await allAsync(query, params);
-
-        const cotacoes = rows.map(row => ({
-            ...row,
-            arquivos: row.arquivos ? JSON.parse(row.arquivos) : []
-        }));
-
-        res.json(cotacoes);
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
+    const mapa = new Map();
+    for (const item of todos) {
+      const cnpj = normalizeCnpj(item.cnpj);
+      if (!cnpj) continue;
+      if (!mapa.has(cnpj)) mapa.set(cnpj, []);
+      mapa.get(cnpj).push(item);
     }
+
+    const clientes = [];
+    for (const [cnpj, historico] of mapa.entries()) {
+      historico.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
+      const ultimo = historico[0];
+      const contatos = [];
+      const vistos = new Set();
+      for (const h of historico) {
+        const chave = `${h.contato || ''}|${h.email || ''}|${h.telefone || ''}`;
+        if (!vistos.has(chave) && (h.contato || h.email || h.telefone)) {
+          vistos.add(chave);
+          contatos.push({ contato: h.contato || '', email: h.email || '', telefone: h.telefone || '' });
+        }
+      }
+      clientes.push({
+        cnpj,
+        empresa: ultimo.empresa || '',
+        totalCompras: historico.filter(h => h.status === 'Pedido Aprovado').reduce((s, h) => s + Number(h.valor || 0), 0),
+        contatos,
+        historico
+      });
+    }
+
+    clientes.sort((a, b) => a.empresa.localeCompare(b.empresa, 'pt-BR'));
+    res.json(clientes);
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.delete('/api/clientes/:cnpj', auth, masterOnly, async (req, res) => {
+  try {
+    const cnpj = normalizeCnpj(req.params.cnpj);
+    await run(`DELETE FROM cotacoes WHERE cnpj = ?`, [cnpj]);
+    const arquivados = await all(`SELECT id, dados FROM arquivados WHERE tipo = 'cotacao'`);
+    for (const item of arquivados) {
+      try {
+        const dados = JSON.parse(item.dados);
+        if (normalizeCnpj(dados.cnpj) === cnpj) {
+          await run(`DELETE FROM arquivados WHERE id = ?`, [item.id]);
+        }
+      } catch {}
+    }
+    await run(`DELETE FROM contatos_historico WHERE cnpj = ?`, [cnpj]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.get('/api/cotacoes', auth, async (req, res) => {
+  try {
+    let query = `SELECT * FROM cotacoes`;
+    const params = [];
+    if (req.usuario.tipo !== 'master') {
+      query += ` WHERE vendedorId = ?`;
+      params.push(req.usuario.id);
+    }
+    query += ` ORDER BY dataCriacao DESC`;
+    const rows = await all(query, params);
+    res.json(rows.map(r => ({ ...r, arquivos: r.arquivos ? JSON.parse(r.arquivos) : [] })));
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
 app.post('/api/cotacoes', async (req, res) => {
-    try {
-        const {
-            id, vendedorId, cnpj, empresa, contato, email, telefone, descricao,
-            material, quantidade, prazo, infoAdicional, status, dataCriacao, arquivos, valor
-        } = req.body;
+  try {
+    const {
+      vendedorId, cnpj, empresa, contato, email, telefone, descricao,
+      material, quantidade, prazo, infoAdicional, status, arquivos
+    } = req.body;
 
-        const arquivosJson = JSON.stringify(arquivos || []);
-
-        await runAsync(`
-            INSERT INTO cotacoes (
-                id, vendedorId, cnpj, empresa, contato, email, telefone, descricao,
-                material, quantidade, prazo, infoAdicional, status, dataCriacao, arquivos, valor
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
-            id, vendedorId, cnpj, empresa, contato, email, telefone, descricao,
-            material, quantidade, prazo, infoAdicional, status, dataCriacao, arquivosJson, valor || 0
-        ]);
-
-        res.json({ sucesso: true, id });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
+    if (!empresa || !contato || !email || !telefone || !descricao) {
+      return res.status(400).json({ sucesso: false, erro: 'Preencha os campos obrigatórios' });
     }
+
+    const id = req.body.id || `COT-${Date.now()}${Math.round(Math.random() * 1000)}`;
+    const data = hojeISO();
+    await run(`
+      INSERT INTO cotacoes (
+        id, vendedorId, cnpj, empresa, contato, email, telefone, descricao,
+        material, quantidade, prazo, infoAdicional, status, dataCriacao,
+        statusAtualizadoEm, arquivos, valor
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id,
+      vendedorId || null,
+      normalizeCnpj(cnpj),
+      empresa,
+      contato,
+      email,
+      telefone,
+      descricao,
+      material || '',
+      quantidade || '',
+      prazo || '',
+      infoAdicional || '',
+      status || 'Novo Orçamento',
+      data,
+      data,
+      JSON.stringify(arquivos || []),
+      0
+    ]);
+
+    await registrarContatoHistorico({ cnpj, contato, email, telefone });
+    res.json({ sucesso: true, id });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-app.put('/api/cotacoes/:id', verificarToken, async (req, res) => {
-    try {
-        const {
-            empresa, contato, email, telefone, descricao, material,
-            quantidade, prazo, infoAdicional, status, observacoes,
-            linkOrcamento, valor, dataAprovacao
-        } = req.body;
+app.put('/api/cotacoes/:id', auth, async (req, res) => {
+  try {
+    const atual = await get(`SELECT * FROM cotacoes WHERE id = ?`, [req.params.id]);
+    if (!atual) return res.status(404).json({ sucesso: false, erro: 'Cotação não encontrada' });
 
-        await runAsync(`
-            UPDATE cotacoes
-            SET empresa = ?, contato = ?, email = ?, telefone = ?,
-                descricao = ?, material = ?, quantidade = ?, prazo = ?,
-                infoAdicional = ?, status = ?, observacoes = ?,
-                linkOrcamento = ?, valor = ?, dataAprovacao = ?
-            WHERE id = ?
-        `, [
-            empresa, contato, email, telefone, descricao, material,
-            quantidade, prazo, infoAdicional, status, observacoes,
-            linkOrcamento || null, valor || 0, dataAprovacao || null, req.params.id
-        ]);
+    const novoStatus = req.body.status ?? atual.status;
+    const statusAtualizadoEm = novoStatus !== atual.status ? hojeISO() : (atual.statusAtualizadoEm || hojeISO());
+    const dataAprovacao = novoStatus === 'Pedido Aprovado'
+      ? (req.body.dataAprovacao || atual.dataAprovacao || hojeISO())
+      : atual.dataAprovacao;
 
-        res.json({ sucesso: true });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
+    if (novoStatus === 'Orçamento Enviado' && req.body.linkOrcamento && !validarDrive(req.body.linkOrcamento)) {
+      return res.status(400).json({ sucesso: false, erro: 'O link deve ser do Google Drive' });
     }
+
+    await run(`
+      UPDATE cotacoes
+      SET empresa = ?, contato = ?, email = ?, telefone = ?, descricao = ?, material = ?, quantidade = ?,
+          prazo = ?, infoAdicional = ?, status = ?, statusAtualizadoEm = ?, observacoes = ?,
+          linkOrcamento = ?, valor = ?, dataAprovacao = ?
+      WHERE id = ?
+    `, [
+      req.body.empresa ?? atual.empresa,
+      req.body.contato ?? atual.contato,
+      req.body.email ?? atual.email,
+      req.body.telefone ?? atual.telefone,
+      req.body.descricao ?? atual.descricao,
+      req.body.material ?? atual.material,
+      req.body.quantidade ?? atual.quantidade,
+      req.body.prazo ?? atual.prazo,
+      req.body.infoAdicional ?? atual.infoAdicional,
+      novoStatus,
+      statusAtualizadoEm,
+      req.body.observacoes ?? atual.observacoes,
+      req.body.linkOrcamento ?? atual.linkOrcamento,
+      Number(req.body.valor ?? atual.valor ?? 0),
+      dataAprovacao,
+      req.params.id
+    ]);
+
+    await registrarContatoHistorico({
+      cnpj: req.body.cnpj ?? atual.cnpj,
+      contato: req.body.contato ?? atual.contato,
+      email: req.body.email ?? atual.email,
+      telefone: req.body.telefone ?? atual.telefone
+    });
+
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-// ================= ARQUIVADOS =================
-app.get('/api/arquivados', verificarToken, async (req, res) => {
-    try {
-        let query = 'SELECT * FROM arquivados';
-        const params = [];
-
-        if (req.usuario.tipo !== 'master') {
-            query += ' WHERE vendedorId = ?';
-            params.push(req.usuario.id);
-        }
-
-        const rows = await allAsync(query, params);
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
-    }
+app.delete('/api/cotacoes/:id', auth, async (req, res) => {
+  try {
+    await run(`DELETE FROM cotacoes WHERE id = ?`, [req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-app.post('/api/arquivar', verificarToken, async (req, res) => {
-    try {
-        const { id, tipo, subtipo, dados, motivo } = req.body;
-        const dataArquivamento = new Date().toISOString().split('T')[0];
-        const dadosJson = JSON.stringify(dados);
-
-        await runAsync(`
-            INSERT INTO arquivados
-            (id, tipo, subtipo, dados, dataArquivamento, motivo, vendedorId)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [
-            id,
-            tipo,
-            subtipo || 'manual',
-            dadosJson,
-            dataArquivamento,
-            motivo || '',
-            req.usuario.id
-        ]);
-
-        if (tipo === 'cotacao') {
-            await runAsync(`DELETE FROM cotacoes WHERE id = ?`, [id]);
-        } else {
-            await runAsync(`DELETE FROM visitas WHERE id = ?`, [id]);
-        }
-
-        res.json({ sucesso: true });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
+app.get('/api/visitas', auth, async (req, res) => {
+  try {
+    let query = `SELECT * FROM visitas`;
+    const params = [];
+    if (req.usuario.tipo !== 'master') {
+      query += ` WHERE vendedorId = ?`;
+      params.push(req.usuario.id);
     }
+    query += ` ORDER BY dataCriacao DESC`;
+    res.json(await all(query, params));
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-app.post('/api/arquivados/:id/restaurar', verificarToken, async (req, res) => {
-    try {
-        const row = await getAsync(`SELECT * FROM arquivados WHERE id = ?`, [req.params.id]);
-
-        if (!row) {
-            return res.status(404).json({ erro: 'Arquivado não encontrado' });
-        }
-
-        const dados = JSON.parse(row.dados);
-
-        if (row.tipo === 'cotacao') {
-            await runAsync(`
-                INSERT INTO cotacoes (
-                    id, vendedorId, cnpj, empresa, contato, email, telefone, descricao,
-                    material, quantidade, prazo, infoAdicional, status, dataCriacao,
-                    dataAprovacao, observacoes, arquivos, linkOrcamento, valor
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [
-                dados.id,
-                dados.vendedorId || req.usuario.id,
-                dados.cnpj || '',
-                dados.empresa || '',
-                dados.contato || '',
-                dados.email || '',
-                dados.telefone || '',
-                dados.descricao || '',
-                dados.material || '',
-                dados.quantidade || '',
-                dados.prazo || '',
-                dados.infoAdicional || '',
-                dados.status || 'Novo Orçamento',
-                dados.dataCriacao || new Date().toISOString().split('T')[0],
-                dados.dataAprovacao || null,
-                dados.observacoes || '',
-                JSON.stringify(dados.arquivos || []),
-                dados.linkOrcamento || null,
-                dados.valor || 0
-            ]);
-        }
-
-        await runAsync(`DELETE FROM arquivados WHERE id = ?`, [req.params.id]);
-
-        res.json({ sucesso: true });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
-    }
+app.post('/api/visitas', auth, async (req, res) => {
+  try {
+    const id = req.body.id || `VIS-${Date.now()}${Math.round(Math.random() * 1000)}`;
+    const data = hojeISO();
+    await run(`
+      INSERT INTO visitas (
+        id, cotacaoId, vendedorId, empresa, endereco, contato, telefone,
+        status, dataVisita, tecnico, observacoes, dataCriacao, statusAtualizadoEm
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id,
+      req.body.cotacaoId || null,
+      req.body.vendedorId || req.usuario.id,
+      req.body.empresa || '',
+      req.body.endereco || '',
+      req.body.contato || '',
+      req.body.telefone || '',
+      req.body.status || 'Agendar Mapeamento',
+      req.body.dataVisita || '',
+      req.body.tecnico || '',
+      req.body.observacoes || '',
+      data,
+      data
+    ]);
+    res.json({ sucesso: true, id });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-app.delete('/api/arquivados/:id', verificarToken, async (req, res) => {
-    try {
-        await runAsync(`DELETE FROM arquivados WHERE id = ?`, [req.params.id]);
-        res.json({ sucesso: true });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
-    }
+app.put('/api/visitas/:id', auth, async (req, res) => {
+  try {
+    const atual = await get(`SELECT * FROM visitas WHERE id = ?`, [req.params.id]);
+    if (!atual) return res.status(404).json({ sucesso: false, erro: 'Visita não encontrada' });
+    const novoStatus = req.body.status ?? atual.status;
+    const statusAtualizadoEm = novoStatus !== atual.status ? hojeISO() : (atual.statusAtualizadoEm || hojeISO());
+
+    await run(`
+      UPDATE visitas
+      SET empresa = ?, endereco = ?, contato = ?, telefone = ?, status = ?, dataVisita = ?, tecnico = ?, observacoes = ?, statusAtualizadoEm = ?
+      WHERE id = ?
+    `, [
+      req.body.empresa ?? atual.empresa,
+      req.body.endereco ?? atual.endereco,
+      req.body.contato ?? atual.contato,
+      req.body.telefone ?? atual.telefone,
+      novoStatus,
+      req.body.dataVisita ?? atual.dataVisita,
+      req.body.tecnico ?? atual.tecnico,
+      req.body.observacoes ?? atual.observacoes,
+      statusAtualizadoEm,
+      req.params.id
+    ]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-// ================= RELATÓRIOS =================
-app.get('/api/relatorios/geral', verificarToken, verificarMaster, async (req, res) => {
-    try {
-        const hoje = new Date();
-
-        const ativos = await allAsync(`SELECT * FROM cotacoes`);
-        const arquivados = await allAsync(`SELECT * FROM arquivados WHERE tipo = 'cotacao'`);
-
-        const cotacoesArquivadas = arquivados
-            .map(a => {
-                try {
-                    return JSON.parse(a.dados);
-                } catch {
-                    return null;
-                }
-            })
-            .filter(Boolean);
-
-        const todas = [...ativos, ...cotacoesArquivadas];
-
-        const inicioSemana = new Date(hoje);
-        const dia = inicioSemana.getDay();
-        const diffParaSegunda = dia === 0 ? 6 : dia - 1;
-        inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
-        inicioSemana.setHours(0, 0, 0, 0);
-
-        const fimSemana = new Date(inicioSemana);
-        fimSemana.setDate(inicioSemana.getDate() + 5);
-        fimSemana.setHours(23, 59, 59, 999);
-
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1, 0, 0, 0, 0);
-        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
-
-        const ehAprovado = c => c.status === 'Pedido Aprovado';
-
-        const dentro = (data, inicio, fim) => {
-            if (!data) return false;
-            const d = new Date(data);
-            return d >= inicio && d <= fim;
-        };
-
-        const vendasSemana = todas
-            .filter(c => ehAprovado(c) && dentro(c.dataAprovacao || c.dataCriacao, inicioSemana, fimSemana))
-            .reduce((s, c) => s + Number(c.valor || 0), 0);
-
-        const vendasMes = todas
-            .filter(c => ehAprovado(c) && dentro(c.dataAprovacao || c.dataCriacao, inicioMes, fimMes))
-            .reduce((s, c) => s + Number(c.valor || 0), 0);
-
-        const vendedores = await allAsync(`SELECT id, nome FROM vendedores WHERE ativo = 1 ORDER BY nome`);
-
-        const porVendedor = vendedores.map(v => {
-            const itens = todas.filter(c => c.vendedorId === v.id);
-            const total = itens.length;
-            const convertidos = itens.filter(ehAprovado).length;
-            const valorVendido = itens
-                .filter(ehAprovado)
-                .reduce((s, c) => s + Number(c.valor || 0), 0);
-
-            return {
-                vendedor: v.nome,
-                total,
-                convertidos,
-                taxa: total > 0 ? ((convertidos / total) * 100).toFixed(1) + '%' : '0%',
-                valorVendido
-            };
-        });
-
-        const formatarDataBR = d => d.toLocaleDateString('pt-BR');
-
-        res.json({
-            geral: {
-                vendasSemana,
-                vendasMes,
-                periodoSemana: `${formatarDataBR(inicioSemana)} a ${formatarDataBR(fimSemana)}`,
-                periodoMes: `${formatarDataBR(inicioMes)} a ${formatarDataBR(fimMes)}`
-            },
-            porVendedor
-        });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
-    }
+app.delete('/api/visitas/:id', auth, async (req, res) => {
+  try {
+    await run(`DELETE FROM visitas WHERE id = ?`, [req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-// ================= UPLOAD =================
+app.get('/api/arquivados', auth, async (req, res) => {
+  try {
+    let query = `SELECT * FROM arquivados`;
+    const params = [];
+    if (req.usuario.tipo !== 'master') {
+      query += ` WHERE vendedorId = ?`;
+      params.push(req.usuario.id);
+    }
+    query += ` ORDER BY dataArquivamento DESC`;
+    res.json(await all(query, params));
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.post('/api/arquivar', auth, async (req, res) => {
+  try {
+    const ok = await arquivarRegistro(req.body.tipo, req.body.id, req.body.subtipo || 'manual', req.body.motivo || '', req.usuario.id);
+    if (!ok) return res.status(404).json({ sucesso: false, erro: 'Registro não encontrado' });
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.post('/api/arquivados/:id/restaurar', auth, async (req, res) => {
+  try {
+    const item = await get(`SELECT * FROM arquivados WHERE id = ?`, [req.params.id]);
+    if (!item) return res.status(404).json({ sucesso: false, erro: 'Arquivado não encontrado' });
+    const dados = JSON.parse(item.dados);
+
+    if (item.tipo === 'cotacao') {
+      await run(`
+        INSERT INTO cotacoes (
+          id, vendedorId, cnpj, empresa, contato, email, telefone, descricao, material,
+          quantidade, prazo, infoAdicional, status, dataCriacao, statusAtualizadoEm,
+          dataAprovacao, observacoes, arquivos, linkOrcamento, valor
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        dados.id,
+        dados.vendedorId || req.usuario.id,
+        normalizeCnpj(dados.cnpj),
+        dados.empresa || '',
+        dados.contato || '',
+        dados.email || '',
+        dados.telefone || '',
+        dados.descricao || '',
+        dados.material || '',
+        dados.quantidade || '',
+        dados.prazo || '',
+        dados.infoAdicional || '',
+        dados.status || 'Novo Orçamento',
+        dados.dataCriacao || hojeISO(),
+        hojeISO(),
+        dados.dataAprovacao || null,
+        dados.observacoes || '',
+        JSON.stringify(dados.arquivos || []),
+        dados.linkOrcamento || '',
+        Number(dados.valor || 0)
+      ]);
+    } else if (item.tipo === 'visita') {
+      await run(`
+        INSERT INTO visitas (
+          id, cotacaoId, vendedorId, empresa, endereco, contato, telefone, status,
+          dataVisita, tecnico, observacoes, dataCriacao, statusAtualizadoEm
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        dados.id,
+        dados.cotacaoId || null,
+        dados.vendedorId || req.usuario.id,
+        dados.empresa || '',
+        dados.endereco || '',
+        dados.contato || '',
+        dados.telefone || '',
+        dados.status || 'Agendar Mapeamento',
+        dados.dataVisita || '',
+        dados.tecnico || '',
+        dados.observacoes || '',
+        dados.dataCriacao || hojeISO(),
+        hojeISO()
+      ]);
+    }
+
+    await run(`DELETE FROM arquivados WHERE id = ?`, [req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.delete('/api/arquivados/:id', auth, async (req, res) => {
+  try {
+    await run(`DELETE FROM arquivados WHERE id = ?`, [req.params.id]);
+    res.json({ sucesso: true });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
+app.get('/api/relatorios/geral', auth, masterOnly, async (_, res) => {
+  try {
+    const ativos = await all(`SELECT * FROM cotacoes`);
+    const arquivados = await all(`SELECT * FROM arquivados WHERE tipo = 'cotacao'`);
+    const todos = [
+      ...ativos.map(c => ({ ...c, arquivos: c.arquivos ? JSON.parse(c.arquivos) : [] })),
+      ...arquivados.map(a => JSON.parse(a.dados))
+    ];
+
+    const hoje = new Date();
+    const inicioSemana = new Date(hoje);
+    const day = inicioSemana.getDay();
+    const offset = day === 0 ? -6 : 1 - day;
+    inicioSemana.setDate(inicioSemana.getDate() + offset);
+    inicioSemana.setHours(0, 0, 0, 0);
+    const fimSemana = new Date(inicioSemana);
+    fimSemana.setDate(fimSemana.getDate() + 5);
+    fimSemana.setHours(23, 59, 59, 999);
+
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1, 0, 0, 0, 0);
+    const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const aprovados = todos.filter(c => c.status === 'Pedido Aprovado');
+    const vendasSemana = aprovados
+      .filter(c => {
+        const d = new Date(c.dataAprovacao || c.dataCriacao || hojeISO());
+        return d >= inicioSemana && d <= fimSemana;
+      })
+      .reduce((s, c) => s + Number(c.valor || 0), 0);
+
+    const vendasMes = aprovados
+      .filter(c => {
+        const d = new Date(c.dataAprovacao || c.dataCriacao || hojeISO());
+        return d >= inicioMes && d <= fimMes;
+      })
+      .reduce((s, c) => s + Number(c.valor || 0), 0);
+
+    const vendedores = await all(`SELECT id, nome FROM vendedores WHERE ativo = 1 ORDER BY nome`);
+    const porVendedor = vendedores.map(v => {
+      const lista = todos.filter(item => item.vendedorId === v.id);
+      const total = lista.length;
+      const convertidos = lista.filter(item => item.status === 'Pedido Aprovado').length;
+      const valorVendido = lista.filter(item => item.status === 'Pedido Aprovado').reduce((s, item) => s + Number(item.valor || 0), 0);
+      return {
+        vendedor: v.nome,
+        total,
+        convertidos,
+        taxa: total ? `${((convertidos / total) * 100).toFixed(1)}%` : '0%',
+        valorVendido
+      };
+    });
+
+    res.json({
+      geral: {
+        vendasSemana,
+        vendasMes,
+        periodoSemana: `${mascararPeriodoBR(inicioSemana)} a ${mascararPeriodoBR(fimSemana)}`,
+        periodoMes: `${mascararPeriodoBR(inicioMes)} a ${mascararPeriodoBR(fimMes)}`
+      },
+      porVendedor
+    });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
+});
+
 app.post('/api/upload', upload.array('arquivos', 10), (req, res) => {
-    try {
-        const files = (req.files || []).map(file => ({
-            filename: file.filename,
-            originalname: file.originalname,
-            path: file.path,
-            size: file.size,
-            url: `/uploads/${file.filename}`
-        }));
-
-        res.json({ sucesso: true, arquivos: files });
-    } catch (error) {
-        res.status(500).json({ erro: error.message });
-    }
+  try {
+    const arquivos = (req.files || []).map(file => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      size: file.size,
+      url: `/uploads/${file.filename}`
+    }));
+    res.json({ sucesso: true, arquivos });
+  } catch (error) {
+    res.status(500).json({ sucesso: false, erro: error.message });
+  }
 });
 
-// ================= START =================
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 http://localhost:${PORT}`);
+  console.log(`🚀 http://localhost:${PORT}`);
 });
