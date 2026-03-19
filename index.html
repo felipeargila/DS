@@ -1,1191 +1,388 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal do Cliente - Cotações</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Chakra Petch', sans-serif;
-        }
-        
-        body {
-            background: #283944;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 4px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            animation: slideUp 0.5s ease;
-        }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        h1 {
-            color: #283944;
-            font-size: 28px;
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 16px;
-            font-weight: 300;
-        }
-        
-        .code-input-area {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .code-input {
-            width: 200px;
-            padding: 15px;
-            font-size: 24px;
-            text-align: center;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            outline: none;
-            transition: all 0.3s;
-            letter-spacing: 4px;
-            font-weight: 400;
-            background: white;
-            color: #283944;
-            text-transform: uppercase;
-        }
-        
-        .code-input:focus {
-            border-color: #b7ab97;
-            box-shadow: 0 0 0 3px rgba(183, 171, 151, 0.2);
-        }
-        
-        .code-hint {
-            color: #888;
-            font-size: 14px;
-            margin-top: 10px;
-            font-weight: 300;
-        }
-        
-        .welcome-message {
-            background: #283944;
-            color: white;
-            padding: 20px;
-            border-radius: 4px;
-            margin-bottom: 30px;
-            text-align: center;
-            animation: fadeIn 0.5s ease;
-            display: none;
-            border-left: 4px solid #b7ab97;
-        }
-        
-        .welcome-message h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: white;
-        }
-        
-        .welcome-message p {
-            font-size: 16px;
-            opacity: 0.9;
-            color: #f0f0f0;
-        }
-        
-        .form-section {
-            display: block;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #f0f0f0;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #283944;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 4px;
-            font-size: 16px;
-            transition: all 0.3s;
-            font-family: 'Chakra Petch', sans-serif;
-            font-weight: 300;
-            background: white;
-            color: #283944;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            border-color: #b7ab97;
-            outline: none;
-        }
-        
-        input[readonly] {
-            background: #f5f5f5;
-            cursor: not-allowed;
-            border-color: #ddd;
-            color: #666;
-        }
-        
-        .company-info {
-            background: #f8f6f2;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 4px solid #b7ab97;
-        }
-        
-        .company-info p {
-            margin-bottom: 5px;
-            color: #283944;
-        }
-        
-        .company-info strong {
-            color: #283944;
-        }
-        
-        .contact-section {
-            background: #f8f6f2;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 4px solid #b7ab97;
-        }
-        
-        .contact-display {
-            display: block;
-        }
-        
-        .contact-edit {
-            display: none;
-        }
-        
-        .contact-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .btn-small {
-            padding: 8px 15px;
-            font-size: 14px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-family: 'Chakra Petch', sans-serif;
-            text-transform: uppercase;
-        }
-        
-        .btn-small.edit {
-            background: #b7ab97;
-            color: #283944;
-        }
-        
-        .btn-small.edit:hover {
-            background: #a59984;
-        }
-        
-        .btn-small.new-contact {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-small.new-contact:hover {
-            background: #5a6268;
-        }
-        
-        .btn-small.save {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-small.save:hover {
-            background: #218838;
-        }
-        
-        .btn-small.cancel {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-small.cancel:hover {
-            background: #c82333;
-        }
-        
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .file-upload-area {
-            border: 2px dashed #ddd;
-            padding: 30px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #fafafa;
-        }
-        
-        .file-upload-area:hover {
-            border-color: #b7ab97;
-            background: #f8f6f2;
-        }
-        
-        .file-upload-area input {
-            display: none;
-        }
-        
-        .file-upload-area .upload-icon {
-            font-size: 40px;
-            color: #b7ab97;
-            margin-bottom: 10px;
-            display: block;
-        }
-        
-        .file-list {
-            margin-top: 15px;
-        }
-        
-        .file-item {
-            background: #f0f0f0;
-            padding: 8px 15px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-        }
-        
-        .file-name {
-            color: #283944;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .file-remove {
-            color: #dc3545;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            padding: 0 5px;
-        }
-        
-        .file-remove:hover {
-            color: #c82333;
-        }
-        
-        button {
-            background: #b7ab97;
-            color: #283944;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            font-family: 'Chakra Petch', sans-serif;
-        }
-        
-        button:hover {
-            background: #a59984;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-continuar {
-            background: #b7ab97;
-            margin-top: 10px;
-        }
-        
-        .btn-continuar:hover {
-            background: #a59984;
-        }
-        
-        .btn-nova-cotacao {
-            background: #28a745;
-            margin-top: 20px;
-        }
-        
-        .btn-nova-cotacao:hover {
-            background: #218838;
-        }
-        
-        .error-message {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
-            font-weight: 300;
-        }
-        
-        .success-message {
-            background: #283944;
-            color: white;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-            text-align: center;
-            display: none;
-            font-weight: 300;
-            border-left: 4px solid #b7ab97;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #283944;
-            font-weight: 500;
-            display: none;
-        }
-        
-        .access-granted {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 500;
-            border-left: 4px solid #28a745;
-            display: none;
-        }
-        
-        .info-text {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
-        
-        .cnpj-step {
-            margin-bottom: 30px;
-        }
-        
-        .btn-voltar {
-            background: #6c757d;
-            margin-bottom: 20px;
-        }
-        
-        .btn-voltar:hover {
-            background: #5a6268;
-        }
-        
-        /* Botão flutuante do WhatsApp */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #25D366;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            text-align: center;
-            font-size: 30px;
-            line-height: 60px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 1000;
-            animation: pulse 2s infinite;
-        }
-        
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-            background: #128C7E;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-        }
-        
-        .whatsapp-tooltip {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            background: white;
-            color: #333;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: none;
-        }
-        
-        .whatsapp-float:hover + .whatsapp-tooltip {
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal do Cliente - Cotações</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Chakra Petch', sans-serif; }
+    body { background:#283944; min-height:100vh; padding:20px; color:#283944; }
+    .container { max-width:760px; margin:0 auto; }
+    .card { background:#fff; border-radius:6px; box-shadow:0 20px 40px rgba(0,0,0,.25); padding:32px; }
+    h1 { text-align:center; font-size:30px; margin-bottom:8px; }
+    .subtitle { text-align:center; color:#68737b; margin-bottom:28px; }
+    .hidden { display:none !important; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:#283944; }
+    .field input, .field textarea, .field select { width:100%; padding:14px; border:1px solid #d8dee2; border-radius:4px; font-size:15px; }
+    .field textarea { min-height:120px; resize:vertical; }
+    .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    button { border:0; border-radius:4px; padding:14px 18px; font-weight:700; cursor:pointer; }
+    .btn-primary { background:#b9ad95; color:#283944; }
+    .btn-dark { background:#283944; color:#fff; }
+    .btn-light { background:#eef2f4; color:#283944; }
+    .btn-danger { background:#db5757; color:#fff; }
+    .code-area { max-width:360px; margin:0 auto 28px; }
+    .code-status, .welcome-box, .contact-box, .success-box, .info-box { border-radius:4px; padding:16px; margin-bottom:18px; }
+    .code-status { background:#eef2f4; color:#283944; }
+    .welcome-box { background:#eef7ef; color:#255b32; border-left:4px solid #3ca55c; }
+    .contact-box { background:#f8f7f4; border-left:4px solid #b9ad95; }
+    .success-box { background:#eef7ef; color:#255b32; text-align:center; }
+    .info-box { background:#f7f9fa; color:#51606b; }
+    .file-list { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+    .file-item { display:flex; justify-content:space-between; gap:10px; background:#f7f9fa; padding:10px 12px; border-radius:4px; }
+    .link-btn { background:none; color:#2d67cc; padding:0; font-weight:700; }
+    .logo { display:flex; justify-content:center; margin-bottom:18px; }
+    .logo img { max-width:180px; }
+    @media (max-width: 720px) {
+      .row { grid-template-columns:1fr; }
+      .card { padding:24px; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Botão flutuante do WhatsApp -->
-    <div class="whatsapp-float" onclick="window.open('https://api.whatsapp.com/send/?phone=5516991772514', '_blank')">
-        💬
-    </div>
-    <div class="whatsapp-tooltip">
-        Precisa de ajuda? Fale conosco!
-    </div>
+  <div class="container">
+    <div class="card">
+      <div class="logo"><img src="https://i.imgur.com/4FJQxPk.png" alt="DS MaqCare" onerror="this.style.display='none'"></div>
+      <h1>Portal do Cliente</h1>
+      <p class="subtitle">Envie sua cotação em poucos passos.</p>
 
-    <div class="container">
-        <div class="card">
-            <!-- LOGO -->
-            <div style="text-align: center; margin-bottom: 25px;">
-                <img src="https://maqcare.dsindustria.com.br/wp-content/uploads/2026/03/LOGO.png" 
-                     alt="Logo Maqcare" 
-                     style="max-width: 200px; height: auto;">
-            </div>
-
-            <h1>PORTAL DE COTAÇÕES</h1>
-            <p class="subtitle">Soluções em Usinagem de Precisão</p>
-            
-            <!-- Área de código de acesso -->
-            <div id="codeArea" class="code-input-area">
-                <input type="text" class="code-input" id="accessCode" maxlength="6" placeholder="••••••">
-                <p class="code-hint">Digite seu código de acesso (6 dígitos)</p>
-                <div class="error-message" id="codeError"></div>
-                <div class="loading" id="loadingCode">Validando...</div>
-                <div class="access-granted" id="accessGranted">✓ ACESSO PERMITIDO</div>
-            </div>
-            
-            <!-- Mensagem de boas-vindas -->
-            <div class="welcome-message" id="welcomeMessage">
-                <h3 id="welcomeTitle">Seja bem-vindo!</h3>
-                <p id="welcomeText">Estamos ansiosos para nos tornarmos seu parceiro industrial.</p>
-            </div>
-            
-            <!-- Formulário principal -->
-            <div id="formularioContainer" style="display: none;">
-                <!-- ETAPA 1: Apenas CNPJ -->
-                <div id="stepCnpj">
-                    <div class="cnpj-step">
-                        <div class="form-group">
-                            <label>CNPJ *</label>
-                            <input type="text" id="cnpj" class="cnpj-mask" placeholder="00.000.000/0000-00" maxlength="18">
-                            <div class="loading" id="loadingCnpj" style="display: none; margin-top: 10px;">Buscando dados...</div>
-                        </div>
-                        <button type="button" class="btn-continuar" id="btnVerificarCnpj" onclick="verificarCnpj()">CONTINUAR</button>
-                    </div>
-                </div>
-                
-                <!-- ETAPA 2: Dados da empresa e orçamento -->
-                <div id="stepDados" style="display: none;">
-                    <form id="quotationForm">
-                        <!-- Informações da empresa (imutáveis) -->
-                        <div class="company-info">
-                            <p><strong>CNPJ:</strong> <span id="displayCnpj"></span></p>
-                            <p><strong>Empresa:</strong> <span id="displayEmpresa"></span></p>
-                        </div>
-                        
-                        <!-- Seção de contato -->
-                        <div class="contact-section" id="contactSection">
-                            <!-- Modo visualização -->
-                            <div id="contactDisplay" class="contact-display">
-                                <p><strong>Contato:</strong> <span id="displayContato"></span></p>
-                                <p><strong>E-mail:</strong> <span id="displayEmail"></span></p>
-                                <p><strong>Telefone:</strong> <span id="displayTelefone"></span></p>
-                                
-                                <div class="contact-actions">
-                                    <button type="button" class="btn-small edit" onclick="editarContato()">✎ Editar</button>
-                                    <button type="button" class="btn-small new-contact" onclick="novoContato()">👤 Não sou <span id="contactName"></span></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Modo edição -->
-                            <div id="contactEdit" class="contact-edit">
-                                <div class="form-group">
-                                    <label>CONTATO *</label>
-                                    <input type="text" id="editContato" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>E-MAIL *</label>
-                                    <input type="email" id="editEmail" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>TELEFONE *</label>
-                                    <input type="tel" id="editTelefone" required>
-                                </div>
-                                
-                                <div class="contact-actions">
-                                    <button type="button" class="btn-small save" onclick="salvarContato()">✓ Salvar</button>
-                                    <button type="button" class="btn-small cancel" onclick="cancelarEdicao()">✕ Cancelar</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Campos do orçamento -->
-                        <div class="form-group">
-                            <label>EMPRESA *</label>
-                            <input type="text" id="empresa" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>DESCRIÇÃO *</label>
-                            <textarea id="descricao" required></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>MATERIAL</label>
-                            <select id="material">
-                                <option value="">Selecione...</option>
-                                <option value="Aço Carbono">Aço Carbono</option>
-                                <option value="Aço Inoxidável">Aço Inoxidável</option>
-                                <option value="Alumínio">Alumínio</option>
-                                <option value="Bronze">Bronze</option>
-                                <option value="Ferro Fundido">Ferro Fundido</option>
-                                <option value="Plástico">Plástico</option>
-                                <option value="Outro">Outro</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>QUANTIDADE</label>
-                            <input type="number" id="quantidade" min="1">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>PRAZO DESEJADO</label>
-                            <input type="text" id="prazo" placeholder="Ex: 15 dias">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>ANEXAR ARQUIVOS</label>
-                            <div class="file-upload-area" id="fileUploadArea">
-                                <span class="upload-icon">📎</span>
-                                <p>Arraste arquivos ou clique para selecionar</p>
-                                <p class="info-text">PDF, DWG, DXF, STEP, imagens (máx. 10MB por arquivo)</p>
-                                <input type="file" id="fileInput" multiple accept=".pdf,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png">
-                            </div>
-                            <div class="file-list" id="fileList"></div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>INFORMAÇÕES ADICIONAIS</label>
-                            <textarea id="infoAdicional"></textarea>
-                        </div>
-                        
-                        <button type="submit" id="submitBtn">ENVIAR SOLICITAÇÃO</button>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Tela de agradecimento -->
-            <div id="thankYouSection" style="display: none;">
-                <div style="font-size: 60px; color: #28a745; margin-bottom: 20px; text-align: center;">✓</div>
-                <div class="thank-you-title" id="thankYouName" style="color: #283944; font-size: 24px; font-weight: 600; margin-bottom: 15px; text-align: center;"></div>
-                <div class="thank-you-message" id="thankYouMessage" style="color: #666; font-size: 16px; margin-bottom: 30px; text-align: center;">
-                    Sua solicitação de orçamento foi enviada com sucesso!<br>
-                    Em breve retornaremos com as informações.
-                </div>
-                <button class="btn-nova-cotacao" onclick="novaCotacao()">NOVA COTAÇÃO</button>
-            </div>
-            
-            <div class="loading" id="loadingSubmit">Enviando...</div>
+      <div id="etapaCodigo" class="code-area">
+        <div class="field">
+          <label for="codigoAcesso">Código de acesso</label>
+          <input id="codigoAcesso" maxlength="6" placeholder="Digite os 6 dígitos">
         </div>
+        <button class="btn-primary" onclick="validarCodigo()">Continuar</button>
+        <div id="codigoStatus" class="code-status hidden"></div>
+      </div>
+
+      <div id="etapaFormulario" class="hidden">
+        <div class="field">
+          <label for="cnpj">CNPJ</label>
+          <input id="cnpj" placeholder="00.000.000/0000-00" onblur="buscarCliente()">
+        </div>
+
+        <div id="welcomeBox" class="welcome-box hidden"></div>
+        <div id="contactBox" class="contact-box hidden"></div>
+
+        <form id="cotacaoForm">
+          <div class="row">
+            <div class="field">
+              <label for="empresa">Empresa *</label>
+              <input id="empresa" required>
+            </div>
+            <div class="field">
+              <label for="contato">Contato *</label>
+              <input id="contato" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="email">Email *</label>
+              <input id="email" type="email" required>
+            </div>
+            <div class="field">
+              <label for="telefone">Telefone *</label>
+              <input id="telefone" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="material">Material</label>
+              <input id="material">
+            </div>
+            <div class="field">
+              <label for="quantidade">Quantidade</label>
+              <input id="quantidade">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="prazo">Prazo desejado</label>
+              <input id="prazo">
+            </div>
+            <div class="field">
+              <label for="arquivoInput">Arquivos</label>
+              <input id="arquivoInput" type="file" multiple>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="descricao">Descrição *</label>
+            <textarea id="descricao" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="infoAdicional">Informações adicionais</label>
+            <textarea id="infoAdicional"></textarea>
+          </div>
+
+          <div id="fileList" class="file-list"></div>
+
+          <div class="actions">
+            <button type="submit" class="btn-dark">Enviar cotação</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="successBox" class="success-box hidden">
+        <h2 style="margin-bottom:10px;">Cotação enviada com sucesso</h2>
+        <p style="margin-bottom:16px;">Recebemos sua solicitação. Você pode abrir uma nova cotação sem digitar tudo de novo.</p>
+        <div class="actions" style="justify-content:center;">
+          <button class="btn-primary" onclick="novaCotacao()">Nova Cotação</button>
+        </div>
+      </div>
     </div>
-    
-    <script>
-        // Elementos da página
-        const accessCode = document.getElementById('accessCode');
-        const codeError = document.getElementById('codeError');
-        const loadingCode = document.getElementById('loadingCode');
-        const accessGranted = document.getElementById('accessGranted');
-        const codeArea = document.getElementById('codeArea');
-        const welcomeMessage = document.getElementById('welcomeMessage');
-        const welcomeTitle = document.getElementById('welcomeTitle');
-        const welcomeText = document.getElementById('welcomeText');
-        const formularioContainer = document.getElementById('formularioContainer');
-        const stepCnpj = document.getElementById('stepCnpj');
-        const stepDados = document.getElementById('stepDados');
-        const thankYouSection = document.getElementById('thankYouSection');
-        const thankYouName = document.getElementById('thankYouName');
-        const quotationForm = document.getElementById('quotationForm');
-        const loadingSubmit = document.getElementById('loadingSubmit');
-        const submitBtn = document.getElementById('submitBtn');
-        
-        // Elementos de exibição
-        const displayCnpj = document.getElementById('displayCnpj');
-        const displayEmpresa = document.getElementById('displayEmpresa');
-        const displayContato = document.getElementById('displayContato');
-        const displayEmail = document.getElementById('displayEmail');
-        const displayTelefone = document.getElementById('displayTelefone');
-        const contactName = document.getElementById('contactName');
-        const clienteReconhecidoArea = document.getElementById('clienteReconhecidoArea');
-        const novoClienteContatoArea = document.getElementById('novoClienteContatoArea');
-        const novoContatoInput = document.getElementById('novoContatoInput');
-        const novoEmailInput = document.getElementById('novoEmailInput');
-        const novoTelefoneInput = document.getElementById('novoTelefoneInput');
-        
-        // Modos de contato
-        const contactDisplay = document.getElementById('contactDisplay');
-        const contactEdit = document.getElementById('contactEdit');
-        const editContato = document.getElementById('editContato');
-        const editEmail = document.getElementById('editEmail');
-        const editTelefone = document.getElementById('editTelefone');
-        
-        // Campos do formulário
-        const cnpjInput = document.getElementById('cnpj');
-        const empresaInput = document.getElementById('empresa');
-        const loadingCnpj = document.getElementById('loadingCnpj');
-        
-        // Elementos de upload
-        const fileUploadArea = document.getElementById('fileUploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        
-        let vendedorAtual = null;
-        let arquivosSelecionados = [];
-        let clienteAtual = null;
-        let dadosOriginais = null;
-        let cnpjAtual = null;
-        let empresaAtual = null;
+  </div>
 
-        function sincronizarEmpresaVisual() {
-            const valorEmpresa = (empresaInput.value || '').trim();
-            displayEmpresa.textContent = valorEmpresa || 'Preencha o campo abaixo';
-            if (valorEmpresa) {
-                empresaAtual = valorEmpresa;
-            }
-        }
-        function modoClienteNovo() {
-            clienteReconhecidoArea.style.display = 'none';
-            novoClienteContatoArea.style.display = 'block';
-            contactDisplay.style.display = 'none';
-            contactEdit.style.display = 'none';
-        }
+  <script>
+    const API_URL = '';
+    const state = {
+      vendedor: null,
+      clienteExistente: false,
+      arquivos: [],
+      contatoOriginal: null,
+      ultimaEmpresa: '',
+      ultimoCnpj: ''
+    };
 
-        function modoClienteExistente() {
-            clienteReconhecidoArea.style.display = 'block';
-            novoClienteContatoArea.style.display = 'none';
-        }
+    const $ = (id) => document.getElementById(id);
 
-        function limparContatoNovo() {
-            novoContatoInput.value = '';
-            novoEmailInput.value = '';
-            novoTelefoneInput.value = '';
+    function digits(v) { return (v || '').replace(/\D/g, ''); }
+    function formatCnpj(v) {
+      const n = digits(v).slice(0, 14);
+      return n
+        .replace(/^(\d{2})(\d)/, '$1.$2')
+        .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+        .replace(/\.(\d{3})(\d)/, '.$1/$2')
+        .replace(/(\/\d{4})(\d)/, '$1-$2');
+    }
+    function formatPhone(v) {
+      const n = digits(v).slice(0, 11);
+      if (n.length <= 10) return n.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+      return n.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    $('cnpj').addEventListener('input', e => e.target.value = formatCnpj(e.target.value));
+    $('telefone').addEventListener('input', e => e.target.value = formatPhone(e.target.value));
+    $('codigoAcesso').addEventListener('input', e => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6));
+    $('arquivoInput').addEventListener('change', uploadArquivos);
+    $('cotacaoForm').addEventListener('submit', enviarCotacao);
+
+    function mostrarCodigoStatus(texto, ok = false) {
+      $('codigoStatus').classList.remove('hidden');
+      $('codigoStatus').style.background = ok ? '#eef7ef' : '#fff3f3';
+      $('codigoStatus').style.color = ok ? '#255b32' : '#a33737';
+      $('codigoStatus').textContent = texto;
+    }
+
+    async function validarCodigo() {
+      const codigo = $('codigoAcesso').value.trim();
+      if (codigo.length !== 6) return mostrarCodigoStatus('Digite exatamente 6 caracteres.');
+      try {
+        const resp = await fetch(`${API_URL}/api/vendedores/codigo/${codigo}`);
+        const dados = await resp.json();
+        if (!dados.sucesso) return mostrarCodigoStatus('Código inválido.');
+        state.vendedor = dados.vendedor;
+        mostrarCodigoStatus(`Acesso liberado para ${dados.vendedor.nome}.`, true);
+        $('etapaFormulario').classList.remove('hidden');
+        $('cnpj').focus();
+      } catch {
+        mostrarCodigoStatus('Erro ao validar código.');
+      }
+    }
+
+    async function buscarCliente() {
+      const cnpj = digits($('cnpj').value);
+      if (cnpj.length !== 14) return;
+      state.ultimoCnpj = cnpj;
+      try {
+        const resp = await fetch(`${API_URL}/api/clientes/${cnpj}`);
+        const dados = await resp.json();
+        if (!dados.encontrado) {
+          state.clienteExistente = false;
+          state.contatoOriginal = null;
+          $('welcomeBox').classList.add('hidden');
+          $('contactBox').classList.add('hidden');
+          if (!state.ultimaEmpresa) $('empresa').value = '';
+          $('contato').value = '';
+          $('email').value = '';
+          $('telefone').value = '';
+          return;
         }
 
-        
-        // Máscara de CNPJ
-        cnpjInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 14) {
-                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                value = value.replace(/(\d{4})(\d)/, '$1-$2');
-                e.target.value = value;
-            }
+        state.clienteExistente = true;
+        state.contatoOriginal = { ...dados.cliente };
+        $('empresa').value = dados.cliente.empresa || state.ultimaEmpresa || '';
+        $('contato').value = dados.cliente.contato || '';
+        $('email').value = dados.cliente.email || '';
+        $('telefone').value = dados.cliente.telefone || '';
+
+        $('welcomeBox').classList.remove('hidden');
+        $('welcomeBox').innerHTML = `<strong>Bem-vindo, ${escapeHtml(dados.cliente.empresa || 'cliente')}.</strong><br>Encontramos seus dados e deixamos o contato pronto para agilizar sua próxima cotação.`;
+
+        $('contactBox').classList.remove('hidden');
+        $('contactBox').innerHTML = `
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <strong>Contato identificado</strong><br>
+              ${escapeHtml(dados.cliente.contato || '')}<br>
+              ${escapeHtml(dados.cliente.email || '')}<br>
+              ${escapeHtml(dados.cliente.telefone || '')}
+            </div>
+            <div class="actions" style="margin-top:0;">
+              <button type="button" class="btn-light" onclick="editarContato()">Editar</button>
+              <button type="button" class="btn-danger" onclick="naoSouEsseContato()">Não sou ${escapeHtml((dados.cliente.contato || '').split(' ')[0] || 'esse contato')}</button>
+            </div>
+          </div>`;
+      } catch {
+        $('welcomeBox').classList.add('hidden');
+        $('contactBox').classList.add('hidden');
+      }
+    }
+
+    function editarContato() {
+      $('contato').focus();
+    }
+
+    function naoSouEsseContato() {
+      $('contato').value = '';
+      $('email').value = '';
+      $('telefone').value = '';
+      $('contato').focus();
+    }
+
+    async function uploadArquivos(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      const fd = new FormData();
+      files.forEach(file => fd.append('arquivos', file));
+
+      try {
+        const resp = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: fd });
+        const dados = await resp.json();
+        if (!dados.sucesso) throw new Error(dados.erro || 'Falha');
+        state.arquivos.push(...dados.arquivos);
+        renderFiles();
+        event.target.value = '';
+      } catch (erro) {
+        alert(erro.message || 'Erro no upload');
+      }
+    }
+
+    function renderFiles() {
+      $('fileList').innerHTML = state.arquivos.map((file, idx) => `
+        <div class="file-item">
+          <span>${escapeHtml(file.originalname || file.filename || `Arquivo ${idx + 1}`)}</span>
+          <button type="button" class="link-btn" onclick="removerArquivo(${idx})">Remover</button>
+        </div>
+      `).join('');
+    }
+
+    function removerArquivo(idx) {
+      state.arquivos.splice(idx, 1);
+      renderFiles();
+    }
+
+    async function enviarCotacao(event) {
+      event.preventDefault();
+      if (!state.vendedor) return alert('Valide o código de acesso primeiro.');
+
+      const payload = {
+        vendedorId: state.vendedor.id,
+        cnpj: digits($('cnpj').value),
+        empresa: $('empresa').value.trim(),
+        contato: $('contato').value.trim(),
+        email: $('email').value.trim(),
+        telefone: $('telefone').value.trim(),
+        descricao: $('descricao').value.trim(),
+        material: $('material').value.trim(),
+        quantidade: $('quantidade').value.trim(),
+        prazo: $('prazo').value.trim(),
+        infoAdicional: $('infoAdicional').value.trim(),
+        status: 'Novo Orçamento',
+        arquivos: state.arquivos
+      };
+
+      if (!payload.empresa || !payload.contato || !payload.email || !payload.telefone || !payload.descricao) {
+        return alert('Preencha os campos obrigatórios.');
+      }
+
+      try {
+        const resp = await fetch(`${API_URL}/api/cotacoes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-        
-        // Configuração do upload
-        fileUploadArea.addEventListener('click', () => fileInput.click());
-        
-        fileUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fileUploadArea.style.background = '#f8f6f2';
-        });
-        
-        fileUploadArea.addEventListener('dragleave', () => {
-            fileUploadArea.style.background = '';
-        });
-        
-        fileUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileUploadArea.style.background = '';
-            handleFiles(e.dataTransfer.files);
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
-        
-        async function handleFiles(files) {
-            for (let file of files) {
-                if (file.size > 10 * 1024 * 1024) {
-                    alert(`Arquivo ${file.name} muito grande. Máximo 10MB.`);
-                    continue;
-                }
-                
-                arquivosSelecionados.push({
-                    file: file,
-                    name: file.name,
-                    size: file.size,
-                    uploading: true
-                });
-                atualizarListaArquivos();
-                
-                const formData = new FormData();
-                formData.append('arquivos', file);
-                
-                try {
-                    const resposta = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const dados = await resposta.json();
-                    
-                    if (dados.sucesso) {
-                        const index = arquivosSelecionados.findIndex(a => a.name === file.name && a.uploading);
-                        if (index !== -1) {
-                            arquivosSelecionados[index] = {
-                                ...dados.arquivos[0],
-                                uploading: false
-                            };
-                        }
-                    } else {
-                        arquivosSelecionados = arquivosSelecionados.filter(a => a.name !== file.name);
-                        alert(`Erro ao enviar ${file.name}`);
-                    }
-                } catch (erro) {
-                    console.error('Erro no upload:', erro);
-                    arquivosSelecionados = arquivosSelecionados.filter(a => a.name !== file.name);
-                    alert(`Erro ao enviar ${file.name}`);
-                }
-                
-                atualizarListaArquivos();
-            }
-        }
-        
-        function atualizarListaArquivos() {
-            if (arquivosSelecionados.length === 0) {
-                fileList.innerHTML = '';
-                return;
-            }
-            
-            fileList.innerHTML = arquivosSelecionados.map((arq, index) => `
-                <div class="file-item">
-                    <span class="file-name">
-                        ${arq.uploading ? '⏳' : '📄'} ${arq.originalname || arq.name}
-                        ${arq.uploading ? ' (enviando...)' : ''}
-                    </span>
-                    <span class="file-remove" onclick="removerArquivo(${index})">✕</span>
-                </div>
-            `).join('');
-        }
-        
-        window.removerArquivo = function(index) {
-            const arq = arquivosSelecionados[index];
-            if (!arq.uploading && arq.filename) {
-                fetch(`/api/upload/${arq.filename}`, {
-                    method: 'DELETE'
-                }).catch(erro => console.error('Erro ao deletar arquivo:', erro));
-            }
-            arquivosSelecionados.splice(index, 1);
-            atualizarListaArquivos();
-        };
-        
-        // Validação do código de acesso
-        accessCode.addEventListener('input', async function(e) {
-            const code = e.target.value.trim().toUpperCase();
-            
-            codeError.style.display = 'none';
-            accessGranted.style.display = 'none';
-            welcomeMessage.style.display = 'none';
-            
-            if (code.length === 6) {
-                loadingCode.style.display = 'block';
-                accessCode.disabled = true;
-                
-                try {
-                    const resposta = await fetch(`/api/vendedores/codigo/${code}`);
-                    const dados = await resposta.json();
-                    
-                    if (dados.sucesso && dados.vendedor) {
-                        vendedorAtual = dados.vendedor;
-                        accessGranted.style.display = 'block';
-                        
-                        setTimeout(() => {
-                            codeArea.style.display = 'none';
-                            formularioContainer.style.display = 'block';
-                            stepCnpj.style.display = 'block';
-                            stepDados.style.display = 'none';
-                            welcomeMessage.style.display = 'none';
-                        }, 500);
-                        
-                        accessCode.style.borderColor = '#b7ab97';
-                        loadingCode.style.display = 'none';
-                        accessCode.disabled = false;
-                    } else {
-                        codeError.style.display = 'block';
-                        codeError.textContent = '❌ Código inválido';
-                        accessCode.style.borderColor = '#dc3545';
-                        vendedorAtual = null;
-                        accessCode.disabled = false;
-                        loadingCode.style.display = 'none';
-                    }
-                } catch (erro) {
-                    console.error('Erro ao validar código:', erro);
-                    codeError.style.display = 'block';
-                    codeError.textContent = '❌ Erro ao validar';
-                    accessCode.style.borderColor = '#dc3545';
-                    vendedorAtual = null;
-                    accessCode.disabled = false;
-                    loadingCode.style.display = 'none';
-                }
-            } else {
-                accessCode.style.borderColor = '#ddd';
-                vendedorAtual = null;
-            }
-        });
-        
-        // Verificar CNPJ
-        window.verificarCnpj = async function() {
-            const cnpj = cnpjInput.value.replace(/\D/g, '');
+        const dados = await resp.json();
+        if (!dados.sucesso) throw new Error(dados.erro || 'Falha ao enviar');
+        state.ultimaEmpresa = payload.empresa;
+        state.ultimoCnpj = payload.cnpj;
+        $('etapaFormulario').classList.add('hidden');
+        $('successBox').classList.remove('hidden');
+      } catch (erro) {
+        alert(erro.message || 'Erro ao enviar cotação');
+      }
+    }
 
-            if (cnpj.length !== 14) {
-                alert('CNPJ inválido');
-                return;
-            }
+    function novaCotacao() {
+      const empresa = $('empresa').value || state.ultimaEmpresa || '';
+      const cnpj = $('cnpj').value || formatCnpj(state.ultimoCnpj || '');
+      const contatoOriginal = state.clienteExistente ? state.contatoOriginal : null;
 
-            loadingCnpj.style.display = 'block';
-            cnpjAtual = cnpjInput.value;
+      $('cotacaoForm').reset();
+      $('successBox').classList.add('hidden');
+      $('etapaFormulario').classList.remove('hidden');
+      state.arquivos = [];
+      renderFiles();
 
-            try {
-                const resposta = await fetch(`/api/clientes/${cnpj}`);
-                const dados = await resposta.json();
+      $('cnpj').value = formatCnpj(cnpj);
+      $('empresa').value = empresa;
+      $('material').value = '';
+      $('quantidade').value = '';
+      $('prazo').value = '';
+      $('descricao').value = '';
+      $('infoAdicional').value = '';
 
-                displayCnpj.textContent = cnpjInput.value;
-                cnpjInput.value = cnpjAtual;
+      if (contatoOriginal) {
+        $('contato').value = contatoOriginal.contato || '';
+        $('email').value = contatoOriginal.email || '';
+        $('telefone').value = contatoOriginal.telefone || '';
+        $('welcomeBox').classList.remove('hidden');
+        $('welcomeBox').innerHTML = `<strong>Bem-vindo, ${escapeHtml(empresa || 'cliente')}.</strong><br>Você já tem dados cadastrados. É só ajustar o que precisar e enviar uma nova cotação.`;
+        $('contactBox').classList.remove('hidden');
+        $('contactBox').innerHTML = `
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <strong>Contato identificado</strong><br>
+              ${escapeHtml(contatoOriginal.contato || '')}<br>
+              ${escapeHtml(contatoOriginal.email || '')}<br>
+              ${escapeHtml(contatoOriginal.telefone || '')}
+            </div>
+            <div class="actions" style="margin-top:0;">
+              <button type="button" class="btn-light" onclick="editarContato()">Editar</button>
+              <button type="button" class="btn-danger" onclick="naoSouEsseContato()">Não sou ${escapeHtml((contatoOriginal.contato || '').split(' ')[0] || 'esse contato')}</button>
+            </div>
+          </div>`;
+      } else {
+        $('welcomeBox').classList.add('hidden');
+        $('contactBox').classList.add('hidden');
+        $('contato').value = '';
+        $('email').value = '';
+        $('telefone').value = '';
+      }
+    }
 
-                if (dados.encontrado) {
-                    dadosOriginais = dados.cliente;
-                    empresaAtual = dados.cliente.empresa || '';
-                    clienteAtual = dados.cliente;
-
-                    modoClienteExistente();
-
-                    displayEmpresa.textContent = dados.cliente.empresa || '';
-                    displayContato.textContent = dados.cliente.contato || '';
-                    displayEmail.textContent = dados.cliente.email || '';
-                    displayTelefone.textContent = dados.cliente.telefone || '';
-                    contactName.textContent = (dados.cliente.contato || '').split(' ')[0] || '';
-
-                    editContato.value = dados.cliente.contato || '';
-                    editEmail.value = dados.cliente.email || '';
-                    editTelefone.value = dados.cliente.telefone || '';
-
-                    contactDisplay.style.display = 'block';
-                    contactEdit.style.display = 'none';
-
-                    empresaInput.value = dados.cliente.empresa || '';
-                    sincronizarEmpresaVisual();
-
-                    welcomeMessage.style.display = 'block';
-                    welcomeTitle.textContent = `Bem-vindo de volta, ${dados.cliente.empresa}!`;
-                    welcomeText.textContent = 'Seus dados foram carregados para agilizar sua nova cotação.';
-                } else {
-                    dadosOriginais = null;
-                    clienteAtual = null;
-                    empresaAtual = '';
-                    limparContatoNovo();
-                    modoClienteNovo();
-
-                    displayEmpresa.textContent = '';
-                    displayContato.textContent = '';
-                    displayEmail.textContent = '';
-                    displayTelefone.textContent = '';
-                    contactName.textContent = '';
-
-                    editContato.value = '';
-                    editEmail.value = '';
-                    editTelefone.value = '';
-                    empresaInput.value = '';
-                    sincronizarEmpresaVisual();
-
-                    welcomeMessage.style.display = 'none';
-                }
-
-                stepCnpj.style.display = 'none';
-                stepDados.style.display = 'block';
-
-            } catch (erro) {
-                console.error('Erro ao buscar cliente:', erro);
-                alert('Erro ao verificar CNPJ. Tente novamente.');
-            } finally {
-                loadingCnpj.style.display = 'none';
-            }
-        };
-
-        // Funções de contato
-        window.editarContato = function() {
-            contactDisplay.style.display = 'none';
-            contactEdit.style.display = 'block';
-        };
-        
-        window.novoContato = function() {
-            editContato.value = '';
-            editEmail.value = '';
-            editTelefone.value = '';
-            displayContato.textContent = '';
-            displayEmail.textContent = '';
-            displayTelefone.textContent = '';
-            contactName.textContent = '';
-            contactDisplay.style.display = 'none';
-            contactEdit.style.display = 'block';
-        };
-        
-        window.salvarContato = function() {
-            if (!editContato.value || !editEmail.value || !editTelefone.value) {
-                alert('Preencha todos os campos de contato');
-                return;
-            }
-            
-            displayContato.textContent = editContato.value.trim();
-            displayEmail.textContent = editEmail.value.trim();
-            displayTelefone.textContent = editTelefone.value.trim();
-            contactName.textContent = editContato.value.trim().split(' ')[0];
-            sincronizarEmpresaVisual();
-            
-            contactDisplay.style.display = 'block';
-            contactEdit.style.display = 'none';
-        };
-        
-        window.cancelarEdicao = function() {
-            if (dadosOriginais) {
-                editContato.value = dadosOriginais.contato || '';
-                editEmail.value = dadosOriginais.email || '';
-                editTelefone.value = dadosOriginais.telefone || '';
-                displayContato.textContent = dadosOriginais.contato || '';
-                displayEmail.textContent = dadosOriginais.email || '';
-                displayTelefone.textContent = dadosOriginais.telefone || '';
-                contactName.textContent = (dadosOriginais.contato || '').split(' ')[0] || '';
-                contactDisplay.style.display = 'block';
-                contactEdit.style.display = 'none';
-            } else {
-                editContato.value = '';
-                editEmail.value = '';
-                editTelefone.value = '';
-                displayContato.textContent = '';
-                displayEmail.textContent = '';
-                displayTelefone.textContent = '';
-                contactName.textContent = '';
-                contactDisplay.style.display = 'none';
-                contactEdit.style.display = 'block';
-            }
-            sincronizarEmpresaVisual();
-        };
-        
-        // Função para nova cotação (após agradecimento) - CORRIGIDA
-        window.novaCotacao = function() {
-            thankYouSection.style.display = 'none';
-            formularioContainer.style.display = 'block';
-
-            if (cnpjAtual) {
-                stepCnpj.style.display = 'none';
-                stepDados.style.display = 'block';
-
-                cnpjInput.value = cnpjAtual;
-                displayCnpj.textContent = cnpjAtual;
-                empresaInput.value = empresaAtual || empresaInput.value || '';
-                sincronizarEmpresaVisual();
-
-                if (clienteAtual) {
-                    modoClienteExistente();
-                    displayContato.textContent = clienteAtual.contato || '';
-                    displayEmail.textContent = clienteAtual.email || '';
-                    displayTelefone.textContent = clienteAtual.telefone || '';
-                    contactName.textContent = (clienteAtual.contato || '').split(' ')[0] || '';
-
-                    editContato.value = clienteAtual.contato || '';
-                    editEmail.value = clienteAtual.email || '';
-                    editTelefone.value = clienteAtual.telefone || '';
-
-                    contactDisplay.style.display = 'block';
-                    contactEdit.style.display = 'none';
-
-                    welcomeMessage.style.display = 'block';
-                    welcomeTitle.textContent = `Bem-vindo de volta, ${empresaAtual || clienteAtual.empresa || ''}!`;
-                    welcomeText.textContent = 'Seus dados continuam preenchidos para facilitar a próxima solicitação.';
-                } else {
-                    modoClienteNovo();
-                    limparContatoNovo();
-                    welcomeMessage.style.display = 'none';
-                }
-            } else {
-                stepCnpj.style.display = 'block';
-                stepDados.style.display = 'none';
-                welcomeMessage.style.display = 'none';
-            }
-
-            document.getElementById('descricao').value = '';
-            document.getElementById('material').value = '';
-            document.getElementById('quantidade').value = '';
-            document.getElementById('prazo').value = '';
-            document.getElementById('infoAdicional').value = '';
-            arquivosSelecionados = [];
-            atualizarListaArquivos();
-        };
-
-        // Enviar formulário
-        quotationForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!vendedorAtual) {
-                alert('Código inválido. Recarregue a página.');
-                return;
-            }
-            
-            if (arquivosSelecionados.some(a => a.uploading)) {
-                alert('Aguarde o upload dos arquivos terminar.');
-                return;
-            }
-            
-            const cnpj = cnpjInput.value.replace(/\D/g, '');
-            if (cnpj.length !== 14) {
-                alert('CNPJ inválido');
-                return;
-            }
-            
-            if (!empresaInput.value) {
-                alert('Preencha o campo Empresa');
-                return;
-            }
-            
-            let contato, email, telefone;
-            
-            if (contactEdit.style.display === 'block') {
-                contato = editContato.value;
-                email = editEmail.value;
-                telefone = editTelefone.value;
-                
-                if (!contato || !email || !telefone) {
-                    alert('Preencha todos os campos de contato');
-                    return;
-                }
-            } else {
-                contato = displayContato.textContent;
-                email = displayEmail.textContent;
-                telefone = displayTelefone.textContent;
-            }
-            
-            loadingSubmit.style.display = 'block';
-            submitBtn.disabled = true;
-            
-            const contatoNome = contato.split(' ')[0];
-            
-            const formData = {
-                id: 'COT' + Date.now(),
-                vendedorId: vendedorAtual.id,
-                cnpj: cnpj,
-                empresa: empresaInput.value,
-                contato: contato,
-                email: email,
-                telefone: telefone,
-                descricao: document.getElementById('descricao').value,
-                material: document.getElementById('material').value,
-                quantidade: document.getElementById('quantidade').value,
-                prazo: document.getElementById('prazo').value,
-                infoAdicional: document.getElementById('infoAdicional').value,
-                arquivos: arquivosSelecionados.map(a => ({
-                    filename: a.filename,
-                    originalname: a.originalname || a.name,
-                    size: a.size,
-                    url: a.url
-                })),
-                status: 'Novo Orçamento',
-                dataCriacao: new Date().toISOString().split('T')[0],
-                observacoes: '',
-                primeiroAcesso: !clienteAtual,
-                contatoAtualizado: dadosOriginais ? (
-                    dadosOriginais.contato !== contato ||
-                    dadosOriginais.email !== email ||
-                    dadosOriginais.telefone !== telefone
-                ) : false
-            };
-            
-            try {
-                const resposta = await fetch('/api/cotacoes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                
-                const dados = await resposta.json();
-                
-                if (dados.sucesso) {
-                    formularioContainer.style.display = 'none';
-                    thankYouName.textContent = `Obrigado, ${contatoNome}!`;
-                    thankYouSection.style.display = 'block';
-                    
-                    // Salvar CNPJ e empresa para próxima cotação
-                    cnpjAtual = cnpjInput.value;
-                    empresaAtual = empresaInput.value.trim();
-                    sincronizarEmpresaVisual();
-                    
-                    arquivosSelecionados = [];
-                    atualizarListaArquivos();
-                } else {
-                    alert('Erro ao enviar: ' + dados.erro);
-                }
-            } catch (erro) {
-                console.error('Erro:', erro);
-                alert('Erro de conexão com o servidor.');
-            } finally {
-                loadingSubmit.style.display = 'none';
-                submitBtn.disabled = false;
-            }
-        });
-        
-
-        empresaInput.addEventListener('input', sincronizarEmpresaVisual);
-        empresaInput.addEventListener('blur', sincronizarEmpresaVisual);
-
-        // Converter para maiúsculas e limitar a 6 dígitos
-        accessCode.addEventListener('keyup', function() {
-            this.value = this.value.toUpperCase().slice(0, 6);
-        });
-    </script>
+    function escapeHtml(text) {
+      return String(text || '').replace(/[&<>"]/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[s]));
+    }
+  </script>
 </body>
 </html>
