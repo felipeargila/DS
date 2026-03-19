@@ -3322,6 +3322,8 @@ async function confirmarAprovacao() {
                         contato: cot.contato,
                         email: cot.email,
                         telefone: cot.telefone,
+                        vendedorId: cot.vendedorId || '',
+                        vendedor: (vendedores.find(v => v.id === cot.vendedorId)?.nome) || 'Sem vendedor',
                         arquivado: cot.arquivado || false
                     });
                     
@@ -3357,7 +3359,7 @@ async function confirmarAprovacao() {
         function obterResumoContatoCliente(cliente, contatoSelecionado = null) {
             if (contatoSelecionado) {
                 return {
-                    label: 'Contato Selecionado',
+                    label: 'Contato selecionado',
                     contato: contatoSelecionado.contato || '-',
                     telefone: contatoSelecionado.telefone || '-',
                     email: contatoSelecionado.email || '-'
@@ -3369,15 +3371,29 @@ async function confirmarAprovacao() {
 
             return {
                 label: 'Última cotação por',
-                contato: ultimaCotacao?.contato || cliente.contatoPrincipal.contato || '-',
-                telefone: ultimaCotacao?.telefone || cliente.contatoPrincipal.telefone || '-',
-                email: ultimaCotacao?.email || cliente.contatoPrincipal.email || '-'
+                contato: ultimaCotacao?.contato || '-',
+                telefone: ultimaCotacao?.telefone || '-',
+                email: ultimaCotacao?.email || '-'
             };
+        }
+
+        function montarLinhasContatos(cliente) {
+            return cliente.contatosList.map(c => `
+                <div style="padding:8px 0; border-bottom:1px solid #e8edf2;">
+                    <strong>${c.contato || '-'}</strong>
+                    <div style="font-size:13px; color:#5b6b76;">${c.email || '-'} • ${c.telefone || '-'}</div>
+                </div>
+            `).join('');
+        }
+
+        function montarOpcoesVendedorHistorico(cliente) {
+            const unicos = [...new Map(cliente.cotacoes.map(c => [c.vendedorId || c.vendedor, c.vendedor || 'Sem vendedor'])).entries()];
+            return unicos.map(([id, nome]) => `<option value="${String(id).replace(/"/g,'&quot;')}">${nome}</option>`).join('');
         }
 
         function montarCardCliente(cliente) {
             const opcoesContato = cliente.contatosList.map((c, index) => `
-                <option value="${index}">${c.contato} (${c.email})</option>
+                <option value="${index}">${c.contato} (${c.email || 'sem e-mail'})</option>
             `).join('');
 
             const resumo = obterResumoContatoCliente(cliente);
@@ -3387,21 +3403,49 @@ async function confirmarAprovacao() {
                     <div class="cliente-header" onclick="toggleClienteDetalhes('${cliente.cnpj}')">
                         <div class="cliente-nome">
                             ${cliente.empresa}
-                            <span class="cliente-cnpj"> - ${formatarCNPJ(cliente.cnpj)}</span>
                         </div>
                         <button class="btn-ver-mais">VER +</button>
                     </div>
 
                     <div class="cliente-detalhes" id="detalhes-${cliente.cnpj}">
-                        <div style="margin-bottom: 15px;">
-                            <label style="color: #283944; font-weight: 500; margin-right: 10px;">CONTATO:</label>
-                            <select id="contatoSelector-${cliente.cnpj}" onchange="filtrarHistoricoPorContato('${cliente.cnpj}')" style="padding: 5px; border: 2px solid #ddd; border-radius: 4px;">
-                                <option value="todos">TODOS OS CONTATOS</option>
-                                ${opcoesContato}
-                            </select>
+                        <div style="margin-bottom: 12px; display:grid; gap:6px;">
+                            <div><strong>Empresa:</strong> ${cliente.empresa}</div>
+                            <div><strong>CNPJ:</strong> ${formatarCNPJ(cliente.cnpj)}</div>
                         </div>
 
-                        <div class="cliente-stats">
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: #283944; font-weight: 600; display:block; margin-bottom: 8px;">Contatos</label>
+                            <div style="background:#fff; border:1px solid #dfe5ea; border-radius:10px; padding:0 12px;">
+                                ${montarLinhasContatos(cliente) || '<div style="padding:10px 0;">Nenhum contato cadastrado</div>'}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px; display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+                            <div>
+                                <label style="color: #283944; font-weight: 500; margin-right: 10px;">Contato no histórico</label>
+                                <select id="contatoSelector-${cliente.cnpj}" onchange="aplicarFiltrosHistorico('${cliente.cnpj}')" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+                                    <option value="todos">TODOS OS CONTATOS</option>
+                                    ${opcoesContato}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="color: #283944; font-weight: 500; margin-right: 10px;">Vendedor</label>
+                                <select id="vendedorSelector-${cliente.cnpj}" onchange="aplicarFiltrosHistorico('${cliente.cnpj}')" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+                                    <option value="todos">TODOS</option>
+                                    ${montarOpcoesVendedorHistorico(cliente)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="color: #283944; font-weight: 500; margin-right: 10px;">Status</label>
+                                <select id="statusSelector-${cliente.cnpj}" onchange="aplicarFiltrosHistorico('${cliente.cnpj}')" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+                                    <option value="todos">TODOS</option>
+                                    <option value="Pedido Aprovado">APROVADOS</option>
+                                    <option value="Sem Retorno">SEM RETORNO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cliente-stats" style="margin-bottom:15px;">
                             <div class="stat-item">
                                 <div class="stat-label" id="clienteResumoLabel-${cliente.cnpj}">${resumo.label}</div>
                                 <div class="stat-value" id="clienteResumoContato-${cliente.cnpj}">${resumo.contato}</div>
@@ -3420,36 +3464,38 @@ async function confirmarAprovacao() {
                             </div>
                         </div>
 
-                        <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Cotações</h4>
+                        <div class="observacoes-area" style="margin-bottom: 15px;">
+                            <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
+                            <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
+                        </div>
+
+                        <h4 style="margin: 15px 0 10px; color: #283944;">Histórico de Pedidos</h4>
                         <table class="historico-table" id="historico-${cliente.cnpj}">
                             <thead>
                                 <tr>
                                     <th>Data Pedido</th>
                                     <th>Data Aprovação</th>
                                     <th>Contato</th>
+                                    <th>Vendedor</th>
                                     <th>Valor</th>
-                                    <th>Link</th>
+                                    <th>Orçamento</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${cliente.cotacoes.map(cot => `
-                                    <tr data-contato="${cot.contato}|${cot.email}|${cot.telefone}">
+                                    <tr data-contato="${cot.contato}|${cot.email}|${cot.telefone}" data-vendedor="${String(cot.vendedorId || cot.vendedor).replace(/"/g,'&quot;')}" data-status="${cot.status}">
                                         <td>${cot.data ? new Date(cot.data).toLocaleDateString('pt-BR') : '-'}</td>
                                         <td>${cot.dataAprovacao ? new Date(cot.dataAprovacao).toLocaleDateString('pt-BR') : '-'}</td>
                                         <td>${cot.contato || '-'}</td>
+                                        <td>${cot.vendedor || '-'}</td>
                                         <td class="valor-formatado">${formatarValor(cot.valor)}</td>
                                         <td>${cot.link ? `<a href="${cot.link}" target="_blank">Ver</a>` : '-'}</td>
-                                        <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Pedido Recusado' ? 'recusado' : 'pendente'}">${cot.status}</span></td>
+                                        <td><span class="status-badge status-${cot.status === 'Pedido Aprovado' ? 'aprovado' : cot.status === 'Sem Retorno' ? 'sem-retorno' : 'pendente'}">${cot.status}</span></td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
-
-                        <div class="observacoes-area">
-                            <div class="observacoes-label">OBSERVAÇÕES INTERNAS</div>
-                            <textarea class="observacoes-texto" id="obs-${cliente.cnpj}" onblur="salvarObservacoes('${cliente.cnpj}')" placeholder="Adicione observações sobre este cliente...">${cliente.observacoes || ''}</textarea>
-                        </div>
 
                         <button class="btn-excluir-cliente" onclick="confirmarExclusaoCliente('${cliente.cnpj}')">EXCLUIR CLIENTE</button>
                     </div>
@@ -3480,41 +3526,39 @@ async function confirmarAprovacao() {
         }
         
         function filtrarHistoricoPorContato(cnpj) {
-            const select = document.getElementById(`contatoSelector-${cnpj}`);
-            const index = select.value;
-            const linhas = document.querySelectorAll(`#historico-${cnpj} tbody tr`);
-            
-            if (index === 'todos') {
-                linhas.forEach(linha => linha.style.display = '');
-            } else {
-                const contatoSelecionado = clientes.find(c => c.cnpj === cnpj).contatosList[index];
-                const chave = `${contatoSelecionado.contato}|${contatoSelecionado.email}|${contatoSelecionado.telefone}`;
-                
-                linhas.forEach(linha => {
-                    if (linha.dataset.contato === chave) {
-                        linha.style.display = '';
-                    } else {
-                        linha.style.display = 'none';
-                    }
-                });
-            }
+            aplicarFiltrosHistorico(cnpj);
         }
-        
-        function filtrarClientes() {
-            const busca = document.getElementById('buscaCliente').value.toLowerCase();
 
-            if (!busca) {
-                renderizarClientes();
-                return;
+        function aplicarFiltrosHistorico(cnpj) {
+            const selectContato = document.getElementById(`contatoSelector-${cnpj}`);
+            const selectVendedor = document.getElementById(`vendedorSelector-${cnpj}`);
+            const selectStatus = document.getElementById(`statusSelector-${cnpj}`);
+            const contatoIndex = selectContato?.value || 'todos';
+            const vendedorSelecionado = selectVendedor?.value || 'todos';
+            const statusSelecionado = selectStatus?.value || 'todos';
+            const linhas = document.querySelectorAll(`#historico-${cnpj} tbody tr`);
+
+            let contatoSelecionado = null;
+            if (contatoIndex !== 'todos') {
+                const cliente = clientes.find(c => c.cnpj === cnpj);
+                contatoSelecionado = cliente?.contatosList?.[contatoIndex] || null;
             }
 
-            const filtrados = clientes.filter(cliente => 
-                cliente.empresa.toLowerCase().includes(busca) || 
-                cliente.cnpj.includes(busca.replace(/\D/g, '')) ||
-                cliente.contatoPrincipal.contato.toLowerCase().includes(busca)
-            );
+            const chaveContato = contatoSelecionado ? `${contatoSelecionado.contato}|${contatoSelecionado.email}|${contatoSelecionado.telefone}` : null;
 
-            renderizarClientes(filtrados);
+            linhas.forEach(linha => {
+                const okContato = !chaveContato || linha.dataset.contato === chaveContato;
+                const okVendedor = vendedorSelecionado === 'todos' || linha.dataset.vendedor === vendedorSelecionado;
+                const okStatus = statusSelecionado === 'todos' || linha.dataset.status === statusSelecionado;
+                linha.style.display = okContato && okVendedor && okStatus ? '' : 'none';
+            });
+
+            const cliente = clientes.find(c => c.cnpj === cnpj);
+            const resumo = obterResumoContatoCliente(cliente, contatoSelecionado);
+            document.getElementById(`clienteResumoLabel-${cnpj}`).textContent = resumo.label;
+            document.getElementById(`clienteResumoContato-${cnpj}`).textContent = resumo.contato;
+            document.getElementById(`clienteResumoTelefone-${cnpj}`).textContent = resumo.telefone;
+            document.getElementById(`clienteResumoEmail-${cnpj}`).textContent = resumo.email;
         }
 
         async function salvarObservacoes(cnpj) {
@@ -3643,30 +3687,30 @@ async function confirmarAprovacao() {
         function fecharModalSelecao() {
             document.getElementById('modalSelecaoNovo').classList.remove('active');
         }
+    
+        function paraInputDataHora(valor) {
+            if (!valor) return '';
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) return valor.slice(0,16);
+            const d = new Date(valor);
+            if (Number.isNaN(d.getTime())) return '';
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function formatarDataHoraBR(valor) {
+            if (!valor) return '---';
+            const d = new Date(valor);
+            if (Number.isNaN(d.getTime())) return valor;
+            return d.toLocaleString('pt-BR');
+        }
+
+        function agendarVisita(id) {
+            editarCard(id, 'visita');
+            setTimeout(() => {
+                const campo = document.getElementById('editVisitaData');
+                if (campo) campo.focus();
+            }, 50);
+        }
     </script>
 </body>
-</html
-function paraInputDataHora(valor) {
-    if (!valor) return '';
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) return valor.slice(0,16);
-    const d = new Date(valor);
-    if (Number.isNaN(d.getTime())) return '';
-    const pad = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function formatarDataHoraBR(valor) {
-    if (!valor) return '---';
-    const d = new Date(valor);
-    if (Number.isNaN(d.getTime())) return valor;
-    return d.toLocaleString('pt-BR');
-}
-
-function agendarVisita(id) {
-    editarCard(id, 'visita');
-    setTimeout(() => {
-        const campo = document.getElementById('editVisitaData');
-        if (campo) campo.focus();
-    }, 50);
-}
->
+</html>
