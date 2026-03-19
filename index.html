@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal de Cotações | MaqCare</title>
+  <title>Portal de Cotações de Usinagem | MaqCare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -130,15 +130,13 @@
         </a>
       </div>
 
-      <h1>Portal de Cotações</h1>
+      <h1>Portal de Cotações de Usinagem</h1>
       <p class="subtitle">Solicite seu orçamento de forma rápida e organizada.</p>
 
       <div class="panel">
         <section id="stepCode">
-          <h2 class="step-title">Acesso ao portal</h2>
-          <p class="step-text">Insira seu código para liberar a próxima etapa.</p>
+          <p class="step-text" style="font-size:18px;margin-bottom:18px;">Insira seu código de acesso para liberar a próxima etapa.</p>
           <div class="field">
-            <label for="accessCode">Código de acesso</label>
             <input id="accessCode" class="code-input" type="text" maxlength="6" placeholder="••••••">
             <div id="codeError" class="error"></div>
             <div id="codeLoading" class="loading">Validando acesso...</div>
@@ -256,8 +254,8 @@
         <section id="successSection" class="success-screen hidden">
           <div class="check">✓</div>
           <h2 id="thanksName">Solicitação enviada</h2>
-          <p>Sua cotação foi recebida com sucesso. Em breve retornaremos com as informações.</p>
-          <button class="btn success" type="button" onclick="novaCotacao()">Nova cotação</button>
+          <p>Sua cotação foi recebida com sucesso! Enviaremos o seu orçamento em até 36 horas.</p>
+          <button class="btn" type="button" onclick="novaCotacao()">Nova cotação</button>
         </section>
       </div>
     </div>
